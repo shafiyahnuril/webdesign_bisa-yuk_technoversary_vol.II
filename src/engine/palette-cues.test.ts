@@ -13,6 +13,16 @@ function segPos(id: (typeof ORDER)[number], localT: number): number {
 }
 
 describe("palette", () => {
+  it("memulihkan CSS setelah tema Home dibersihkan saat navigasi rute", () => {
+    const root = document.createElement("div");
+    applyPalette(0, root);
+    applyCues(0, root);
+    const before = root.style.cssText;
+    root.style.cssText = "";
+    applyPalette(0, root);
+    applyCues(0, root);
+    expect(root.style.cssText).toBe(before);
+  });
   it("mematuhi aturan dataran 70/30 pada b1..b6", () => {
     const start = computePalette(0);
     expect(start.from).toBe("c1");

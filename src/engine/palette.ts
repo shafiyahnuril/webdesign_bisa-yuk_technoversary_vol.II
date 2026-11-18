@@ -147,7 +147,7 @@ export function applyPalette(p: number, root?: HTMLElement): ComputedPalette {
   if (!el) return palette;
 
   let cache = CACHE.get(el);
-  if (!cache) {
+  if (!cache || !el.style.getPropertyValue("--bg-now")) {
     cache = { vars: {}, mix: Number.NaN, inkMix: Number.NaN };
     CACHE.set(el, cache);
   }

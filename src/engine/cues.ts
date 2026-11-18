@@ -150,7 +150,7 @@ export function applyCues(p: number, root?: HTMLElement): ChapterCues {
   if (!el) return cues;
 
   let cache = CACHE.get(el);
-  if (!cache) {
+  if (!cache || !el.style.getPropertyValue("--grain")) {
     cache = {};
     CACHE.set(el, cache);
   }
