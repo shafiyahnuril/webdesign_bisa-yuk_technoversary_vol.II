@@ -70,7 +70,7 @@
 | T7.3 | `profiles.ts` 11 segmen + crossfade + pemicu SFX lintas `t` | Pihak A | siap |  |
 | T7.4 | Uji audio (08 §8) | Bersama (opsional) | siap |  |
 | T8.1 | **Verifikasi fakta**: isi `facts.ts` dari sumber resmi (daftar di 11 §6) | Pihak B | sebagian (5 dari 12 terverifikasi) |  |
-| T8.2 | Naskah final 11 blok cerita + 4 surat (11 §2–3) | Pihak B | siap |  |
+| T8.2 | Naskah final 11 blok cerita + 4 surat (11 §2–3) | Pihak B | selesai (menunggu persetujuan [USULAN]) |  |
 | T8.3 | Tulis 12 artikel (400–600 kata, sumber) | Pihak B | siap |  |
 | T8.4 | 12 sampul SVG | Pihak A | siap |  |
 | T8.5 | 11 panel statis SVG | Pihak A | siap |  |
@@ -95,6 +95,8 @@
 | T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Pihak B | siap |  |
 
 ## Catatan untuk sesi berikutnya
+- **Selesai (G6b, T8.2):** `copy.ts` memuat semua kunci dok 11 §2, §3, §5.1–5.3; [DISEPAKATI] identik dokumen (dijaga `copy.test.ts`). Kunci baru: `ch3.fallback`, `about.background.1/2` (paragraf latar isu; `AboutPage` memakainya, TODO(T8.2) dihapus); `ch3.counter.value` kini `{X}`. 17 teks [USULAN] menunggu persetujuan (daftar di `docs/tinjauan/NASKAH_TINJAUAN.md`, lokal). `ch6.fallback`/`ch3.fallback` dipakai selama `mikroplastik-mingguan` dan `lama-terurai` belum verified; `ch8.fact` disembunyikan (`botol-terkumpul` false). Tes `AboutPage` diperbaiki: 7 section (hero ikut dihitung). `punch.reveal` dan `ch7.kilas` adalah perilaku/tanpa teks, tidak dibuat kunci.
+- **Berikutnya (Pihak B):** G6c = T8.3 (artikel); butuh fakta terverifikasi tambahan.
 - **G6a-lanjutan (T8.1):** `produksi-plastik` kini `verified: true` (460 juta ton, 2019, sekunder OWID; halaman tidak menyebut sumber asli angka itu). `emisi-plastik` tetap `false`: OWID memuat 3,3% (siklus hidup, estimasi OECD) tetapi tanpa tahun. `daur-ulang-global` tetap `false`: persentase daur ulang tidak ada di halaman OWID. Total terverifikasi: 5 dari 12; sisanya menunggu teks OECD/sumber lain.
 - **G6a (T8.1) SEBAGIAN:** `verified: true` untuk `kenaikan-laut` (NASA, 4,5 mm/tahun, 2023), `terumbu-pemutihan` (NOAA NESDIS, 84% luas terumbu, 2023–2025, tekanan panas bukan pemutihan pasti), `sampah-sungai-laut` (Bank Dunia, 83% kebocoran dari darat via sungai, 2021), `deposit-hasil` (Reloop, >90% hanya wilayah terbaik, tahun perkiraan). Masih `false`: `mikroplastik-mingguan`, `lama-terurai` (NOAA: tidak pasti), `botol-terkumpul`, `produksi-plastik`, `emisi-plastik`, `daur-ulang-global`, `bank-sampah`, `pet-menjadi-serat`. Penyebab: OECD, UNEP, Textile Exchange, ScienceDirect, WWF tidak bisa dibuka (403/404); situs KLHK sertifikat kedaluwarsa. Alasan per entri ada di `note`.
 - **Perlu dari Pihak B/tim:** tempel teks halaman OECD Global Plastics Outlook (produksi, emisi, daur ulang) dan makalah mikroplastik (Senathirajah dkk., 2021) agar entri itu bisa diverifikasi; atau setujui memakai Our World in Data sebagai sumber sekunder. Pertimbangkan membuang kalimat yang bergantung pada fakta `false` dari naskah.
