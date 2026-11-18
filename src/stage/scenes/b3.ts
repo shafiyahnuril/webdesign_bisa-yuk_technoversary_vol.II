@@ -1,2 +1,169 @@
-// TODO(T4.5): scene Bab 3 Tersesat
-export {};
+import * as THREE from "three";
+import { CUES, PALETTE } from "@/lib/tokens";
+import type { Scene } from "../director";
+import { CityEnvironment } from "../objects/city";
+import { ensureWaterSystem, type WaterSystem } from "../objects/water";
+import type { StageContext } from "../stage";
+import { clamp01, easeHeavyIn, lerp, smoothstep } from "../util/math";
+
+const C3_BG = new THREE.Color(PALETTE.c3.bg);
+const C4_BG = new THREE.Color(PALETTE.c4.bg);
+const C3_ACCENT = new THREE.Color(PALETTE.c3.accent);
+const C4_ACCENT = new THREE.Color(PALETTE.c4.accent);
+const KEY_COLOR = new THREE.Color("#EAF4FF");
+const FILL_SKY = new THREE.Color("#8FB0CC");
+const FILL_GROUND = new THREE.Color("#0A1226");
+
+/**
+ * Scene B3 ("Tersesat"): botol jatuh ke sungai perkotaan, menyusuri tanggul,
+ * melewati kolong jembatan (gelap sesaat t~0.49), lalu melebar ke muara.
+ */
+export function createB3Scene(): Scene {
+  let ctx: StageContext | null = null;
+  let water: WaterSystem | null = null;
+  let city: CityEnvironment | null = null;
+
+  const fog = new THREE.FogExp2(PALETTE.c3.bg, CUES.c3.fog);
+  const lookAt = new THREE.Vector3();
+  const waveNormal = new THREE.Vector3();
+  const upVec = new THREE.Vector3(0, 1, 0);
+  const tiltQuat = new THREE.Quaternion();
+  const tumbleQuat = new THREE.Quaternion();
+  const tumbleEuler = new THREE.Euler();
+
+  return {
+    id: "b3",
+
+    build(stageCtx: StageContext) {
+      ctx = stageCtx;
+      water = ensureWaterSystem(stageCtx);
+      city = new CityEnvironment(stageCtx.scene, stageCtx.qualityConfig, stageCtx.size.isPortrait);
+      city.group.visible = false;
+    },
+
+    enter() {
+      if (!ctx || !water || !city) return;
+      city.group.visible = true;
+      water.group.visible = true;
+      water.group.position.set(0, 0, 0);
+      water.setMode("river");
+
+      ctx.shared.contactShadow.setVisible(false);
+      ctx.shared.bottle.detach();
+      ctx.shared.bottle.setIdle(0, false);
+
+      ctx.lights.key.color.copy(KEY_COLOR);
+      ctx.lights.fill.color.copy(FILL_SKY);
+      ctx.lights.fill.groundColor.copy(FILL_GROUND);
+      ctx.lights.spot.intensity = 0;
+      ctx.scene.fog = fog;
+    },
+
+    update(t: number) {
+      if (!ctx || !water || !city) return;
+      const uTime = ctx.reducedMotion ? 0 : ctx.uniforms.uTime.value;
+      const { bottle, contactShadow } = ctx.shared;
+      contactShadow.setVisible(false);
+
+      // Kamera bergerak sejajar sungai ke kanan: (-6 + 12*t, 0.45, 5.2)
+      const camX = -6 + 12 * t;
+      ctx.applyResponsiveCamera(35);
+      ctx.camera.position.set(camX, 0.45, 5.2);
+      lookAt.set(camX + 1.0, 0.6, -2.0);
+      ctx.camera.lookAt(lookAt);
+
+      // Transisi muara t 0.72 -> 1.00: sungai (mode 0) melebar ke laut (mode 1)
+      const estuaryMix = smoothstep(0.72, 1.0, t);
+      water.group.visible = true;
+      water.group.position.set(camX * estuaryMix * 0.4, 0, 0);
+      water.blendMode("river", "sea", estuaryMix);
+
+      const riverTurbid = clamp01(t / 0.4);
+      const waveAmp = lerp(0.04, 0.12, estuaryMix);
+      const fogDensity =
+        t <= 0.72 ? lerp(0.02, 0.06, clamp01(t / 0.72)) : lerp(0.06, CUES.c4.fog, estuaryMix);
+
+      fog.color.lerpColors(C3_BG, C4_BG, estuaryMix);
+      fog.density = fogDensity;
+      ctx.scene.fog = fog;
+
+      water.setParams({
+        time: uTime + t * 4.5,
+        amplitude: waveAmp,
+        speed: 1.0,
+        turbid: riverTurbid,
+        underwater: 0,
+        opacity: 1,
+        sunIntensity: 0.15,
+        fogColor: fog.color,
+        fogDensity: fog.density,
+      });
+
+      // Kolong jembatan t 0.44..0.54 -> lampu meredup ke 0.4x di puncak t = 0.49
+      const underpassProgress = clamp01((t - 0.44) / 0.1);
+      const underpassBell = t >= 0.44 && t <= 0.54 ? Math.sin(underpassProgress * Math.PI) : 0;
+      const lightScale = lerp(1.0, 0.4, underpassBell);
+
+      const cueMix = smoothstep(0.7, 1.0, t);
+      ctx.lights.key.intensity = 2.2 * lightScale;
+      ctx.lights.fill.intensity = 0.35 * lightScale;
+      ctx.lights.rim.color.lerpColors(C3_ACCENT, C4_ACCENT, cueMix);
+      ctx.lights.rim.intensity = lerp(CUES.c3.rim, CUES.c4.rim, cueMix) * lightScale;
+      ctx.lights.spot.intensity = 0;
+      ctx.scene.environmentIntensity = lerp(CUES.c3.env, CUES.c4.env, cueMix) * lightScale;
+
+      // Botol: jatuh t 0..0.10, lalu hanyut sedikit lebih lambat dari kamera (bergeser ke kiri bingkai)
+      const bottleX = -5.1 + 9.4 * t;
+      const bottleZ = lerp(0.85, 0.15, estuaryMix);
+      const waveSample = water.sampleHeightAndNormal(bottleX, bottleZ, waveNormal);
+
+      let bottleY: number;
+      let rotZ: number;
+      if (t < 0.1) {
+        const dropK = easeHeavyIn(clamp01(t / 0.1));
+        bottleY = lerp(2.8, waveSample.y - 0.12, dropK);
+        rotZ = lerp(0.45, 1.32, dropK);
+      } else {
+        bottleY = waveSample.y - 0.12;
+        rotZ = 1.32 + Math.sin(t * 9.0 + uTime * 0.9) * 0.08;
+      }
+
+      bottle.group.visible = true;
+      bottle.group.position.set(bottleX, bottleY, bottleZ);
+      tiltQuat.setFromUnitVectors(upVec, waveNormal);
+      tumbleEuler.set(0.22 * Math.cos(t * 7.0 + uTime * 0.7), t * 1.4, rotZ);
+      tumbleQuat.setFromEuler(tumbleEuler).premultiply(tiltQuat);
+      bottle.group.quaternion.copy(tumbleQuat);
+
+      const bottleTurbid =
+        t <= 0.72
+          ? lerp(0.1, CUES.c3.turbid, clamp01(t / 0.72))
+          : lerp(CUES.c3.turbid, CUES.c4.turbid, estuaryMix);
+      bottle.setParams({
+        turbid: bottleTurbid,
+        crack: 0,
+        breakAmt: 0,
+        level: 0.03,
+        dirt: lerp(0.05, 0.3, clamp01(t / 0.7)),
+        opacity: 1,
+      });
+
+      city.update(t, camX, estuaryMix, water, uTime + t * 4.5);
+    },
+
+    exit() {
+      if (city) city.group.visible = false;
+      if (ctx) {
+        ctx.scene.fog = null;
+      }
+    },
+
+    dispose() {
+      // Hanya bebaskan objek lokal B3; water/bottle/contactShadow milik bersama Stage.
+      city?.dispose();
+      city = null;
+      water = null;
+      ctx = null;
+    },
+  };
+}
