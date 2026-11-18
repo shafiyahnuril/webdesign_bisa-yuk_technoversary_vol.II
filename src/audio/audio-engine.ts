@@ -24,16 +24,19 @@ const UPDATE_INTERVAL_SEC = 0.1; // 10 Hz
 const MASTER_MAX_GAIN = 0.35;
 const FADE_IN_SEC = 1.5;
 const FADE_OUT_SEC = 0.4;
+const ROUTE_FADE_OUT_SEC = 0.8;
 const DUCK_TC_SEC = 0.3;
 const ANTI_SPAM_MS = 1000;
 
 export interface AudioController {
   setEnabled(enabled: boolean): Promise<void>;
+  setRouteActive(active: boolean): void;
   update(shown: number, dt: number): void;
   setDucked(ducked: boolean): void;
   reset(): void;
   dispose(): void;
   isEnabled(): boolean;
+  isRouteActive(): boolean;
   isSupported(): boolean;
   getActiveNodeCount(): number;
 }
@@ -50,7 +53,7 @@ function getAudioContextConstructor(): AudioContextConstructor | null {
 }
 
 export function isAudioSupported(): boolean {
-  if (getDevFlags().noAudio) return false;
+  if (import.meta.env.DEV && getDevFlags().noAudio) return false;
   return getAudioContextConstructor() !== null;
 }
 
@@ -75,6 +78,7 @@ export function createAudioEngine(): AudioController {
   const tracker = createNodeTracker(24);
 
   let enabled = false;
+  let routeActive = true;
   let ducked = false;
   let disposed = false;
 
@@ -101,44 +105,71 @@ export function createAudioEngine(): AudioController {
     const Ctor = getAudioContextConstructor();
     if (!Ctor) return false;
 
-    const audioCtx = new Ctor();
-    if (!tracker.acquire(5)) {
-      void audioCtx.close().catch(() => {});
+    let audioCtx: AudioContext | null = null;
+    let acquired = 0;
+    let builtDrone: DroneRig | null = null;
+    let builtNoiseBed: NoiseBedRig | null = null;
+
+    try {
+      audioCtx = new Ctor();
+      if (!tracker.acquire(5)) {
+        void audioCtx.close().catch(() => {});
+        return false;
+      }
+      acquired = 5;
+
+      const nextAmbientBus = audioCtx.createGain();
+      nextAmbientBus.gain.setValueAtTime(ducked ? 0.5 : 1.0, audioCtx.currentTime);
+
+      const nextWorldFilter = audioCtx.createBiquadFilter();
+      nextWorldFilter.type = "lowpass";
+      nextWorldFilter.frequency.setValueAtTime(8000, audioCtx.currentTime);
+      nextWorldFilter.Q.setValueAtTime(0.7, audioCtx.currentTime);
+
+      const nextSfxBus = audioCtx.createGain();
+      nextSfxBus.gain.setValueAtTime(1.0, audioCtx.currentTime);
+
+      const nextMasterGain = audioCtx.createGain();
+      nextMasterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+      const nextCompressor = audioCtx.createDynamicsCompressor();
+      nextCompressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
+      nextCompressor.ratio.setValueAtTime(4, audioCtx.currentTime);
+      nextCompressor.attack.setValueAtTime(0.01, audioCtx.currentTime);
+      nextCompressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+      nextAmbientBus.connect(nextWorldFilter);
+      nextWorldFilter.connect(nextMasterGain);
+      nextSfxBus.connect(nextMasterGain);
+      nextMasterGain.connect(nextCompressor);
+      nextCompressor.connect(audioCtx.destination);
+
+      const nextNoiseBuffer = createNoiseBuffer(audioCtx, 4);
+      builtDrone = createDrone(audioCtx, nextAmbientBus, tracker);
+      builtNoiseBed = createNoiseBed(audioCtx, nextNoiseBuffer, nextAmbientBus, tracker);
+
+      ctx = audioCtx;
+      backboneAcquired = acquired;
+      ambientBus = nextAmbientBus;
+      worldFilter = nextWorldFilter;
+      sfxBus = nextSfxBus;
+      masterGain = nextMasterGain;
+      compressor = nextCompressor;
+      noiseBuffer = nextNoiseBuffer;
+      drone = builtDrone;
+      noiseBed = builtNoiseBed;
+      return true;
+    } catch {
+      builtDrone?.stop();
+      builtNoiseBed?.stop();
+      if (acquired > 0) {
+        tracker.release(acquired);
+      }
+      if (audioCtx) {
+        void audioCtx.close().catch(() => {});
+      }
       return false;
     }
-    backboneAcquired = 5;
-    ctx = audioCtx;
-
-    ambientBus = audioCtx.createGain();
-    ambientBus.gain.setValueAtTime(ducked ? 0.5 : 1.0, audioCtx.currentTime);
-
-    worldFilter = audioCtx.createBiquadFilter();
-    worldFilter.type = "lowpass";
-    worldFilter.frequency.setValueAtTime(8000, audioCtx.currentTime);
-    worldFilter.Q.setValueAtTime(0.7, audioCtx.currentTime);
-
-    sfxBus = audioCtx.createGain();
-    sfxBus.gain.setValueAtTime(1.0, audioCtx.currentTime);
-
-    masterGain = audioCtx.createGain();
-    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-
-    compressor = audioCtx.createDynamicsCompressor();
-    compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
-    compressor.ratio.setValueAtTime(4, audioCtx.currentTime);
-    compressor.attack.setValueAtTime(0.01, audioCtx.currentTime);
-    compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
-
-    ambientBus.connect(worldFilter);
-    worldFilter.connect(masterGain);
-    sfxBus.connect(masterGain);
-    masterGain.connect(compressor);
-    compressor.connect(audioCtx.destination);
-
-    noiseBuffer = createNoiseBuffer(audioCtx, 4);
-    drone = createDrone(audioCtx, ambientBus, tracker);
-    noiseBed = createNoiseBed(audioCtx, noiseBuffer, ambientBus, tracker);
-    return true;
   };
 
   const fireEvent = (kind: AudioEventKind, now: number) => {
@@ -308,10 +339,18 @@ export function createAudioEngine(): AudioController {
       }
       void ctx.suspend().catch(() => {});
     } else if (document.visibilityState === "visible") {
+      if (!routeActive) {
+        if (masterGain) {
+          const now = ctx.currentTime;
+          masterGain.gain.cancelScheduledValues(now);
+          masterGain.gain.setValueAtTime(0, now);
+        }
+        return;
+      }
       void ctx
         .resume()
         .then(() => {
-          if (!disposed && enabled && ctx && masterGain) {
+          if (!disposed && enabled && routeActive && ctx && masterGain) {
             const now = ctx.currentTime;
             masterGain.gain.cancelScheduledValues(now);
             masterGain.gain.setValueAtTime(masterGain.gain.value, now);
@@ -335,19 +374,38 @@ export function createAudioEngine(): AudioController {
       if (next === enabled) return;
 
       if (next) {
-        if (!ensureGraph() || !ctx || !masterGain) return;
-        enabled = true;
-        writeSoundPreference(true);
+        if (!ensureGraph() || !ctx || !masterGain) {
+          enabled = false;
+          writeSoundPreference(false);
+          return;
+        }
         try {
           await ctx.resume();
         } catch {
-          // Abaikan jika browser menolak resume di luar gestur
+          enabled = false;
+          writeSoundPreference(false);
+          if (masterGain && ctx) {
+            masterGain.gain.setValueAtTime(0, ctx.currentTime);
+          }
+          return;
         }
+        if (disposed || !ctx || !masterGain) {
+          enabled = false;
+          return;
+        }
+        enabled = true;
+        writeSoundPreference(true);
         const now = ctx.currentTime;
-        masterGain.gain.cancelScheduledValues(now);
-        masterGain.gain.setValueAtTime(0, now);
-        masterGain.gain.linearRampToValueAtTime(MASTER_MAX_GAIN, now + FADE_IN_SEC);
-        applyProfileAt(lastShown, lastShown, 0.4);
+        const isHidden = typeof document !== "undefined" && document.visibilityState === "hidden";
+        if (routeActive && !isHidden) {
+          masterGain.gain.cancelScheduledValues(now);
+          masterGain.gain.setValueAtTime(0, now);
+          masterGain.gain.linearRampToValueAtTime(MASTER_MAX_GAIN, now + FADE_IN_SEC);
+          applyProfileAt(lastShown, lastShown, 0.4);
+        } else {
+          masterGain.gain.cancelScheduledValues(now);
+          masterGain.gain.setValueAtTime(0, now);
+        }
       } else {
         enabled = false;
         writeSoundPreference(false);
@@ -360,8 +418,40 @@ export function createAudioEngine(): AudioController {
       }
     },
 
+    setRouteActive(nextActive: boolean) {
+      if (disposed || nextActive === routeActive) return;
+      routeActive = nextActive;
+      if (!ctx || !masterGain || !enabled) return;
+
+      const now = ctx.currentTime;
+      if (!nextActive) {
+        pulseAccumSec = 0;
+        tickAccumSec = 0;
+        masterGain.gain.cancelScheduledValues(now);
+        masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+        masterGain.gain.linearRampToValueAtTime(0, now + ROUTE_FADE_OUT_SEC);
+      } else {
+        if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+          return;
+        }
+        const resumeFadeIn = () => {
+          if (disposed || !enabled || !routeActive || !ctx || !masterGain) return;
+          const t = ctx.currentTime;
+          masterGain.gain.cancelScheduledValues(t);
+          masterGain.gain.setValueAtTime(masterGain.gain.value, t);
+          masterGain.gain.linearRampToValueAtTime(MASTER_MAX_GAIN, t + FADE_IN_SEC);
+          applyProfileAt(lastShown, lastShown, 0.4);
+        };
+        if (ctx.state === "suspended") {
+          void ctx.resume().then(resumeFadeIn).catch(() => {});
+        } else {
+          resumeFadeIn();
+        }
+      }
+    },
+
     update(shown: number, dt: number) {
-      if (disposed || !supported || !enabled || !ctx) return;
+      if (disposed || !supported || !enabled || !routeActive || !ctx) return;
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
 
       const currShown = clamp01(shown);
@@ -424,7 +514,7 @@ export function createAudioEngine(): AudioController {
       updateAccumSec = 0;
       pulseAccumSec = 0;
       tickAccumSec = 0;
-      if (enabled && ctx) {
+      if (enabled && routeActive && ctx) {
         applyProfileAt(0, 0, 0.4);
       }
     },
@@ -463,6 +553,10 @@ export function createAudioEngine(): AudioController {
 
     isEnabled() {
       return enabled;
+    },
+
+    isRouteActive() {
+      return routeActive;
     },
 
     isSupported() {

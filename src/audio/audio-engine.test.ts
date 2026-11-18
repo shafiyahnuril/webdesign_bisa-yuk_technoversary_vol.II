@@ -226,9 +226,85 @@ describe("AudioEngine (T7.1-T7.3)", () => {
     expect(engine.isEnabled()).toBe(false);
     await expect(engine.setEnabled(true)).resolves.toBeUndefined();
     expect(engine.isEnabled()).toBe(false);
+    engine.setRouteActive(false);
     engine.update(0.5, 0.1);
     engine.setDucked(true);
     engine.reset();
     engine.dispose();
+  });
+
+  it("mematikan update/SFX dan fade-out 0.8s saat setRouteActive(false) tanpa menghapus soundOn, dan tidak autoplay saat kembali ke Home bila belum diklik", async () => {
+    // 1. Belum diklik user: pindah non-Home lalu kembali ke Home tidak boleh membuat AudioContext
+    const freshEngine = createAudioEngine();
+    freshEngine.setRouteActive(false);
+    freshEngine.setRouteActive(true);
+    expect(MockAudioContext.instances).toHaveLength(0);
+    expect(freshEngine.isEnabled()).toBe(false);
+    freshEngine.dispose();
+
+    // 2. Sudah diaktifkan user: pindah non-Home fade-out 0.8s, gate update/SFX, pertahankan enabled & localStorage
+    const engine = createAudioEngine();
+    await engine.setEnabled(true);
+    const ctx = MockAudioContext.instances[0]!;
+    const worldFilterNode = ctx.createdNodes.find((n) => n.kind === "biquad")!;
+    const masterGainNode = ctx.createdNodes.find((n) => n.kind === "gain" && n.gain?.linearRampToValueAtTime);
+    expect(masterGainNode).toBeDefined();
+
+    engine.setRouteActive(false);
+    expect(engine.isEnabled()).toBe(true);
+    expect(engine.isRouteActive()).toBe(false);
+    expect(localStorage.getItem("rebottle:sound")).toBe("1");
+
+    const callsDuringRouteOff = worldFilterNode.frequency!.setTargetAtTime.mock.calls.length;
+    const oscBeforeOff = ctx.createOscillator.mock.calls.length;
+    const b7Span = STARTS.b8 - STARTS.b7;
+    engine.update(STARTS.b7 + (THUNK_LOCAL_T - 0.05) * b7Span, 0.1);
+    engine.update(STARTS.b7 + (THUNK_LOCAL_T + 0.05) * b7Span, 0.1);
+    expect(worldFilterNode.frequency!.setTargetAtTime.mock.calls.length).toBe(callsDuringRouteOff);
+    expect(ctx.createOscillator.mock.calls.length).toBe(oscBeforeOff);
+
+    // visibilitychange -> visible saat non-Home tidak boleh resume/fade-in
+    const resumeCountWhileOff = ctx.resume.mock.calls.length;
+    Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    expect(ctx.resume.mock.calls.length).toBe(resumeCountWhileOff);
+
+    // Kembali ke Home melanjutkan karena user sudah mengaktifkan
+    engine.setRouteActive(true);
+    expect(engine.isRouteActive()).toBe(true);
+    await Promise.resolve();
+    expect(ctx.resume.mock.calls.length).toBe(resumeCountWhileOff + 1);
+
+    engine.dispose();
+    localStorage.removeItem("rebottle:sound");
+  });
+
+  it("menjaga enabled tetap false dan tanpa unhandled rejection saat resume() ditolak atau konstruktor gagal", async () => {
+    class RejectingResumeCtx extends MockAudioContext {
+      override resume = vi.fn(async () => {
+        throw new Error("NotAllowedError");
+      });
+    }
+    vi.stubGlobal("AudioContext", RejectingResumeCtx);
+    localStorage.removeItem("rebottle:sound");
+
+    const engineA = createAudioEngine();
+    await expect(engineA.setEnabled(true)).resolves.toBeUndefined();
+    expect(engineA.isEnabled()).toBe(false);
+    expect(localStorage.getItem("rebottle:sound")).not.toBe("1");
+    engineA.dispose();
+
+    class ThrowingCtor {
+      constructor() {
+        throw new Error("AudioContext blocked");
+      }
+    }
+    vi.stubGlobal("AudioContext", ThrowingCtor);
+    const engineB = createAudioEngine();
+    await expect(engineB.setEnabled(true)).resolves.toBeUndefined();
+    expect(engineB.isEnabled()).toBe(false);
+    engineB.dispose();
   });
 });
