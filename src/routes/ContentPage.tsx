@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { ArticleGrid } from "@/components/content/ArticleGrid";
 import { FilterPill } from "@/components/content/FilterPill";
 import { ParticleField } from "@/components/content/ParticleField";
@@ -13,6 +13,7 @@ import {
   sortDefault,
 } from "@/components/content/filter";
 import { kindLabel, levelLabel } from "@/components/content/filterLabels";
+import { rememberGallerySearch } from "@/components/content/galleryReturn";
 import { PageHero } from "@/components/ui/PageHero";
 import { usePageTheme } from "@/components/ui/usePageTheme";
 import { ARTICLES } from "@/content/articles";
@@ -25,6 +26,8 @@ import styles from "./ContentPage.module.css";
 export default function ContentPage() {
   usePageTheme("konten");
   const [params, setParams] = useSearchParams();
+  const { search } = useLocation();
+  useEffect(() => rememberGallerySearch(search), [search]);
   const kind = parseKind(params.get("jenis"));
   const level = parseLevel(params.get("level"));
 
