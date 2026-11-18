@@ -221,4 +221,29 @@ describe("FishSchool, PlateSet & Scene B6 (Kembali ke Kita)", () => {
     ctx.shared.bottle.dispose();
     ctx.shared.contactShadow.dispose();
   });
+
+  it("membedakan material keramik piring, urat filet salmon, alat makan logam sikat, dan sisik ikan", () => {
+    const scene = new THREE.Scene();
+    const plate = new PlateSet(scene);
+    const school = new FishSchool(scene, false);
+
+    const plateMat = plate.plateMesh.material as THREE.MeshStandardMaterial;
+    const filletMat = plate.filletMesh.material as THREE.MeshStandardMaterial;
+    const knifeMat = plate.knifeMesh.material as THREE.MeshStandardMaterial;
+    const fishMesh = school.fishes[0]!.root.children[0] as THREE.Mesh;
+    const fishMat = fishMesh.material as THREE.MeshStandardMaterial;
+
+    expect(plateMat.map).not.toBeNull();
+    expect(filletMat.map).not.toBeNull();
+    expect(filletMat.normalMap).not.toBeNull();
+    expect(filletMat.roughnessMap).not.toBeNull();
+    expect(knifeMat.metalness).toBeGreaterThan(0.7);
+    expect(knifeMat.normalMap).not.toBeNull();
+    expect(fishMat.map).not.toBeNull();
+    expect(fishMat.normalMap).not.toBeNull();
+    expect(plateMat.color.getHexString()).not.toBe(knifeMat.color.getHexString());
+
+    plate.dispose();
+    school.dispose();
+  });
 });

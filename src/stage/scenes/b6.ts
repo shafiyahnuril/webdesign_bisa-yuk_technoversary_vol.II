@@ -152,12 +152,14 @@ export function createB6Scene(): Scene {
       fog.density = lerp(0.05, 0.015, riseK) * fadeOut;
       ctx.scene.fog = fog;
 
-      ctx.lights.key.intensity = lerp(1.6, 2.0, riseK) * fadeOut;
-      ctx.lights.fill.intensity = lerp(0.28, 0.36, riseK) * fadeOut;
+      ctx.lights.key.position.set(lerp(-4, -5.2, riseK), lerp(6, 4.6, riseK), lerp(5, 3.4, riseK));
+      ctx.lights.key.intensity = lerp(1.75, 2.35, riseK) * fadeOut;
+      ctx.lights.fill.intensity = lerp(0.24, 0.28, riseK) * fadeOut;
       ctx.lights.rim.color.lerpColors(C6_ACCENT, CP0_ACCENT, endMix);
       ctx.lights.rim.intensity = lerp(CUES.c6.rim, CUES.cp0.rim, endMix) * fadeOut;
       ctx.lights.spot.intensity = 0;
-      ctx.scene.environmentIntensity = lerp(CUES.c6.env, CUES.cp0.env, endMix) * fadeOut;
+      ctx.scene.environmentIntensity =
+        lerp(CUES.c6.env * 0.9, CUES.cp0.env * 1.15, endMix) * fadeOut;
     },
 
     exit() {
@@ -168,6 +170,7 @@ export function createB6Scene(): Scene {
         particles.group.position.set(0, 0, 0);
       }
       if (ctx) {
+        ctx.lights.key.position.set(-4, 6, 5);
         ctx.scene.fog = null;
       }
     },

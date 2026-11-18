@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createClayMaterial } from "../materials/clay";
+import { makeFishScaleSet, type PbrTextureSet } from "../textures/pbr-maps";
 import { disposeObject } from "../util/dispose";
 import { clamp01, degToRad, lerp } from "../util/math";
 
@@ -93,7 +93,7 @@ export interface FishInstance {
 }
 
 /**
- * Sekawanan ikan prosedural bergaya clay (O-FISH): 3 ekor desktop / 2 portrait,
+ * Sekawanan ikan bersisik basah silver/slate (O-FISH): 3 ekor desktop / 2 portrait,
  * elipsoid pipih (1.0, 0.45, 0.22), ekor prisma mengayun +-25 deg, sirip punggung & dada,
  * berenang sepanjang kurva Lissajous kecil.
  */
@@ -104,6 +104,7 @@ export class FishSchool {
   private readonly bodyMat: THREE.MeshStandardMaterial;
   private readonly finMat: THREE.MeshStandardMaterial;
   private readonly eyeMat: THREE.MeshStandardMaterial;
+  private readonly scaleSet: PbrTextureSet;
   private readonly bodyGeom: THREE.BufferGeometry;
   private readonly tailGeom: THREE.BufferGeometry;
   private readonly dorsalGeom: THREE.BufferGeometry;
@@ -115,26 +116,37 @@ export class FishSchool {
     this.group.name = "O-FISH-SCHOOL";
     parent.add(this.group);
 
-    this.bodyMat = createClayMaterial({
-      color: "#8A96C8",
-      roughness: 0.7,
+    this.scaleSet = makeFishScaleSet(256);
+    this.bodyMat = new THREE.MeshStandardMaterial({
+      color: "#DCE7F3",
+      map: this.scaleSet.map ?? null,
+      normalMap: this.scaleSet.normalMap ?? null,
+      normalScale: new THREE.Vector2(0.85, 0.85),
+      roughnessMap: this.scaleSet.roughnessMap ?? null,
+      roughness: 0.24,
+      metalness: 0.34,
+      envMapIntensity: 1.25,
       transparent: true,
       opacity: 1,
     });
-    this.finMat = createClayMaterial({
-      color: "#6F7BB0",
-      roughness: 0.74,
+    this.finMat = new THREE.MeshStandardMaterial({
+      color: "#526882",
+      roughness: 0.34,
+      metalness: 0.16,
+      envMapIntensity: 0.9,
       transparent: true,
       opacity: 1,
     });
-    this.eyeMat = createClayMaterial({
-      color: "#05080F",
-      roughness: 0.55,
+    this.eyeMat = new THREE.MeshStandardMaterial({
+      color: "#070B14",
+      roughness: 0.1,
+      metalness: 0.1,
+      envMapIntensity: 1.4,
       transparent: true,
       opacity: 1,
     });
 
-    // ~216 + 8 + 4 + 8 + 32 = ~268 tris per ikan (3 ikan <= 1000 tris)
+    // ~216 + 8 + 4 + 8 + 32 = ~268 tris per ikan (3 ikan <= 1050 tris)
     this.bodyGeom = new THREE.SphereGeometry(1, 12, 9);
     this.bodyGeom.scale(1.0, 0.45, 0.22);
     this.tailGeom = createTailPrismGeometry();
@@ -190,7 +202,7 @@ export class FishSchool {
   setOpacity(opacity: number): void {
     const a = clamp01(opacity);
     this.bodyMat.opacity = a;
-    this.finMat.opacity = a;
+    this.finMat.opacity = a * 0.92;
     this.eyeMat.opacity = a;
     this.group.visible = a > 0.002;
   }
@@ -242,5 +254,6 @@ export class FishSchool {
   dispose(): void {
     this.group.removeFromParent();
     disposeObject(this.group);
+    this.scaleSet.dispose();
   }
 }
