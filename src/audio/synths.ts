@@ -9,7 +9,13 @@ export const NOTES = {
   Fs3: 185.0,
   A3: 220.0,
   D4: 293.66,
+  E4: 329.63,
+  F4: 349.23,
+  Fs4: 369.99,
   A4: 440.0,
+  D5: 587.33,
+  E5: 659.25,
+  Fs5: 739.99,
   A5: 880.0,
 } as const;
 
@@ -452,6 +458,79 @@ export function triggerFilteredNoiseShot(
   src.start(now);
   src.stop(now + opts.dur + 0.02);
   scheduleTransientCleanup(3, opts.dur + 0.02, tracker, src, [src, filter, g]);
+}
+
+/** Resonansi kaca/logam dua parsial ringan (3 node: 2 osc -> 1 gain) dengan peluruhan lembut. */
+export function triggerBell(
+  ctx: BaseAudioContext,
+  dest: AudioNode,
+  tracker: AudioNodeTracker,
+  now: number,
+  opts: { freq: number; harmonicRatio?: number; dur: number; attack?: number; gain: number },
+): void {
+  if (!tracker.acquire(3)) return;
+  const primary = ctx.createOscillator();
+  const overtone = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  primary.type = "sine";
+  primary.frequency.setValueAtTime(opts.freq, now);
+
+  overtone.type = "sine";
+  overtone.frequency.setValueAtTime(opts.freq * (opts.harmonicRatio ?? 2.0), now);
+
+  const attack = Math.min(opts.dur * 0.35, opts.attack ?? 0.015);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.linearRampToValueAtTime(opts.gain, now + attack);
+  gain.gain.linearRampToValueAtTime(opts.gain * 0.28, now + attack + (opts.dur - attack) * 0.38);
+  gain.gain.linearRampToValueAtTime(0.0001, now + opts.dur);
+
+  primary.connect(gain);
+  overtone.connect(gain);
+  gain.connect(dest);
+
+  primary.start(now);
+  overtone.start(now);
+  primary.stop(now + opts.dur + 0.02);
+  overtone.stop(now + opts.dur + 0.02);
+  scheduleTransientCleanup(3, opts.dur + 0.02, tracker, primary, [primary, overtone, gain]);
+}
+
+/** Angkat akor pad dua suara hangat (3 node: 2 triangle osc -> 1 gain) untuk resolusi sentimentil. */
+export function triggerHarmonyPad(
+  ctx: BaseAudioContext,
+  dest: AudioNode,
+  tracker: AudioNodeTracker,
+  now: number,
+  opts: { rootHz: number; upperHz: number; dur: number; attack: number; release: number; gain: number },
+): void {
+  if (!tracker.acquire(3)) return;
+  const rootOsc = ctx.createOscillator();
+  const upperOsc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  rootOsc.type = "triangle";
+  rootOsc.frequency.setValueAtTime(opts.rootHz, now);
+  rootOsc.detune.setValueAtTime(-3, now);
+
+  upperOsc.type = "triangle";
+  upperOsc.frequency.setValueAtTime(opts.upperHz, now);
+  upperOsc.detune.setValueAtTime(3, now);
+
+  const total = Math.max(opts.dur, opts.attack + opts.release);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.linearRampToValueAtTime(opts.gain, now + opts.attack);
+  gain.gain.linearRampToValueAtTime(0.0001, now + total);
+
+  rootOsc.connect(gain);
+  upperOsc.connect(gain);
+  gain.connect(dest);
+
+  rootOsc.start(now);
+  upperOsc.start(now);
+  rootOsc.stop(now + total + 0.02);
+  upperOsc.stop(now + total + 0.02);
+  scheduleTransientCleanup(3, total + 0.02, tracker, rootOsc, [rootOsc, upperOsc, gain]);
 }
 
 export function lerpEnvelope(a: number, b: number, t: number): number {
