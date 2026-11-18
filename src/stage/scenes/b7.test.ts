@@ -147,10 +147,51 @@ describe("FlashPass (jendela kilas scissor B7c)", () => {
     ctx.shared.bottle.dispose();
     ctx.shared.contactShadow.dispose();
   });
+
+  it("mendukung setOpacity(alpha) tanpa background opaque dan melewati render saat alpha <= 0.005", () => {
+    const { renderer, mock } = makeMockRenderer();
+    const ctx = makeTestContext(renderer);
+    const flash = createFlashPass(ctx);
+
+    expect(flash.scene.background).toBeNull();
+    flash.setRect({ x: 960, y: 80, width: 544, height: 416 });
+    flash.setActive(true);
+
+    flash.setOpacity(0.004);
+    expect(flash.getOpacity()).toBeCloseTo(0.004, 4);
+    flash.renderPass(0.5);
+    expect(mock.render).not.toHaveBeenCalled();
+
+    flash.setOpacity(0.45);
+    expect(flash.getOpacity()).toBeCloseTo(0.45, 4);
+    flash.scene.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        const mat = obj.material as THREE.Material & {
+          opacity?: number;
+          uniforms?: { uOpacity?: { value: number } };
+        };
+        if (mat.uniforms?.uOpacity) {
+          expect(mat.uniforms.uOpacity.value).toBeCloseTo(0.45, 4);
+        } else if (typeof mat.opacity === "number") {
+          expect(mat.opacity).toBeCloseTo(0.45, 4);
+        }
+        expect(mat.transparent).toBe(true);
+      }
+    });
+    flash.renderPass(0.5);
+    expect(mock.render).toHaveBeenCalledTimes(1);
+
+    flash.reset();
+    expect(flash.isActive()).toBe(false);
+    expect(flash.getOpacity()).toBe(1);
+
+    flash.dispose();
+    ctx.shared.bottle.dispose();
+    ctx.shared.contactShadow.dispose();
+  });
 });
 
 describe("Scene B7 (Di Tempat yang Benar)", () => {
-
   it("mengantarkan botol ke tempat sampah Plastik (-2.0), mengaktifkan kilas 7c, dan mereset bersih saat mundur", () => {
     const { renderer } = makeMockRenderer();
     const ctx = makeTestContext(renderer);
