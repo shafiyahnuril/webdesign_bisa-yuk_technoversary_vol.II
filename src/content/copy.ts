@@ -130,6 +130,14 @@ export const COPY = {
   "about.team.placeholder.name": "Nama anggota menyusul",
   "about.team.placeholder.role": "Peran menyusul",
   "about.closing.contact": "Hubungi kami",
+  // Revisi About [USULAN]: judul bagian dan label pendek; tidak ada klaim baru.
+  "about.background.title": "Latar belakang", // USULAN
+  "about.scenarios.title": "Dua skenario", // USULAN
+  "about.facts.title": "Angka", // USULAN
+  "about.temp.section": "Suhu dan target 1,5°C", // USULAN
+  "about.sources.count": "{n} sumber", // USULAN
+  "about.licenses.group.asset": "Aset", // USULAN
+  "about.closing.home": "Ke beranda", // USULAN
 
   // Contact
   "contact.title": "Hubungi Kami",
