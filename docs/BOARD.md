@@ -71,7 +71,7 @@
 | T7.4 | Uji audio (08 §8) | Bersama (opsional) | siap |  |
 | T8.1 | **Verifikasi fakta**: isi `facts.ts` dari sumber resmi (daftar di 11 §6) | Pihak B | sebagian (5 dari 12 terverifikasi) |  |
 | T8.2 | Naskah final 11 blok cerita + 4 surat (11 §2–3) | Pihak B | selesai (menunggu persetujuan [USULAN]) |  |
-| T8.3 | Tulis 12 artikel (400–600 kata, sumber) | Pihak B | sebagian (batch 1: A1, B1, A2, B2 selesai; 8 artikel tersisa) |  |
+| T8.3 | Tulis 12 artikel (400–600 kata, sumber) | Pihak B | selesai (12 artikel, 402–468 kata, 3 menit baca; 3 batch) |  |
 | T8.4 | 12 sampul SVG | Pihak A | siap |  |
 | T8.5 | 11 panel statis SVG | Pihak A | siap |  |
 | T8.6 | Favicon, OG, wordmark, 404 | Pihak A | siap |  |
@@ -97,6 +97,10 @@
 ## Catatan untuk sesi berikutnya
 - **G6c batch 1 (T8.3):** A1, B1, A2, B2 ditulis di `src/content/articles/<kode>.ts` (400–422 kata, 3 menit baca) dan disambung lewat `ArticleBody` + `BODIES` di `articles.ts`. Sisa: A3–A6, B3–B6 (tambahkan berkas `articles/<kode>.ts` dan daftarkan di `BODIES`). Tes `AboutPage`/`ArticlePage` disesuaikan agar tak bergantung pada data kosong.
 - **G6c batch 2 (T8.3):** A3, A4, B3, B4 ditulis (450–468 kata, 3 menit baca) dan didaftarkan di `BODIES`. Judul A2 diganti jadi "10 Menit Dipakai, Ratusan Tahun Tinggal" (slug `10-menit-dipakai-ratusan-tahun-tinggal`) karena "450 tahun" tak punya sumber primer; teks A2 disesuaikan. Sisa: A5, A6, B5, B6 (batch 3). Cox et al. 2019 dan UNEP tidak bisa dibuka; WHO hanya halaman ringkasan (batch 1).
+- **G6c batch 3 (T8.3) SELESAI:** A5, A6, B5, B6 ditulis (450–458 kata) dan didaftarkan di `BODIES`; T8.3 tuntas (12 artikel). Audit 12 artikel: `readingMinutes` terisi semua (3), slug unik, tiap artikel ≥ 3 sumber dari ≥ 2 penerbit, ringkasan ≤ 140 karakter, tak ada ringkasan "TODO", `nextInOrder` berputar 12→1 (diuji sementara, tes tidak di-commit). Teks "Belum ada isi" hanya tersisa sebagai keadaan kosong komponen.
+- **Batasan sumber batch 3:** OECD Global Plastics Outlook, UNEP, Smithsonian, Infinitum, dan SINTEF tidak bisa dibuka, sehingga `emisi-plastik` dan `daur-ulang-global` tetap `false` di `facts.ts`. A6 memakai angka OWID yang mengutip OECD (±3,3%, tahun data tidak disebut halaman); B6 memakai angka kemasan EMF 2016/2017 dengan penanda usia. B5 tidak memuat angka per negara (hanya Reloop, UBA 2010, DUH 2025 yang mengutip UBA); Reloop dan DUH adalah organisasi advokasi, ditandai di teks.
+- **Perlu keputusan tim (opsional):** tempel teks OECD (ringkasan eksekutif) bila ingin `emisi-plastik` dan `daur-ulang-global` diverifikasi dan dipakai sebagai angka di A6/B6.
+- **Berikutnya (Pihak B):** T8.7 data tim dan T8.8 credits, T9.4 SEO/noscript, T11.1 README, T11.5 pengumpulan; T8.1 menunggu fakta OECD.
 - **Menunggu Pihak A:** `public/img/articles/cover-A2.svg` masih memuat judul lama "450 Tahun" pada elemen `<title>` (aset A); mohon diganti saat menyentuh sampul.
 - **Catatan sumber batch 2:** Meijer 2021 (Science Advances), jurnal KKP, Pergub Bali 97/2018, SE Bali 2/2025, dan ITS tidak bisa dibuka dan tidak dipakai. Angka nelayan/kerugian (CELIOS, BRIN) berasal dari narasumber yang dikutip Mongabay dan ditandai di teks; angka 22% dan 80% daur ulang berasal dari rangkuman sekunder studi SWI–IPR.
 - **Catatan:** kalimat "langkah kecil" terletak di subjudul terakhir, sebelum kotak "Kaitannya dengan Re:bottle".

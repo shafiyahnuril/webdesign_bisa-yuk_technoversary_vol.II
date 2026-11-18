@@ -166,7 +166,7 @@ F0 Fondasi ──► F1 Mesin + Rangka Home (placeholder) ──┬─► F3 Pan
 |---|---|---|---|---|
 | ☐ T8.1 | **Verifikasi fakta**: isi `facts.ts` dari sumber resmi (daftar di 11 §6) | Setiap entri punya sumber, tahun, `verified: true` | 11 | B |
 | ☑ T8.2 | Naskah final 11 blok cerita + 4 surat (11 §2–3) | Disetujui tim; tanpa klaim sebab-akibat langsung | 11 | B |
-| ☐ T8.3 | Tulis 12 artikel (400–600 kata, sumber) | Sesuai templat 05 §5.3 | 11 §4 | B |
+| ☑ T8.3 | Tulis 12 artikel (400–600 kata, sumber) | Sesuai templat 05 §5.3 | 11 §4 | B |
 | ☐ T8.4 | 12 sampul SVG | Lolos daftar periksa 07 §11 | 07 §6.2 | B |
 | ☐ T8.5 | 11 panel statis SVG | Lolos daftar periksa 07 §11 | 07 §6.3 | B |
 | ☐ T8.6 | Favicon, OG, wordmark, 404 | Lolos | 07 §6.4 | B |
