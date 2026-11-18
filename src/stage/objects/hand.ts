@@ -1,12 +1,12 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { createClayMaterial } from "../materials/clay";
+import { makeSkinSurfaceSet, type PbrTextureSet } from "../textures/pbr-maps";
 import type { SharedObjectHandle } from "../stage";
 import { clamp01, degToRad, lerp } from "../util/math";
 
 export type HandPoseName = "OPEN" | "GRIP" | "RELEASE" | "THROW";
 
-export const HAND_COLOR = "#BFD3EA";
+export const HAND_COLOR = "#D1AA94";
 
 export const HAND_DIMENSIONS = {
   palmWidth: 0.85,
@@ -92,6 +92,7 @@ export class Hand implements SharedObjectHandle {
   readonly thumb: FingerRig;
 
   private readonly material: THREE.MeshStandardMaterial;
+  private readonly skinSet: PbrTextureSet;
   private readonly geometries: THREE.BufferGeometry[] = [];
 
   constructor(parent: THREE.Object3D) {
@@ -99,10 +100,16 @@ export class Hand implements SharedObjectHandle {
     this.wristPivot.name = "O-HAND-WRIST";
     this.palmAnchor.name = "O-HAND-PALM-ANCHOR";
 
-    this.material = createClayMaterial({
+    this.skinSet = makeSkinSurfaceSet(256);
+    this.material = new THREE.MeshStandardMaterial({
       color: HAND_COLOR,
-      roughness: 0.8,
-      metalness: 0,
+      map: this.skinSet.map ?? null,
+      normalMap: this.skinSet.normalMap ?? null,
+      normalScale: new THREE.Vector2(0.45, 0.45),
+      roughnessMap: this.skinSet.roughnessMap ?? null,
+      roughness: 0.62,
+      metalness: 0.02,
+      envMapIntensity: 0.65,
     });
 
     // Telapak: RoundedBox(0.85 x 0.95 x 0.34, r 0.12), orientasi tebal di X agar sisi telapak menghadap botol (-X)
@@ -255,5 +262,6 @@ export class Hand implements SharedObjectHandle {
       g.dispose();
     }
     this.material.dispose();
+    this.skinSet.dispose();
   }
 }

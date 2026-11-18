@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { makeBottleCrack } from "../textures/crack";
 import { makeBottleLabel } from "../textures/label";
+import { makePetBottleSurfaceSet, type PbrTextureSet } from "../textures/pbr-maps";
 
 export interface BottleParams {
   turbid: number;
@@ -38,13 +39,14 @@ export interface BottleMaterialSet {
   uniforms: BottleUniforms;
   crackTextures: { mask: THREE.CanvasTexture; growth: THREE.CanvasTexture };
   labelTexture: THREE.CanvasTexture;
+  petSurface: PbrTextureSet | null;
   transmission: boolean;
   crackSize: 512 | 1024;
 }
 
-const CLEAN_ATTENUATION = new THREE.Color("#CFE9FF");
+const CLEAN_ATTENUATION = new THREE.Color("#E2F4FF");
 const TURBID_ATTENUATION = new THREE.Color("#6B7F8F");
-const CLEAN_BODY_TINT = new THREE.Color("#F1F8FF");
+const CLEAN_BODY_TINT = new THREE.Color("#FFFFFF");
 const LOW_CLEAN_TINT = new THREE.Color("#CFE9FF");
 const LOW_TURBID_TINT = new THREE.Color("#6B7F8F");
 
@@ -145,6 +147,7 @@ function attachBodyShaderHooks(
 function createBodyMaterial(
   transmission: boolean,
   uniforms: BottleUniforms,
+  petSurface: PbrTextureSet | null,
 ): THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial {
   if (!transmission) {
     const mat = new THREE.MeshStandardMaterial({
@@ -164,18 +167,21 @@ function createBodyMaterial(
     color: CLEAN_BODY_TINT,
     roughness: 0.06,
     metalness: 0,
-    ior: 1.45,
-    reflectivity: 0.9,
+    ior: 1.49,
+    reflectivity: 0.94,
     clearcoat: 0.6,
-    clearcoatRoughness: 0.08,
+    clearcoatRoughness: 0.03,
     transmission: 1,
-    thickness: 0.45,
+    thickness: 0.28,
     attenuationColor: CLEAN_ATTENUATION.clone(),
-    attenuationDistance: 3,
+    attenuationDistance: 7.0,
+    normalMap: petSurface?.normalMap ?? null,
+    normalScale: new THREE.Vector2(0.14, 0.14),
+    roughnessMap: petSurface?.roughnessMap ?? null,
     transparent: false,
     opacity: 1,
     depthWrite: true,
-    envMapIntensity: 1,
+    envMapIntensity: 1.35,
   });
 
   attachBodyShaderHooks(mat, "rebottle-pet-v1", uniforms);
@@ -184,7 +190,7 @@ function createBodyMaterial(
 
 /**
  * Material cairan: baseline docs/03 §3.1 memakai transmission 0.9 di HIGH/MEDIUM,
- * dan transparan biasa di LOW (konflik docs/06 §4.2 dicatat di laporan ke koordinator).
+ * dan transparan biasa di LOW.
  */
 function createLiquidMaterial(
   transmission: boolean,
@@ -192,14 +198,15 @@ function createLiquidMaterial(
 ): THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial {
   if (transmission) {
     return new THREE.MeshPhysicalMaterial({
-      color: "#BFE9FF",
-      roughness: 0.05,
+      color: "#D4F1FF",
+      roughness: 0.025,
       metalness: 0,
       ior: 1.333,
       transmission: 0.9,
       thickness: 0.35,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.52,
+      envMapIntensity: 1.15,
       clippingPlanes: [clipPlane],
       side: THREE.DoubleSide,
     });
@@ -222,6 +229,7 @@ export function createBottleMaterials(opts: {
 }): BottleMaterialSet {
   const crackTextures = makeBottleCrack(opts.crackSize);
   const labelTexture = makeBottleLabel();
+  const petSurface = opts.transmission ? makePetBottleSurfaceSet(256) : null;
 
   const uniforms: BottleUniforms = {
     uBreak: { value: 0 },
@@ -233,17 +241,17 @@ export function createBottleMaterials(opts: {
     tCrackGrowth: { value: crackTextures.growth },
   };
 
-  const body = createBodyMaterial(opts.transmission, uniforms);
+  const body = createBodyMaterial(opts.transmission, uniforms, petSurface);
   const cap = new THREE.MeshStandardMaterial({
-    color: "#BFE7FF",
-    roughness: 0.5,
-    metalness: 0,
+    color: "#AEDCF7",
+    roughness: 0.38,
+    metalness: 0.04,
   });
   const liquid = createLiquidMaterial(opts.transmission, opts.clipPlane);
   const label = new THREE.MeshStandardMaterial({
     color: "#FFFFFF",
     map: labelTexture,
-    roughness: 0.68,
+    roughness: 0.62,
     metalness: 0,
   });
 
@@ -255,6 +263,7 @@ export function createBottleMaterials(opts: {
     uniforms,
     crackTextures,
     labelTexture,
+    petSurface,
     transmission: opts.transmission,
     crackSize: opts.crackSize,
   };
@@ -315,7 +324,13 @@ export function swapBottleMaterialQuality(
   if (mats.transmission !== opts.transmission) {
     mats.body.dispose();
     mats.liquid.dispose();
-    mats.body = createBodyMaterial(opts.transmission, mats.uniforms);
+    if (opts.transmission && !mats.petSurface) {
+      mats.petSurface = makePetBottleSurfaceSet(256);
+    } else if (!opts.transmission && mats.petSurface) {
+      mats.petSurface.dispose();
+      mats.petSurface = null;
+    }
+    mats.body = createBodyMaterial(opts.transmission, mats.uniforms, mats.petSurface);
     mats.liquid = createLiquidMaterial(opts.transmission, opts.clipPlane);
     mats.transmission = opts.transmission;
   }
@@ -331,4 +346,6 @@ export function disposeBottleMaterials(mats: BottleMaterialSet): void {
   mats.crackTextures.mask.dispose();
   mats.crackTextures.growth.dispose();
   mats.labelTexture.dispose();
+  mats.petSurface?.dispose();
+  mats.petSurface = null;
 }
