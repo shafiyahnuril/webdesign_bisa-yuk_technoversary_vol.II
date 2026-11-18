@@ -9,6 +9,11 @@ export interface ArticleSource {
   year: number | null;
 }
 
+export interface ArticleSection {
+  heading: string;
+  paragraphs: string[];
+}
+
 export interface Article {
   /** Kode kerja (A1..A6 negatif, B1..B6 positif). */
   code: string;
@@ -19,7 +24,12 @@ export interface Article {
   readingMinutes: number | null;
   summary: string;
   cover: string;
-  body: string[];
+  /** Lede satu paragraf (± 40 kata). Kosong sampai T8.3. */
+  lede: string;
+  /** Isi: 2–3 subjudul H2 beserta paragraf. Kosong sampai T8.3. */
+  sections: ArticleSection[];
+  /** Kotak "Kaitannya dengan Re:bottle" (2 kalimat). Kosong sampai T8.3. */
+  relation: string;
   sources: ArticleSource[];
 }
 
@@ -38,7 +48,9 @@ const make = (
   readingMinutes: null,
   summary: "TODO: ringkasan satu kalimat (maks. 140 karakter).",
   cover: `img/articles/cover-${code}.svg`,
-  body: [],
+  lede: "",
+  sections: [],
+  relation: "",
   sources: [],
 });
 

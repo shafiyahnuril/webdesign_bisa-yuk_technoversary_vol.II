@@ -5,7 +5,10 @@ export const SITE = {
   subtheme: "Kampanye Peduli Lingkungan",
   competition: "Techno Versary Vol. II · HIMA TI FKOM Universitas Kuningan",
   theme: "EcoDigital For Environment",
-  email: "TODO@example.com",
+  // DUMMY: ganti dengan data asli sebelum rilis
+  email: "rebottle@gmail.com",
+  // DUMMY: ganti dengan data asli sebelum rilis
+  account: "@rebottle.id",
   formspreeId: "TODO",
   repoUrl: "TODO",
   team: [

@@ -34,7 +34,9 @@ const baseArticle: Article = {
   readingMinutes: 5,
   summary: "s",
   cover: "img/articles/cover-A1.svg",
-  body: [],
+  lede: "",
+  sections: [],
+  relation: "",
   sources: [],
 };
 
