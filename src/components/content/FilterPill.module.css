@@ -1,0 +1,86 @@
+.pill {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 48px;
+  width: max-content;
+  max-width: 100%;
+  padding: 0 var(--s-2);
+  border: 1.5px solid var(--page-ink);
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--page-bg) 70%, white);
+  color: var(--page-ink);
+  /* HP: pil dapat digulir horizontal. */
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.pill::-webkit-scrollbar {
+  display: none;
+}
+
+.group {
+  display: flex;
+  gap: var(--s-1);
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  align-self: stretch;
+  margin-block: var(--s-3);
+  background: var(--page-ink);
+  opacity: 0.35;
+}
+
+.chip {
+  position: relative;
+  flex: none;
+  scroll-snap-align: start;
+  min-height: 36px;
+  padding: 0 var(--s-4);
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  isolation: isolate;
+}
+
+/* Latar chip aktif: lapisan terpisah agar yang dianimasikan hanya opacity. */
+.chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--page-ink);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out-expo);
+}
+
+.chip[aria-pressed="true"] {
+  color: var(--page-bg);
+}
+
+.chip[aria-pressed="true"]::before {
+  opacity: 1;
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.count {
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip::before {
+    transition: none;
+  }
+}

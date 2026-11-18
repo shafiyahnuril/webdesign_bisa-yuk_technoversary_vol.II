@@ -1,0 +1,186 @@
+.card {
+  --card-bg: var(--card-neg-bg);
+  --card-ink: var(--card-neg-ink);
+  --card-label: var(--card-neg-label);
+  position: relative;
+  border-radius: var(--r-lg);
+  background: var(--card-bg);
+  color: var(--card-ink);
+  overflow: hidden;
+  animation: cardIn 0.7s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+  transition: opacity 0.2s linear;
+}
+
+.card[data-kind="positif"] {
+  --card-bg: var(--card-pos-bg);
+  --card-ink: var(--card-pos-ink);
+  --card-label: var(--card-pos-label);
+}
+
+.leaving {
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.link {
+  display: grid;
+  color: inherit;
+  text-decoration: none;
+  border-radius: inherit;
+  transition: transform 0.15s var(--ease-out-expo);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.link:active {
+  transform: scale(0.98);
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  margin: var(--s-3) var(--s-3) 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--card-bg);
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.04);
+  transition: transform 0.3s var(--ease-out-expo);
+}
+
+/* Salinan RGB-split: tersembunyi sampai hover (hanya pointer halus + tanpa reduced-motion). */
+.split {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-size: cover;
+  background-position: center;
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.3s var(--ease-out-expo),
+    transform 0.3s var(--ease-out-expo);
+}
+
+.split::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+}
+
+.splitA::after {
+  background: var(--card-neg-label);
+}
+
+.splitB::after {
+  background: var(--card-pos-label);
+}
+
+.body {
+  position: relative;
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-5) calc(var(--s-6) + 36px) var(--s-6) var(--s-6);
+}
+
+/* Garis pemisah 1px, 25% opasitas. */
+.body::before {
+  content: "";
+  position: absolute;
+  inset: 0 var(--s-6) auto;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.25;
+}
+
+.title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.sub {
+  margin: 0;
+  color: var(--card-label);
+}
+
+.arrow {
+  position: absolute;
+  right: var(--s-6);
+  bottom: var(--s-6);
+  transition: transform 0.3s var(--ease-out-expo);
+}
+
+@media (max-width: 640px) {
+  .media {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .card:hover .img,
+  .link:focus-visible .img {
+    transform: translateX(6px) scale(1.06);
+  }
+
+  .card:hover .split,
+  .link:focus-visible .split {
+    opacity: 0.55;
+  }
+
+  .card:hover .splitA,
+  .link:focus-visible .splitA {
+    transform: translateX(-3px) scale(1.06);
+  }
+
+  .card:hover .splitB,
+  .link:focus-visible .splitB {
+    transform: translateX(3px) scale(1.06);
+  }
+
+  .card:hover .arrow,
+  .link:focus-visible .arrow {
+    transform: translate(4px, 4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+    transition: none;
+  }
+
+  .img,
+  .link,
+  .arrow {
+    transition: none;
+  }
+
+  .split {
+    display: none;
+  }
+}
