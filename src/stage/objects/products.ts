@@ -576,7 +576,7 @@ export function createToteProduct(lowDetail = false): ProductHandle {
   return makeTrackedProduct("tote", (h) => {
     const group = new THREE.Group();
     const spec = PRODUCT_SPECS.tote;
-    const canvasSet = h.trackSet(makeFabricPbrSet("canvas", 256, 2, 2));
+    const canvasSet = h.trackSet(makeFabricPbrSet("canvas", 256, 6, 8));
 
     const uSegs = lowDetail ? 14 : 20;
     const vSegs = lowDetail ? 8 : 14;
@@ -677,9 +677,9 @@ export function createToteProduct(lowDetail = false): ProductHandle {
         color: spec.color,
         map: canvasSet.map ?? null,
         normalMap: canvasSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.55, 0.55),
+        normalScale: new THREE.Vector2(0.18, 0.18),
         roughnessMap: canvasSet.roughnessMap ?? null,
-        roughness: 0.8,
+        roughness: 0.95,
         metalness: 0,
         side: THREE.DoubleSide,
       }),
@@ -689,7 +689,7 @@ export function createToteProduct(lowDetail = false): ProductHandle {
         color: "#22655F",
         map: canvasSet.map ?? null,
         normalMap: canvasSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.5, 0.5),
+        normalScale: new THREE.Vector2(0.16, 0.16),
         roughness: 0.84,
         metalness: 0,
         side: THREE.DoubleSide,
@@ -699,7 +699,8 @@ export function createToteProduct(lowDetail = false): ProductHandle {
       new THREE.MeshStandardMaterial({
         color: "#16433F",
         normalMap: canvasSet.normalMap ?? null,
-        roughness: 0.74,
+        normalScale: new THREE.Vector2(0.16, 0.16),
+        roughness: 0.92,
         metalness: 0,
       }),
     );
@@ -719,7 +720,7 @@ export function createToteProduct(lowDetail = false): ProductHandle {
 function createTeeProduct(lowDetail = false): ProductHandle {
   return makeTrackedProduct("tee", (h) => {
     const group = new THREE.Group();
-    const cottonSet = h.trackSet(makeFabricPbrSet("cotton", 256, 3, 3));
+    const cottonSet = h.trackSet(makeFabricPbrSet("cotton", 256, 8, 10));
     const metalSet = h.trackSet(makeBrushedMetalSet(256, 1, 1));
     const woodSet = h.trackSet(makeWoodGrainSet(256, 1, 1));
 
@@ -728,9 +729,9 @@ function createTeeProduct(lowDetail = false): ProductHandle {
         color: PRODUCT_SPECS.tee.color,
         map: cottonSet.map ?? null,
         normalMap: cottonSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.52, 0.52),
+        normalScale: new THREE.Vector2(0.14, 0.14),
         roughnessMap: cottonSet.roughnessMap ?? null,
-        roughness: 0.88,
+        roughness: 0.98,
         metalness: 0,
         side: THREE.DoubleSide,
       }),
@@ -740,7 +741,7 @@ function createTeeProduct(lowDetail = false): ProductHandle {
         color: "#3F8066",
         map: cottonSet.map ?? null,
         normalMap: cottonSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.6, 0.6),
+        normalScale: new THREE.Vector2(0.18, 0.18),
         roughness: 0.9,
         metalness: 0,
       }),
@@ -1003,10 +1004,10 @@ function createBackpackProduct(lowDetail = false): ProductHandle {
         color: spec.color,
         map: nylonSet.map ?? null,
         normalMap: nylonSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.48, 0.48),
+        normalScale: new THREE.Vector2(0.14, 0.14),
         roughnessMap: nylonSet.roughnessMap ?? null,
-        roughness: 0.48,
-        metalness: 0.06,
+        roughness: 0.6,
+        metalness: 0,
         side: THREE.DoubleSide,
       }),
     );
@@ -1014,8 +1015,9 @@ function createBackpackProduct(lowDetail = false): ProductHandle {
       new THREE.MeshStandardMaterial({
         color: "#1F374A",
         normalMap: nylonSet.normalMap ?? null,
-        roughness: 0.56,
-        metalness: 0.04,
+        normalScale: new THREE.Vector2(0.14, 0.14),
+        roughness: 0.84,
+        metalness: 0,
         side: THREE.DoubleSide,
       }),
     );
@@ -1219,7 +1221,7 @@ function createPotProduct(): ProductHandle {
 function createFleeceProduct(lowDetail = false): ProductHandle {
   return makeTrackedProduct("fleece", (h) => {
     const group = new THREE.Group();
-    const fleeceSet = h.trackSet(makeFabricPbrSet("fleece", 256, 2, 2));
+    const fleeceSet = h.trackSet(makeFabricPbrSet("fleece", 256, 6, 8));
     const metalSet = h.trackSet(makeBrushedMetalSet(256, 1, 1));
     const woodSet = h.trackSet(makeWoodGrainSet(256, 1, 1));
 
@@ -1228,9 +1230,9 @@ function createFleeceProduct(lowDetail = false): ProductHandle {
         color: PRODUCT_SPECS.fleece.color,
         map: fleeceSet.map ?? null,
         normalMap: fleeceSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.75, 0.75),
+        normalScale: new THREE.Vector2(0.18, 0.18),
         roughnessMap: fleeceSet.roughnessMap ?? null,
-        roughness: 0.9,
+        roughness: 0.98,
         metalness: 0,
         side: THREE.DoubleSide,
       }),
@@ -1240,7 +1242,7 @@ function createFleeceProduct(lowDetail = false): ProductHandle {
         color: "#29544F",
         map: fleeceSet.map ?? null,
         normalMap: fleeceSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.7, 0.7),
+        normalScale: new THREE.Vector2(0.2, 0.2),
         roughness: 0.92,
         metalness: 0,
       }),
