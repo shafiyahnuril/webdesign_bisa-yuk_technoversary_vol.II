@@ -81,8 +81,8 @@ F0 Fondasi ──► F1 Mesin + Rangka Home (placeholder) ──┬─► F3 Pan
 | ☑ T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Filter 2 kelompok + hitungan ikut berubah; 12 kartu dummy | 05 §4 | B |
 | ☑ T2.5 | `ParticleField` (kanvas 2D) | 40/16 partikel; berhenti saat tab hidden | 05 §4.5 | B |
 | ☐ T2.6 | `CursorRing` aktif di `#/konten` + label "Baca" | Sesuai 04 §10 | 04 | A |
-| ☐ T2.7 | `ArticlePage` + `ArticleBody` + `NextArticle` | Template 05 §5.1; "Artikel berikutnya" 12→1 | 05 §5 | B |
-| ☐ T2.8 | `ContactPage` + `ContactForm` + Formspree + `mailto` cadangan + status | Kirim nyata berhasil; validasi dan galat | 05 §6 | B |
+| ☑ T2.7 | `ArticlePage` + `ArticleBody` + `NextArticle` | Template 05 §5.1; "Artikel berikutnya" 12→1 | 05 §5 | B |
+| ☑ T2.8 | `ContactPage` + `ContactForm` + Formspree + `mailto` cadangan + status | Kirim nyata berhasil; validasi dan galat | 05 §6 | B |
 | ☑ T2.9 | `NotFoundPage` | Rute tak dikenal ke 404 | 05 §7 | B |
 | ☐ T2.10 | Tes komponen: `FilterPill`, `ContactForm`, `MenuPanel` | Lulus | 06 §13 | B |
 

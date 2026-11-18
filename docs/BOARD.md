@@ -28,8 +28,8 @@
 | T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Pihak B | selesai (12 kartu, filter 2 kelompok, URL tersinkron; sampul masih placeholder A, waktu baca disembunyikan sampai T8.3) |  |
 | T2.5 | `ParticleField` (kanvas 2D) | Pihak B | selesai |  |
 | T2.6 | `CursorRing` aktif di `#/konten` + label "Baca" | Pihak B | sebagian: `data-cursor="read"` di kartu + `TODO(A)`; menunggu `CursorRing` milik A |  |
-| T2.7 | `ArticlePage` + `ArticleBody` + `NextArticle` | Pihak B | siap |  |
-| T2.8 | `ContactPage` + `ContactForm` + Formspree + `mailto` cadangan + status | Pihak B | siap |  |
+| T2.7 | `ArticlePage` + `ArticleBody` + `NextArticle` | Pihak B | selesai (isi artikel kosong sampai T8.3: tampil "Belum ada isi") |  |
+| T2.8 | `ContactPage` + `ContactForm` + Formspree + `mailto` cadangan + status | Pihak B | selesai (mode cadangan `mailto:`; kontak DUMMY; kirim nyata menunggu endpoint) |  |
 | T2.9 | `NotFoundPage` | Pihak B | selesai (PageHero, aset S-404 dari A, tombol kembali, tes) |  |
 | T2.10 | Tes komponen: `FilterPill`, `ContactForm`, `MenuPanel` | Bersama (opsional) | siap |  |
 | T3.1 | `stage/stage.ts`: renderer (alpha), kamera, `RoomEnvironment` PMREM, lampu, resize, `viewOffset` HP, context loss | Pihak A | renderer siap; render WebGL hero teruji; integrasi Home menyusul | f621f65 |
@@ -95,6 +95,12 @@
 | T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Pihak B | siap |  |
 
 ## Catatan untuk sesi berikutnya
+- **Selesai (G5: T2.7, T2.8):** `ArticlePage` (tautan kembali dengan filter terakhir via `galleryReturn.ts`/sessionStorage, pita jenis, label ganda, gambar judul 16:9, `ArticleBody`, daftar sumber via `SourceItem`, `NextArticle` memakai `ArticleCard`, `nextInOrder` berputar 12→1, slug tak dikenal → 404, meta description ≤ 155 karakter dari lede). `ContactPage` + `ContactForm` + `contact-validate.ts` (validasi blur/kirim, penghitung, `_gotcha`, status idle/sending/success/error, kunci kirim ulang 5 dtk, ringkasan galat berfokus). Tes: `ArticlePage.test.tsx`, `ArticleBody.test.tsx`, `ContactForm.test.tsx`, `ContactPage.test.tsx`. Bukti lokal: `docs/bukti/T2.7/`, `docs/bukti/T2.8/`.
+- **Model data berubah:** `Article.body: string[]` diganti `lede`, `sections` (`{heading, paragraphs[]}`), `relation`. T8.3 mengisi ketiganya plus `readingMinutes` dan `sources`.
+- **Contact berjalan di MODE CADANGAN:** `VITE_FORMSPREE_ENDPOINT` kosong, jadi tombol membuka `mailto:`. Kirim nyata ke Formspree belum diuji (butuh endpoint dari DATA_B). Kontak `rebottle@gmail.com` / `@rebottle.id` di `site.ts` adalah DUMMY (tim sepakat); halaman About ikut menampilkan email itu lewat `ClosingStrip`.
+- **Keputusan [USULAN]:** teks galat/sukses `contact.*` mengikuti dok 05 §6.2 (menggantikan versi dok 11: "Nama minimal 2 karakter.", "Format email belum benar.", "Terkirim. Terima kasih sudah peduli.", banner galat baru). Kunci baru: `article.*` (relation, sources, empty, cover.alt), `contact.*` (headline, form/info, counter, privacy, fallback, trap, again, batas maks nama/pesan, subjek mailto). Pada mode cadangan, setelah mailto dibuka halaman menampilkan "Aplikasi emailmu dibuka…" (bukan "Terkirim") agar tidak mengklaim pesan sudah terkirim. Akun tim (`@rebottle.id`) tampil sebagai teks, bukan tautan, karena platformnya belum ditentukan.
+- **Tersisa:** T2.6 (kursor, menunggu `CursorRing` A), T2.10 (QA opsional), T8.x konten, T9.4, T11.x.
+- **Berikutnya (Pihak B):** G6 = T8.1 (verifikasi fakta) / T8.2 / T8.3 sesuai urutan panduan.
 - **Selesai (G4: T2.4, T2.5):** `ContentPage` (H1, lede, `FilterPill`, `ArticleGrid`, `ArticleCard`, `ParticleField`), logika murni `filter.ts` + `filter.test.ts`, `filterLabels.ts`. URL `?jenis=&level=` via `useSearchParams` (replace, nilai tidak valid diabaikan). Tes: `filter.test.ts`, `ContentPage.test.tsx`. Bukti lokal: `docs/bukti/T2.4/`.
 - **T2.6 sebagian:** `CursorRing` belum ada di `main`; kartu sudah ber-`data-cursor="read"` dan `ContentPage.tsx` memuat `TODO(A)`. Permintaan ada di `CATATAN_UNTUK_A.md`.
 - **Keputusan [USULAN]:** kunci `filter.*`, `card.*`, `page.content.lede` di `copy.ts`. Hitungan chip memakai rumus kode dok 05 §4.3; contoh teks dok ("Negatif+Global → Semua 2, Positif 0") tidak konsisten dengan rumus itu (hasil rumus: Semua 4, Negatif 2, Positif 2). Subjudul kartu menyembunyikan "menit baca" sampai `readingMinutes` terisi (T8.3). Alt sampul diturunkan dari judul artikel.
