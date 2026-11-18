@@ -4,26 +4,24 @@ import styles from "./TempDiagram.module.css";
 
 // Sumbu 0 sampai 4,5°C; posisi dalam persen lebar jalur.
 const MAX = 4.5;
+const TARGET = 1.5;
 const pct = (t: number) => (t / MAX) * 100;
 
-const TICKS = [
-  { t: 0, label: "0,0°C", kind: "first" },
-  { t: 1.5, label: "1,5°C", kind: "target" },
-  { t: 2, label: "2,0°C", kind: "minor" },
-  { t: 4, label: "4,0°C", kind: "plain" },
+// Label sumbu berjarak sama (tiap 1,5°C); garis kecil tiap 0,5°C.
+const LABELS = [
+  { t: 0, text: "0,0°C", pos: "first" },
+  { t: 1.5, text: "1,5°C", pos: "target" },
+  { t: 3, text: "3,0°C", pos: "mid" },
+  { t: 4.5, text: "4,5°C", pos: "last" },
 ] as const;
+const MINOR = [0.5, 1, 2, 2.5, 3.5, 4] as const;
 
-/** Garis panduan sumbu di dalam satu lajur (tidak melewati teks nama skenario). */
-function Guides() {
+/** Zona di atas target dan garis target, digambar di dalam satu lajur. */
+function LaneMarks() {
   return (
     <>
-      {TICKS.map((m) => (
-        <span
-          key={m.t}
-          className={m.kind === "target" ? styles.targetLine : styles.guide}
-          style={{ left: `${pct(m.t)}%` }}
-        />
-      ))}
+      <span className={styles.zone} style={{ left: `${pct(TARGET)}%` }} />
+      <span className={styles.targetLine} style={{ left: `${pct(TARGET)}%` }} />
     </>
   );
 }
@@ -31,51 +29,56 @@ function Guides() {
 /** Diagram statis dua skenario suhu. Pita terisi dari kiri (transform: scaleX) saat masuk layar. */
 export function TempDiagram() {
   const [ref, inView] = useInView<HTMLElement>(0.3);
-  const fill = `${styles.barFill} ${inView ? styles.in : ""}`;
+  const state = inView ? styles.in : "";
 
   return (
     <figure className={styles.figure} ref={ref} aria-label={COPY["about.temp.diagram.title"]}>
       <div className={styles.chart} aria-hidden="true">
-        <div className={styles.track}>
-          <div className={styles.row}>
-            <p className={`t-ui-sm ${styles.name}`}>{COPY["about.temp.band1"]}</p>
-            <div className={styles.lane}>
-              <Guides />
-              <span
-                className={`${styles.bar} ${styles.bar1}`}
-                style={{ left: `${pct(1.2)}%`, width: `${pct(4) - pct(1.2)}%` }}
-              >
-                <span className={fill} />
-                <span className={`t-mono ${styles.end}`}>+4,0°C</span>
-              </span>
-            </div>
+        <div className={styles.row}>
+          <p className={styles.name}>{COPY["about.temp.band1"]}</p>
+          <div className={styles.lane}>
+            <LaneMarks />
+            <span
+              className={`${styles.bar} ${styles.bar1}`}
+              style={{ left: `${pct(1.2)}%`, width: `${pct(4) - pct(1.2)}%` }}
+            >
+              <span className={`${styles.fill} ${state}`} />
+              <span className={`t-mono ${styles.value} ${styles.start} ${state}`}>+1,2°C</span>
+              <span className={`t-mono ${styles.value} ${styles.end} ${state}`}>+4,0°C</span>
+            </span>
           </div>
+        </div>
 
-          <div className={styles.row}>
-            <p className={`t-ui-sm ${styles.name}`}>{COPY["about.temp.band2"]}</p>
-            <div className={styles.lane}>
-              <Guides />
-              <span
-                className={`${styles.bar} ${styles.bar2}`}
-                style={{ left: `${pct(1.2)}%`, width: `${pct(1.5) - pct(1.2)}%` }}
-              >
-                <span className={fill} />
-              </span>
-              <span className={`t-mono ${styles.outside}`} style={{ left: `${pct(1.5)}%` }}>
-                +1,5°C
-              </span>
-            </div>
+        <div className={styles.row}>
+          <p className={styles.name}>{COPY["about.temp.band2"]}</p>
+          <div className={styles.lane}>
+            <LaneMarks />
+            <span
+              className={`${styles.bar} ${styles.bar2}`}
+              style={{ left: `${pct(1.2)}%`, width: `${pct(TARGET) - pct(1.2)}%` }}
+            >
+              <span className={`${styles.fill} ${state}`} />
+            </span>
+            <span
+              className={`t-mono ${styles.value} ${styles.outside} ${state}`}
+              style={{ left: `${pct(TARGET)}%` }}
+            >
+              +1,5°C
+            </span>
           </div>
         </div>
 
         <div className={styles.axis}>
-          {TICKS.map((m) => (
+          {MINOR.map((t) => (
+            <span key={t} className={styles.minor} style={{ left: `${pct(t)}%` }} />
+          ))}
+          {LABELS.map((m) => (
             <span
               key={m.t}
-              className={`t-mono ${styles.tick} ${styles[m.kind]}`}
+              className={`t-mono ${styles.tick} ${styles[m.pos]}`}
               style={{ left: `${pct(m.t)}%` }}
             >
-              {m.label}
+              {m.text}
             </span>
           ))}
         </div>

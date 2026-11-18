@@ -1,8 +1,8 @@
 .figure {
   display: grid;
-  gap: var(--s-5);
+  gap: var(--s-6);
   margin: 0;
-  padding: var(--s-8) var(--s-7) var(--s-6);
+  padding: var(--s-8) var(--s-8) var(--s-6);
   border: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 22%, transparent);
   border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--page-ink) 6%, transparent);
@@ -10,54 +10,52 @@
 
 .chart {
   display: grid;
-  gap: var(--s-3);
-}
-
-.track {
-  position: relative;
-  display: grid;
-  gap: var(--s-6);
+  gap: var(--s-7);
 }
 
 .row {
   display: grid;
-  gap: var(--s-2);
+  gap: var(--s-3);
 }
 
 .row .name {
   margin: 0;
-  font-size: var(--t-body);
+  font: 600 var(--t-body-lg) / 1.3 var(--font-ui);
   color: var(--page-ink);
-  font-weight: 600;
 }
 
 .lane {
   position: relative;
-  height: var(--s-7);
+  height: var(--s-9);
 }
 
-.guide,
-.targetLine {
+/* Zona di atas target: sedikit lebih terang agar terbaca sebagai wilayah "melewati target". */
+.zone {
   position: absolute;
   top: 0;
+  right: 0;
   bottom: 0;
-  width: var(--line-thin);
-  background: color-mix(in srgb, var(--page-ink) 35%, transparent);
+  background: color-mix(in srgb, var(--page-ink) 7%, transparent);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
 }
 
 .targetLine {
+  position: absolute;
+  top: calc(var(--s-2) * -1);
+  bottom: calc(var(--s-2) * -1);
   width: 2px;
+  translate: -1px 0;
   background: var(--page-accent);
 }
 
 .bar {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: var(--s-2);
+  bottom: var(--s-2);
   display: block;
 }
 
-.barFill {
+.fill {
   position: absolute;
   inset: 0;
   border-radius: var(--r-full);
@@ -66,48 +64,81 @@
   transition: transform var(--dur-band-fill) var(--ease-out-expo);
 }
 
-.bar1 .barFill {
-  background: var(--c4-accent);
+.bar1 .fill {
+  background: linear-gradient(to right, var(--c2-accent), var(--c6-accent));
 }
 
-.bar2 .barFill {
+.bar2 .fill {
   background: var(--c7-accent);
 }
 
-.in {
+.fill.in {
   transform: scaleX(1);
 }
 
-.end {
+/* Angka suhu muncul setelah pita terisi (opacity saja). */
+.value {
   position: absolute;
-  inset: 0 var(--s-4) 0 auto;
   display: flex;
   align-items: center;
-  font-size: var(--t-ui);
-  font-weight: 600;
+  font-size: var(--t-body-lg);
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out-expo);
+  transition-delay: calc(var(--dur-band-fill) * 0.6);
+}
+
+.value.in {
+  opacity: 1;
+}
+
+.start,
+.end {
+  top: 0;
+  bottom: 0;
+}
+
+.end {
   color: var(--c4-bg);
 }
 
-.outside {
-  position: absolute;
-  top: 50%;
-  margin-left: var(--s-3);
-  translate: 0 -50%;
-  font-size: var(--t-ui);
-  font-weight: 600;
+/* Nilai awal berada di luar pita, di kirinya, agar tidak tertimpa garis target. */
+.start {
+  right: 100%;
+  margin-right: var(--s-3);
   color: var(--page-ink);
+}
+
+.end {
+  right: var(--s-4);
+}
+
+.outside {
+  top: 50%;
+  margin-left: var(--s-4);
+  translate: 0 -50%;
+  font-size: var(--t-card);
+  color: var(--page-accent);
   white-space: nowrap;
 }
 
 .axis {
   position: relative;
-  height: var(--s-6);
+  height: var(--s-7);
   border-top: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 55%, transparent);
+}
+
+.minor {
+  position: absolute;
+  top: 0;
+  height: var(--s-2);
+  width: var(--line-thin);
+  background: color-mix(in srgb, var(--page-ink) 55%, transparent);
 }
 
 .tick {
   position: absolute;
-  top: var(--s-2);
+  top: var(--s-3);
   translate: -50% 0;
   font-size: var(--t-ui-sm);
   color: var(--page-ink);
@@ -116,6 +147,10 @@
 
 .first {
   translate: 0 0;
+}
+
+.last {
+  translate: -100% 0;
 }
 
 .target {
@@ -133,14 +168,27 @@
     padding: var(--s-6) var(--s-5) var(--s-5);
   }
 
-  .minor {
-    display: none;
+  .lane {
+    height: var(--s-8);
+  }
+
+  .value {
+    font-size: var(--t-ui);
+  }
+
+  .outside {
+    font-size: var(--t-body-lg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .barFill {
+  .fill {
     transform: scaleX(1);
+    transition: none;
+  }
+
+  .value {
+    opacity: 1;
     transition: none;
   }
 }

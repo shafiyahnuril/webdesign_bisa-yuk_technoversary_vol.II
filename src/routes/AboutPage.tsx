@@ -160,14 +160,10 @@ export default function AboutPage() {
 
         {/* 5. Suhu dan target 1,5°C */}
         <Section id="suhu" title={COPY["about.temp.section"]}>
-          <div className={styles.grid}>
-            <Appear className={`${styles.text} ${styles.colNarrow}`}>
-              <p className="t-body">{COPY["about.temp.body"]}</p>
-            </Appear>
-            <div className={styles.colWide}>
-              <TempDiagram />
-            </div>
-          </div>
+          <Appear>
+            <p className="t-body">{COPY["about.temp.body"]}</p>
+          </Appear>
+          <TempDiagram />
         </Section>
 
         <WaveDivider />
