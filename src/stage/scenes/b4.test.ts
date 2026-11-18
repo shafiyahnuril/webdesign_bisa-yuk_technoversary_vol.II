@@ -213,16 +213,17 @@ describe("Scene B4 (Lautan)", () => {
     expect(water.getParams().speed).toBeCloseTo(1.05, 2);
     expect(initialPierY - pier.position.y).toBeCloseTo(0.3, 2);
 
-    // Kamera sudah memperlihatkan terumbu sebelum semua koloni memutih.
+    // Kamera sudah memperlihatkan terumbu karang dan tetap berwarna alami sampai akhir B4.
     b4.update(0.78, 0.3, 0);
     expect(ctx.camera.position.y).toBeCloseTo(-1.4, 2);
     expect(water.getParams().underwater).toBeGreaterThan(0.95);
-    expect(coral.userData.bleach).toBeGreaterThan(0);
-    expect(coral.userData.bleach).toBeLessThan(1);
+    expect(coral.userData.bleach).toBe(0);
     b4.update(0.96, 0.31, 0);
-    const bleached = new THREE.Color();
-    coralBranches.getColorAt(0, bleached);
-    expect(bleached.r + bleached.g + bleached.b).toBeGreaterThan(healthy.r + healthy.g + healthy.b);
+    const lateColor = new THREE.Color();
+    coralBranches.getColorAt(0, lateColor);
+    expect(lateColor.r).toBeCloseTo(healthy.r, 5);
+    expect(lateColor.g).toBeCloseTo(healthy.g, 5);
+    expect(lateColor.b).toBeCloseTo(healthy.b, 5);
     expect(coralMat.normalMap).toBe(surface);
 
     // Gulir mundur ke t = 0.15 -> keadaan kembali identik

@@ -193,7 +193,7 @@ export function StaticPanel({
   const mpFactLine = renderFactLine(FACTS["mikroplastik-mingguan"]);
   const collectedFactLine = renderFactLine(FACTS["botol-terkumpul"]);
   const showFiberNote = isFactVerified(FACTS["pet-menjadi-serat"]);
-  const stations = COPY["ch9.stations"].split("·").map((s) => s.trim());
+  const stations = COPY["ch9.stations"].split(/[,·]/).map((s) => s.trim());
 
   return (
     <article

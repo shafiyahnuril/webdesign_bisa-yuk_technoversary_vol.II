@@ -236,10 +236,9 @@ export function createB4Scene(): Scene {
       pier.position.set(0, -0.3 * pierRise, 0);
       pier.visible = true;
 
-      // Pigmen koloni baru memudar setelah kamera memperlihatkan terumbu sehat.
-      const bleach = smoothstep(0.7, 0.96, t);
+      // Terumbu karang dibiarkan tetap berwarna alami hingga akhir adegan.
       coral.group.visible = t >= 0.35;
-      coral.setBleach(bleach);
+      coral.setBleach(0);
 
       // Botol mengapung dengan buoyancy teredam mengikuti ketinggian + normal ombak (±5° dari base)
       const bottleX = -0.35 + Math.sin(t * Math.PI) * 0.25;

@@ -26,7 +26,7 @@ export function StationLabels({ engine = storyEngine }: StationLabelsProps) {
   const wrapRef = useRef<HTMLOListElement | null>(null);
 
   const stations = useMemo<StationMeta[]>(() => {
-    const names = COPY["ch9.stations"].split("·").map((s) => s.trim());
+    const names = COPY["ch9.stations"].split(/[,·]/).map((s) => s.trim());
     return [
       { index: 0, num: "01", name: names[0] ?? "Cacah" },
       { index: 1, num: "02", name: names[1] ?? "Cuci", micro: "drop", microText: "air" },

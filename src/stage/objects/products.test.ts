@@ -159,4 +159,64 @@ describe("O-PRODUCTS (7 produk daur ulang + Tote reusable)", () => {
 
     products.dispose();
   });
+
+  it("menyambungkan pangkal lengan tee & fleece rapat ke lubang bahu torso tanpa celah atau terpotong", () => {
+    const scene = new THREE.Scene();
+    const products = new Products(scene, 0.76, false);
+
+    const checkGarmentSeams = (id: "tee" | "fleece") => {
+      const group = products.getProduct(id).group;
+      const torso = group.getObjectByName(`Product_${id}_torso`) as THREE.Mesh;
+      const sleeveL = group.getObjectByName(`Product_${id}_sleeve_L`) as THREE.Mesh;
+      const sleeveR = group.getObjectByName(`Product_${id}_sleeve_R`) as THREE.Mesh;
+      expect(torso).toBeDefined();
+      expect(sleeveL).toBeDefined();
+      expect(sleeveR).toBeDefined();
+
+      const torsoPos = torso.geometry.getAttribute("position") as THREE.BufferAttribute;
+      const torsoVerts: THREE.Vector3[] = [];
+      for (let i = 0; i < torsoPos.count; i++) {
+        torsoVerts.push(new THREE.Vector3(torsoPos.getX(i), torsoPos.getY(i), torsoPos.getZ(i)));
+      }
+
+      // Di grid buildDrapedSleeveGeometry (uSegs = 18 -> 19 kolom), baris s = 0 adalah 19 vertex pertama
+      const rootCols = 19;
+      for (const sleeve of [sleeveL, sleeveR]) {
+        const sPos = sleeve.geometry.getAttribute("position") as THREE.BufferAttribute;
+        const uv = sleeve.geometry.getAttribute("uv") as THREE.BufferAttribute;
+        let maxNearestTorsoDist = 0;
+        for (let i = 0; i < rootCols; i++) {
+          expect(uv.getY(i)).toBeCloseTo(0, 6);
+          const sv = new THREE.Vector3(sPos.getX(i), sPos.getY(i), sPos.getZ(i));
+          let minD = Infinity;
+          for (const tv of torsoVerts) {
+            const d = sv.distanceTo(tv);
+            if (d < minD) minD = d;
+          }
+          if (minD > maxNearestTorsoDist) maxNearestTorsoDist = minD;
+        }
+        // Semua titik pangkal lengan (s=0) menempel rapat di dalam/permukaan lubang bahu torso
+        expect(maxNearestTorsoDist).toBeLessThan(0.16);
+      }
+
+      // Pastikan flutter tidak pernah membuka jahitan pangkal lengan (s=0 tetap diam)
+      const sleeveRPos = sleeveR.geometry.getAttribute("position") as THREE.BufferAttribute;
+      const rootRest = new Float32Array(rootCols * 3);
+      for (let i = 0; i < rootCols; i++) {
+        rootRest[i * 3] = sleeveRPos.getX(i);
+        rootRest[i * 3 + 1] = sleeveRPos.getY(i);
+        rootRest[i * 3 + 2] = sleeveRPos.getZ(i);
+      }
+      products.updateFlutter(2.4, true);
+      for (let i = 0; i < rootCols; i++) {
+        expect(sleeveRPos.getX(i)).toBeCloseTo(rootRest[i * 3]!, 6);
+        expect(sleeveRPos.getY(i)).toBeCloseTo(rootRest[i * 3 + 1]!, 6);
+        expect(sleeveRPos.getZ(i)).toBeCloseTo(rootRest[i * 3 + 2]!, 6);
+      }
+    };
+
+    checkGarmentSeams("tee");
+    checkGarmentSeams("fleece");
+    products.dispose();
+  });
 });

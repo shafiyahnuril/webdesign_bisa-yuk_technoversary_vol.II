@@ -33,9 +33,6 @@ export function ScenarioLabel({ engine = storyEngine }: ScenarioLabelProps) {
 
   return (
     <div ref={ref} className={styles.wrap} data-story-ui>
-      <p className={styles.hook} data-hero-hook>
-        {COPY["hero.tagline"]}
-      </p>
       <p className={styles.label} data-scenario-label>
         {COPY["hero.scenario"]}
       </p>

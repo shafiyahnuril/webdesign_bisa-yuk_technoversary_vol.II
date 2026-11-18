@@ -1,78 +1,105 @@
 .chapter {
+  --chapter-left: calc(var(--gutter-page) + 188px);
+  --chapter-right: calc(var(--gutter-page) + 24px);
   position: absolute;
   inset: 0;
   z-index: var(--z-text);
-  display: flex;
-  align-items: center;
-  padding: var(--s-10) var(--gutter-page) var(--s-9) calc(var(--gutter-page) + 188px);
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
   will-change: transform, opacity;
 }
 
-.alignLeft {
-  justify-content: flex-start;
-  background: linear-gradient(
-    90deg,
-    rgba(4, 11, 24, 0.62) 0%,
-    rgba(4, 11, 24, 0.34) 36%,
-    rgba(4, 11, 24, 0) 64%
+.zonePrimary,
+.zoneSecondary {
+  position: absolute;
+  max-width: min(28ch, 34vw);
+  pointer-events: none;
+}
+
+/* Zona utama: kiri atas, menjauh dari penanda bab kiri tengah dan objek 3D pusat */
+.zonePrimary {
+  top: clamp(76px, 11dvh, 112px);
+  left: var(--chapter-left);
+}
+
+/* Zona pendamping: kanan bawah secara diagonal agar teks tidak menumpuk di satu tempat */
+.zoneSecondary {
+  bottom: clamp(44px, 7.5dvh, 88px);
+  right: var(--chapter-right);
+}
+
+/* Scrim radial lembut lokal per zona (tanpa kotak kaku & tanpa menutup panggung tengah) */
+.chapter:not(.chapterB10) .zonePrimary::before,
+.chapter:not(.chapterB10) .zoneSecondary::before {
+  content: "";
+  position: absolute;
+  inset: -28px -40px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(4, 11, 24, 0.68) 0%,
+    rgba(4, 11, 24, 0.34) 55%,
+    rgba(4, 11, 24, 0) 78%
+  );
+  pointer-events: none;
+}
+
+/* Bab 3: arah diagonal dibalik (judul kanan atas, narasi arus sungai di kiri bawah) */
+.chapterB3 .zonePrimary {
+  left: auto;
+  right: var(--chapter-right);
+}
+
+.chapterB3 .zoneSecondary {
+  right: auto;
+  left: var(--chapter-left);
+}
+
+/* Bab 6 & 8: perkuat kontras lembut di sudut tanpa menyentuh objek panggung tengah */
+.chapterB6 .zonePrimary::before,
+.chapterB6 .zoneSecondary::before,
+.chapterB8 .zonePrimary::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(6, 13, 24, 0.84) 0%,
+    rgba(6, 13, 24, 0.52) 56%,
+    rgba(6, 13, 24, 0) 80%
   );
 }
 
-.alignRight {
-  justify-content: flex-end;
-  padding-right: calc(var(--gutter-page) + 24px);
-  background: linear-gradient(
-    270deg,
-    rgba(4, 11, 24, 0.64) 0%,
-    rgba(4, 11, 24, 0.36) 38%,
-    rgba(4, 11, 24, 0) 66%
-  );
+/* Bab 7: FlashWindow menempati kanan atas; judul di kiri atas, TimeRing + surat di kanan bawah */
+.chapterB7 .zoneSecondary {
+  max-width: min(36ch, 40vw);
 }
 
-/* Bab 6: Piring putih & fillet berada di tengah panggung; jaga teks di kolom kiri-bawah dengan scrim gelap directional agar teks putih tidak pernah berada di atas objek putih */
-.chapterB6 {
-  align-items: flex-end;
-  padding-bottom: clamp(56px, 9dvh, 96px);
-  background:
-    linear-gradient(
-      90deg,
-      rgba(6, 13, 24, 0.78) 0%,
-      rgba(6, 13, 24, 0.54) 34%,
-      rgba(6, 13, 24, 0) 58%
-    ),
-    linear-gradient(0deg, rgba(6, 13, 24, 0.64) 0%, rgba(6, 13, 24, 0) 48%);
+/* Bab 9: StationLabels memakai paruh atas panggung; sebarkan judul kiri bawah & surat kanan bawah */
+.chapterB9 .zonePrimary {
+  top: auto;
+  bottom: clamp(52px, 8dvh, 92px);
+  left: var(--chapter-left);
 }
 
-/* Bab 9: 4 label stasiun berada di paruh atas/tengah panggung; letakkan teks di kiri-bawah */
-.chapterB9 {
-  align-items: flex-end;
-  padding-bottom: clamp(56px, 9dvh, 96px);
+.chapterB9 .zoneSecondary {
+  bottom: clamp(52px, 8dvh, 92px);
+  right: var(--chapter-right);
 }
 
-/* Bab 10: Latar sage terang (#D9E6D6), gunakan scrim terang lembut dan tinta gelap (#11261B) */
+/* Bab 10: Latar sage terang (#D9E6D6), setiap langkah disebar ke sudut yang berbeda */
 .chapterB10 {
   color: var(--c10-ink);
-  background: linear-gradient(
-    90deg,
-    rgba(217, 230, 214, 0.72) 0%,
-    rgba(217, 230, 214, 0.36) 38%,
-    rgba(217, 230, 214, 0) 64%
-  );
 }
 
 .phaseItem {
   will-change: transform, opacity;
 }
 
-.stack {
-  display: grid;
-  align-content: start;
-  justify-items: start;
+.secondaryRow {
+  display: flex;
+  align-items: center;
   gap: var(--s-4);
-  max-width: 34ch;
+  max-width: min(38ch, 42vw);
 }
 
 .row {
@@ -83,28 +110,28 @@
 }
 
 .line {
-  margin: var(--s-3) 0 0;
+  margin: var(--s-2) 0 0;
   color: var(--ink-now);
-  font-size: clamp(1.125rem, 1.35vw, 1.3125rem);
-  line-height: 1.52;
+  font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
+  line-height: 1.48;
   letter-spacing: -0.005em;
-  max-width: 34ch;
+  max-width: 28ch;
 }
 
 .sub {
-  margin: var(--s-2) 0 0;
-  color: color-mix(in oklch, var(--ink-now) 88%, transparent);
-  font-size: clamp(1.0625rem, 1.2vw, 1.1875rem);
-  line-height: 1.55;
-  max-width: 34ch;
+  margin: 0;
+  color: color-mix(in oklch, var(--ink-now) 90%, transparent);
+  font-size: clamp(0.96875rem, 1.15vw, 1.125rem);
+  line-height: 1.5;
+  max-width: 28ch;
 }
 
 .fact {
   margin: var(--s-3) 0 0;
   padding-top: var(--s-2);
-  border-top: 1px solid color-mix(in oklch, var(--ink-now) 20%, transparent);
-  color: color-mix(in oklch, var(--ink-now) 82%, transparent);
-  max-width: 34ch;
+  border-top: 1px solid color-mix(in oklch, var(--ink-now) 22%, transparent);
+  color: color-mix(in oklch, var(--ink-now) 84%, transparent);
+  max-width: 28ch;
 }
 
 .bins {
@@ -120,66 +147,141 @@
   position: relative;
   width: 100%;
   height: 100%;
-  display: grid;
-  align-items: end;
-  justify-items: start;
-  padding-bottom: clamp(64px, 10dvh, 108px);
 }
 
 .b10Step {
-  grid-area: 1 / 1;
+  position: absolute;
+  max-width: min(30ch, 34vw);
   opacity: 0;
   visibility: hidden;
   will-change: transform, opacity;
 }
 
+.b10Step::before {
+  content: "";
+  position: absolute;
+  inset: -24px -36px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(217, 230, 214, 0.78) 0%,
+    rgba(217, 230, 214, 0.36) 56%,
+    rgba(217, 230, 214, 0) 80%
+  );
+  pointer-events: none;
+}
+
+.b10StepA {
+  top: clamp(78px, 11dvh, 112px);
+  left: var(--chapter-left);
+}
+
+.b10StepB {
+  bottom: clamp(52px, 8.5dvh, 92px);
+  right: var(--chapter-right);
+}
+
+.b10StepD {
+  bottom: clamp(64px, 10dvh, 104px);
+  left: var(--chapter-left);
+}
+
 @media (max-width: 1024px) {
   .chapter {
-    padding-left: calc(var(--gutter-page) + 32px);
+    --chapter-left: calc(var(--gutter-page) + 32px);
+    --chapter-right: var(--gutter-page);
+  }
+
+  .zonePrimary,
+  .zoneSecondary,
+  .b10Step {
+    max-width: min(28ch, 42vw);
+  }
+
+  .secondaryRow,
+  .chapterB7 .zoneSecondary {
+    max-width: min(34ch, 48vw);
   }
 }
 
 @media (max-width: 768px) {
   .chapter {
-    align-items: flex-end;
-    justify-content: flex-start;
-    padding: var(--s-8) var(--s-5) 84px calc(var(--s-5) + 18px);
-    background: linear-gradient(
-      0deg,
-      rgba(4, 11, 24, 0.94) 0%,
-      rgba(4, 11, 24, 0.88) 46%,
-      rgba(4, 11, 24, 0.62) 66%,
-      rgba(4, 11, 24, 0) 92%
-    );
+    --chapter-left: calc(var(--s-5) + 18px);
+    --chapter-right: var(--s-5);
   }
 
-  .chapterB10 {
-    background: linear-gradient(
-      0deg,
-      rgba(217, 230, 214, 0.88) 0%,
-      rgba(217, 230, 214, 0.56) 44%,
-      rgba(217, 230, 214, 0) 68%
-    );
+  .zonePrimary {
+    top: 90px;
+    left: var(--chapter-left);
+    right: var(--chapter-right);
+    max-width: 30ch;
   }
 
-  .alignRight {
-    justify-content: flex-start;
-    padding-right: var(--s-5);
+  .zoneSecondary {
+    bottom: clamp(32px, 5dvh, 52px);
+    left: var(--chapter-left);
+    right: var(--chapter-right);
+    max-width: 30ch;
+  }
+
+  .chapterB3 .zonePrimary {
+    left: var(--chapter-left);
+    right: var(--chapter-right);
+  }
+
+  /* Di layar HP Bab 7, FlashWindow menempati kanan atas: turunkan judul ke atas area surat agar bersih */
+  .chapterB7 .zonePrimary {
+    top: calc(88px + 42vw);
+  }
+
+  /* Di layar HP Bab 9, StationLabels di atas; taruh judul tepat di atas surat bawah tanpa menumpuk */
+  .chapterB9 .zonePrimary {
+    top: auto;
+    bottom: clamp(168px, 24dvh, 210px);
+  }
+
+  .secondaryRow {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--s-3);
+    max-width: 100%;
+  }
+
+  .row {
+    flex-wrap: nowrap;
+    gap: var(--s-3);
   }
 
   .line {
-    font-size: 1.0625rem;
-    line-height: 1.48;
-    max-width: 32ch;
+    font-size: 1rem;
+    line-height: 1.44;
+    max-width: 30ch;
   }
 
   .sub {
-    font-size: 0.96875rem;
-    line-height: 1.5;
-    max-width: 32ch;
+    font-size: 0.9375rem;
+    line-height: 1.46;
+    max-width: 30ch;
   }
 
-  .b10Stage {
-    padding-bottom: 52px;
+  .b10Step {
+    max-width: 28ch;
+  }
+
+  .b10StepA {
+    top: 90px;
+    left: var(--chapter-left);
+  }
+
+  .b10StepB {
+    bottom: 44px;
+    left: var(--chapter-left);
+    right: var(--chapter-right);
+  }
+
+  .b10StepD {
+    bottom: 48px;
+    left: var(--chapter-left);
   }
 }

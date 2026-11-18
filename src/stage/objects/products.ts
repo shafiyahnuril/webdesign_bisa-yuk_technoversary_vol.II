@@ -403,117 +403,126 @@ interface GarmentTorsoSpec {
   isJacket: boolean;
 }
 
+function evalTorsoPoint(
+  spec: GarmentTorsoSpec,
+  u: number,
+  v: number,
+): { x: number; y: number; z: number; w: number } {
+  const theta = u * Math.PI * 2;
+  const cosT = Math.cos(theta);
+  const sinT = Math.sin(theta);
+  const absCos = Math.abs(cosT);
+
+  // Profil lebar (x): melebar lembut di hem, sedikit meramping di pinggang, penuh di dada, miring ke kerah
+  let rx: number;
+  if (v < 0.42) {
+    const k = smoothstep(0, 0.42, v);
+    rx = THREE.MathUtils.lerp(spec.hemRx, spec.waistRx, k);
+  } else if (v < 0.7) {
+    const k = smoothstep(0.42, 0.7, v);
+    rx = THREE.MathUtils.lerp(spec.waistRx, spec.chestRx, k);
+  } else if (v < 0.87) {
+    const k = smoothstep(0.7, 0.87, v);
+    rx = THREE.MathUtils.lerp(spec.chestRx, spec.shoulderRx, k);
+  } else {
+    const k = smoothstep(0.87, 1.0, v);
+    rx = THREE.MathUtils.lerp(spec.shoulderRx, spec.neckRx, k);
+  }
+
+  // Pertahankan volume depan-belakang penuh melalui lubang lengan (v = 0.70..0.86)
+  // dan jepit lembut hanya di punggung bahu atas menuju kerah
+  let rz = THREE.MathUtils.lerp(spec.hemRz, spec.chestRz, smoothstep(0, 0.65, v));
+  if (v > 0.85) {
+    const shoulderPinch = smoothstep(0.85, 0.97, v) * smoothstep(0.38, 0.96, absCos);
+    rz = THREE.MathUtils.lerp(rz, spec.neckRz, smoothstep(0.86, 1.0, v));
+    rz *= 1 - 0.48 * shoulderPinch;
+  }
+
+  // Tinggi y dengan lengkung hem gravitasi (tengah lebih berat) & scoop kerah depan/belakang
+  const frontFactor = Math.max(0, sinT);
+  const backFactor = Math.max(0, -sinT);
+  const centerWeight = 1 - absCos * absCos;
+
+  const hemRipple =
+    -spec.hemSag * centerWeight +
+    spec.foldAmp * 0.24 * Math.sin(spec.foldFreq * theta + 0.5) * (1 - 0.35 * absCos);
+  const yBottom = spec.hemY + hemRipple;
+
+  const neckDip =
+    (frontFactor * spec.neckFrontDip + backFactor * spec.neckBackDip) *
+    smoothstep(0.95, 0.0, absCos);
+  const shoulderSlope = smoothstep(0.28, 1.0, absCos) * (spec.neckSideY - spec.shoulderY);
+  const yTop = spec.neckSideY - neckDip - shoulderSlope * 0.22;
+
+  let y: number;
+  if (v <= 0.72) {
+    y = THREE.MathUtils.lerp(yBottom, spec.armpitY, v / 0.72);
+  } else if (v <= 0.88) {
+    const kv = (v - 0.72) / 0.16;
+    const shoulderEdgeY = THREE.MathUtils.lerp(spec.armpitY, spec.shoulderY, kv);
+    const centerChestY = THREE.MathUtils.lerp(spec.armpitY, spec.neckSideY - neckDip * 0.75, kv);
+    y = THREE.MathUtils.lerp(centerChestY, shoulderEdgeY, smoothstep(0.22, 0.95, absCos));
+  } else {
+    const kv = (v - 0.88) / 0.12;
+    const shoulderBaseY = THREE.MathUtils.lerp(
+      spec.neckSideY - neckDip * 0.75,
+      spec.shoulderY,
+      smoothstep(0.22, 0.95, absCos),
+    );
+    y = THREE.MathUtils.lerp(shoulderBaseY, yTop, kv);
+  }
+
+  // Lipatan gravitasi vertikal & diagonal dari titik hanger bahu menuju hem bawah
+  const gravityMask = Math.pow(1 - v, 1.25);
+  const diagPhase = spec.pleatSkew * (1 - v) * Math.sign(cosT || 1);
+  const primaryPleat = Math.sin(spec.foldFreq * theta + diagPhase + 0.35);
+  const secondaryPleat = Math.sin((spec.foldFreq + 3) * theta - diagPhase * 1.15 + 1.1);
+  const faceAmount = 0.38 + 0.62 * Math.abs(sinT);
+
+  // Sedikit tarikan catenary di dada atas antara dua bahu hanger
+  const upperDrapeMask = smoothstep(0.42, 0.78, v) * smoothstep(1.0, 0.84, v);
+  const catenarySag = -0.022 * upperDrapeMask * centerWeight * Math.abs(sinT);
+
+  // Jaket memiliki bukaan belahan ritsleting tipis di tengah depan agar terbaca berlapis
+  let zipValley = 0;
+  if (spec.isJacket && sinT > 0.7) {
+    const centerFront = smoothstep(0.25, 0.0, absCos);
+    zipValley = -0.028 * centerFront * smoothstep(0.08, 0.88, v);
+  }
+
+  const foldZ =
+    gravityMask * (spec.foldAmp * primaryPleat + spec.foldAmp * 0.42 * secondaryPleat) * faceAmount;
+  const foldR = gravityMask * (spec.foldAmp * 0.36 * primaryPleat) * (0.4 + 0.6 * absCos);
+
+  const x = (rx + foldR * 0.55) * cosT;
+  let z = (rz + catenarySag) * sinT + foldZ * (sinT >= 0 ? 1 : -1) + zipValley;
+
+  // Sedikit lengkung alami bagian dada depan lebih maju dan punggung lebih relaks
+  if (v > 0.15 && v < 0.88) {
+    z += 0.018 * Math.sin(Math.PI * ((v - 0.15) / 0.73)) * centerWeight;
+  }
+
+  // Bobot micro-flutter: nol di bahu/kerah/ritsleting tengah, naik halus ke hem bawah
+  const w = Math.pow(1 - v, 1.65) * (spec.isJacket ? 0.55 + 0.45 * absCos : 0.7 + 0.3 * absCos);
+
+  return { x, y, z, w };
+}
+
 function buildDrapedTorsoGeometry(spec: GarmentTorsoSpec, lowDetail: boolean) {
   const uSegs = lowDetail ? 14 : 26;
   const vSegs = lowDetail ? 10 : 18;
 
-  return buildIndexedGridGeometry(uSegs, vSegs, (u, v) => {
-    const theta = u * Math.PI * 2;
-    const cosT = Math.cos(theta);
-    const sinT = Math.sin(theta);
-    const absCos = Math.abs(cosT);
-
-    // Profil lebar (x): melebar lembut di hem, sedikit meramping di pinggang, penuh di dada, miring ke kerah
-    let rx: number;
-    if (v < 0.42) {
-      const k = smoothstep(0, 0.42, v);
-      rx = THREE.MathUtils.lerp(spec.hemRx, spec.waistRx, k);
-    } else if (v < 0.7) {
-      const k = smoothstep(0.42, 0.7, v);
-      rx = THREE.MathUtils.lerp(spec.waistRx, spec.chestRx, k);
-    } else if (v < 0.87) {
-      const k = smoothstep(0.7, 0.87, v);
-      rx = THREE.MathUtils.lerp(spec.chestRx, spec.shoulderRx, k);
-    } else {
-      const k = smoothstep(0.87, 1.0, v);
-      rx = THREE.MathUtils.lerp(spec.shoulderRx, spec.neckRx, k);
-    }
-
-    // Ketebalan volume depan-belakang (z): penuh di dada & bawah, menjepit di jahitan bahu luar
-    let rz = THREE.MathUtils.lerp(spec.hemRz, spec.chestRz, smoothstep(0, 0.65, v));
-    if (v > 0.74) {
-      const shoulderPinch = smoothstep(0.74, 0.94, v) * smoothstep(0.32, 0.96, absCos);
-      rz = THREE.MathUtils.lerp(rz, spec.neckRz, smoothstep(0.84, 1.0, v));
-      rz *= 1 - 0.62 * shoulderPinch;
-    }
-
-    // Tinggi y dengan lengkung hem gravitasi (tengah lebih berat) & scoop kerah depan/belakang
-    const frontFactor = Math.max(0, sinT);
-    const backFactor = Math.max(0, -sinT);
-    const centerWeight = 1 - absCos * absCos;
-
-    const hemRipple =
-      -spec.hemSag * centerWeight +
-      spec.foldAmp * 0.24 * Math.sin(spec.foldFreq * theta + 0.5) * (1 - 0.35 * absCos);
-    const yBottom = spec.hemY + hemRipple;
-
-    const neckDip =
-      (frontFactor * spec.neckFrontDip + backFactor * spec.neckBackDip) *
-      smoothstep(0.95, 0.0, absCos);
-    const shoulderSlope = smoothstep(0.28, 1.0, absCos) * (spec.neckSideY - spec.shoulderY);
-    const yTop = spec.neckSideY - neckDip - shoulderSlope * 0.22;
-
-    let y: number;
-    if (v <= 0.72) {
-      y = THREE.MathUtils.lerp(yBottom, spec.armpitY, v / 0.72);
-    } else if (v <= 0.88) {
-      const kv = (v - 0.72) / 0.16;
-      const shoulderEdgeY = THREE.MathUtils.lerp(spec.armpitY, spec.shoulderY, kv);
-      const centerChestY = THREE.MathUtils.lerp(spec.armpitY, spec.neckSideY - neckDip * 0.75, kv);
-      y = THREE.MathUtils.lerp(centerChestY, shoulderEdgeY, smoothstep(0.22, 0.95, absCos));
-    } else {
-      const kv = (v - 0.88) / 0.12;
-      const shoulderBaseY = THREE.MathUtils.lerp(
-        spec.neckSideY - neckDip * 0.75,
-        spec.shoulderY,
-        smoothstep(0.22, 0.95, absCos),
-      );
-      y = THREE.MathUtils.lerp(shoulderBaseY, yTop, kv);
-    }
-
-    // Lipatan gravitasi vertikal & diagonal dari titik hanger bahu menuju hem bawah
-    const gravityMask = Math.pow(1 - v, 1.25);
-    const diagPhase = spec.pleatSkew * (1 - v) * Math.sign(cosT || 1);
-    const primaryPleat = Math.sin(spec.foldFreq * theta + diagPhase + 0.35);
-    const secondaryPleat = Math.sin((spec.foldFreq + 3) * theta - diagPhase * 1.15 + 1.1);
-    const faceAmount = 0.38 + 0.62 * Math.abs(sinT);
-
-    // Sedikit tarikan catenary di dada atas antara dua bahu hanger
-    const upperDrapeMask = smoothstep(0.42, 0.78, v) * smoothstep(1.0, 0.84, v);
-    const catenarySag = -0.022 * upperDrapeMask * centerWeight * Math.abs(sinT);
-
-    // Jaket memiliki bukaan belahan ritsleting tipis di tengah depan agar terbaca berlapis
-    let zipValley = 0;
-    if (spec.isJacket && sinT > 0.7) {
-      const centerFront = smoothstep(0.25, 0.0, absCos);
-      zipValley = -0.028 * centerFront * smoothstep(0.08, 0.88, v);
-    }
-
-    const foldZ =
-      gravityMask *
-      (spec.foldAmp * primaryPleat + spec.foldAmp * 0.42 * secondaryPleat) *
-      faceAmount;
-    const foldR = gravityMask * (spec.foldAmp * 0.36 * primaryPleat) * (0.4 + 0.6 * absCos);
-
-    const x = (rx + foldR * 0.55) * cosT;
-    let z = (rz + catenarySag) * sinT + foldZ * (sinT >= 0 ? 1 : -1) + zipValley;
-
-    // Sedikit lengkung alami bagian dada depan lebih maju dan punggung lebih relaks
-    if (v > 0.15 && v < 0.88) {
-      z += 0.018 * Math.sin(Math.PI * ((v - 0.15) / 0.73)) * centerWeight;
-    }
-
-    // Bobot micro-flutter: nol di bahu/kerah/ritsleting tengah, naik halus ke hem bawah
-    const w = Math.pow(1 - v, 1.65) * (spec.isJacket ? 0.55 + 0.45 * absCos : 0.7 + 0.3 * absCos);
-
-    return { x, y, z, w };
-  });
+  return buildIndexedGridGeometry(uSegs, vSegs, (u, v) => evalTorsoPoint(spec, u, v));
 }
 
 interface SleeveSpec {
   side: -1 | 1; // -1 kiri, +1 kanan
-  shoulderX: number;
-  shoulderY: number;
+  torsoSpec: GarmentTorsoSpec;
+  armpitV: number;
+  shoulderV: number;
+  seamInset: number;
+  armholeDepthAngle: number;
+  shoulderExitAngle: number;
   length: number;
   droopAngle: number; // radian ke bawah dari horizontal
   elbowBendZ: number;
@@ -525,48 +534,107 @@ interface SleeveSpec {
   gravityDrop: number;
 }
 
-function buildDrapedSleeveGeometry(spec: SleeveSpec, lowDetail: boolean) {
-  const uSegs = lowDetail ? 10 : 16;
-  const vSegs = lowDetail ? 6 : 10;
+function createSleeveEvaluator(spec: SleeveSpec) {
+  const evalArmholeAnchor = (phi: number) => {
+    const cosP = Math.cos(phi);
+    const sinP = Math.sin(phi);
+    const vArm = THREE.MathUtils.lerp(spec.armpitV, spec.shoulderV, 0.5 + 0.5 * cosP);
+    const thetaBase = spec.side === 1 ? 0 : Math.PI;
+    const thetaArm = thetaBase + spec.side * sinP * spec.armholeDepthAngle;
+    const uArm = (((thetaArm / (Math.PI * 2)) % 1) + 1) % 1;
+    const pt = evalTorsoPoint(spec.torsoSpec, uArm, vArm);
+    return new THREE.Vector3(pt.x - spec.side * spec.seamInset, pt.y, pt.z);
+  };
 
-  return buildIndexedGridGeometry(uSegs, vSegs, (u, s) => {
+  const topAnchor = evalArmholeAnchor(0);
+  const botAnchor = evalArmholeAnchor(Math.PI);
+  const p0 = new THREE.Vector3().addVectors(topAnchor, botAnchor).multiplyScalar(0.5);
+
+  const dirEnd = new THREE.Vector3(
+    spec.side * Math.cos(spec.droopAngle),
+    -Math.sin(spec.droopAngle),
+    0,
+  ).normalize();
+  const dirExit = new THREE.Vector3(
+    spec.side * Math.cos(spec.shoulderExitAngle),
+    -Math.sin(spec.shoulderExitAngle),
+    0,
+  ).normalize();
+
+  const p3 = new THREE.Vector3(
+    p0.x + dirEnd.x * spec.length,
+    p0.y + dirEnd.y * spec.length - spec.gravityDrop,
+    p0.z + 0.015,
+  );
+  const p1 = new THREE.Vector3(
+    p0.x + dirExit.x * spec.length * 0.36,
+    p0.y + dirExit.y * spec.length * 0.36,
+    p0.z + 0.012,
+  );
+  const p2 = new THREE.Vector3()
+    .lerpVectors(p1, p3, 0.56)
+    .add(new THREE.Vector3(0, 0, spec.elbowBendZ));
+
+  const spineCurve = new THREE.CubicBezierCurve3(p0, p1, p2, p3);
+
+  const evalRing = (u: number, s: number) => {
     const phi = u * Math.PI * 2;
     const cosP = Math.cos(phi);
     const sinP = Math.sin(phi);
 
-    // s = 0 pangkal bahu, s = 1 ujung manset
-    const dirX = spec.side * Math.cos(spec.droopAngle);
-    const dirY = -Math.sin(spec.droopAngle);
+    const center = spineCurve.getPoint(s);
+    const tangent = spineCurve.getTangent(s).normalize();
 
-    // Sumbu lengan melengkung turun akibat gravitasi + tekukan siku halus ke depan (+z)
-    const cx = spec.shoulderX + dirX * spec.length * s;
-    const cy = spec.shoulderY + dirY * spec.length * s - spec.gravityDrop * (s * s);
-    const cz = 0.015 + spec.elbowBendZ * Math.sin(Math.PI * 0.85 * s);
+    // Basis lokal penampang tegak lurus kurva lengan (up mengarah ke puncak bahu saat cosP = +1)
+    const xyLen = Math.max(1e-4, Math.hypot(tangent.x, tangent.y));
+    const tx2 = tangent.x / xyLen;
+    const ty2 = tangent.y / xyLen;
+    const upX = -ty2 * spec.side;
+    const upY = tx2 * spec.side;
 
-    // Turunan tangen untuk orientasi penampang lengan agar tegak lurus sumbu lengan
     const ry = THREE.MathUtils.lerp(spec.baseRy, spec.cuffRy, smoothstep(0, 1, s));
     const rz = THREE.MathUtils.lerp(spec.baseRz, spec.cuffRz, smoothstep(0, 1, s));
 
-    // Lipatan kerut ketiak & tekukan kain lengan bagian bawah
-    const underarmPinch = Math.max(0, -cosP) * smoothstep(0.05, 0.5, s) * smoothstep(1.0, 0.35, s);
+    const underarmPinch = Math.max(0, -cosP) * smoothstep(0.08, 0.5, s) * smoothstep(1.0, 0.35, s);
     const crease =
       spec.foldAmp *
-      (Math.sin(4 * phi + s * 4.2) * smoothstep(0.1, 0.95, s) +
+      (Math.sin(4 * phi + s * 4.2) * smoothstep(0.14, 0.95, s) +
         0.7 * Math.sin(7 * phi - s * 2.8) * underarmPinch);
 
-    // Orientasi penampang lokal
-    const nx = -dirY;
-    const ny = dirX;
-    const localUp = cosP * (ry + crease * 0.45);
-    const localZ = sinP * (rz + crease);
+    const cylOffsetX = upX * cosP * (ry + crease * 0.45);
+    const cylOffsetY = upY * cosP * (ry + crease * 0.45) - 0.016 * s * Math.max(0, -cosP);
+    const cylOffsetZ = sinP * (rz + crease);
 
-    const x = cx + nx * localUp * spec.side;
-    const y = cy + ny * localUp * spec.side - 0.018 * s * Math.max(0, -cosP);
-    const z = cz + localZ;
+    // Pada s = 0, titik lengan mengunci tepat ke kontur lubang ketiak-bahu torso, lalu membaur mulus ke silinder lengan
+    const anchor = evalArmholeAnchor(phi);
+    const anchorOffX = anchor.x - p0.x;
+    const anchorOffY = anchor.y - p0.y;
+    const anchorOffZ = anchor.z - p0.z;
 
-    const w = Math.pow(s, 1.45) * 0.82;
-    return { x, y, z, w };
-  });
+    const seamBlend = smoothstep(0.0, 0.42, s);
+    const offX = THREE.MathUtils.lerp(anchorOffX, cylOffsetX, seamBlend);
+    const offY = THREE.MathUtils.lerp(anchorOffY, cylOffsetY, seamBlend);
+    const offZ = THREE.MathUtils.lerp(anchorOffZ, cylOffsetZ, seamBlend);
+
+    const w = smoothstep(0.08, 1.0, s) * Math.pow(s, 1.25) * 0.82;
+    return {
+      x: center.x + offX,
+      y: center.y + offY,
+      z: center.z + offZ,
+      w,
+    };
+  };
+
+  return { evalRing, spineCurve };
+}
+
+function buildDrapedSleeveGeometry(spec: SleeveSpec, lowDetail: boolean) {
+  const uSegs = lowDetail ? 10 : 18;
+  const vSegs = lowDetail ? 7 : 12;
+  const evaluator = createSleeveEvaluator(spec);
+
+  const built = buildIndexedGridGeometry(uSegs, vSegs, (u, s) => evaluator.evalRing(u, s));
+  return { ...built, evaluator };
 }
 
 /**
@@ -772,31 +840,30 @@ function createTeeProduct(lowDetail = false): ProductHandle {
       }),
     );
 
-    const torso = buildDrapedTorsoGeometry(
-      {
-        hemY: 0.22,
-        armpitY: 1.88,
-        shoulderY: 2.52,
-        neckSideY: 2.86,
-        neckFrontDip: 0.27,
-        neckBackDip: 0.08,
-        hemRx: 0.9,
-        waistRx: 0.82,
-        chestRx: 0.9,
-        shoulderRx: 0.82,
-        neckRx: 0.34,
-        hemRz: 0.25,
-        chestRz: 0.23,
-        neckRz: 0.14,
-        hemSag: 0.062,
-        foldAmp: 0.068,
-        foldFreq: 4,
-        pleatSkew: 0.85,
-        flutterAmp: 0.0038,
-        isJacket: false,
-      },
-      lowDetail,
-    );
+    const teeTorsoSpec: GarmentTorsoSpec = {
+      hemY: 0.22,
+      armpitY: 1.88,
+      shoulderY: 2.52,
+      neckSideY: 2.86,
+      neckFrontDip: 0.27,
+      neckBackDip: 0.08,
+      hemRx: 0.9,
+      waistRx: 0.82,
+      chestRx: 0.9,
+      shoulderRx: 0.82,
+      neckRx: 0.34,
+      hemRz: 0.25,
+      chestRz: 0.23,
+      neckRz: 0.14,
+      hemSag: 0.062,
+      foldAmp: 0.068,
+      foldFreq: 4,
+      pleatSkew: 0.85,
+      flutterAmp: 0.0038,
+      isJacket: false,
+    };
+
+    const torso = buildDrapedTorsoGeometry(teeTorsoSpec, lowDetail);
     h.trackGeom(torso.geom);
     h.trackFlutter(torso.geom, torso.weights, 0.0038, 0.4, 1.45);
     const torsoMesh = new THREE.Mesh(torso.geom, bodyMat);
@@ -853,43 +920,72 @@ function createTeeProduct(lowDetail = false): ProductHandle {
 
     group.add(torsoMesh, innerNeck, collarMesh, hemMesh);
 
-    // Lengan pendek kanan & kiri jatuh lembut ke bawah
+    // Lengan pendek kanan & kiri tersambung utuh di lubang bahu torso
     const buildSleeve = (side: -1 | 1, phase: number) => {
       const s = buildDrapedSleeveGeometry(
         {
           side,
-          shoulderX: side * 0.78,
-          shoulderY: 2.46,
+          torsoSpec: teeTorsoSpec,
+          armpitV: 0.695,
+          shoulderV: 0.875,
+          seamInset: 0.032,
+          armholeDepthAngle: 0.72,
+          shoulderExitAngle: 0.42,
           length: 0.78,
-          droopAngle: 0.74,
+          droopAngle: 0.72,
           elbowBendZ: 0.03,
-          baseRy: 0.28,
-          cuffRy: 0.24,
-          baseRz: 0.16,
+          baseRy: 0.31,
+          cuffRy: 0.23,
+          baseRz: 0.19,
           cuffRz: 0.15,
-          foldAmp: 0.038,
-          gravityDrop: 0.12,
+          foldAmp: 0.036,
+          gravityDrop: 0.11,
         },
         lowDetail,
       );
       h.trackGeom(s.geom);
       h.trackFlutter(s.geom, s.weights, 0.0034, phase, 1.5);
       const mesh = new THREE.Mesh(s.geom, bodyMat);
+      mesh.name = side < 0 ? "Product_tee_sleeve_L" : "Product_tee_sleeve_R";
 
-      // Cincin lipat ujung lengan + rongga gelap manset
-      const endX = side * (0.78 + Math.cos(0.74) * 0.78);
-      const endY = 2.46 - Math.sin(0.74) * 0.78 - 0.12;
-      const cuffRingGeom = h.trackGeom(new THREE.TorusGeometry(0.2, 0.024, 5, lowDetail ? 8 : 12));
+      const cuffSteps = lowDetail ? 10 : 16;
+      const cuffPts: THREE.Vector3[] = [];
+      const cuffCenter = new THREE.Vector3();
+      for (let i = 0; i < cuffSteps; i++) {
+        const pt = s.evaluator.evalRing(i / cuffSteps, 1);
+        const v3 = new THREE.Vector3(pt.x, pt.y, pt.z);
+        cuffPts.push(v3);
+        cuffCenter.add(v3);
+      }
+      cuffCenter.divideScalar(cuffSteps);
+
+      const cuffCurve = new THREE.CatmullRomCurve3(cuffPts, true);
+      const cuffRingGeom = h.trackGeom(
+        new THREE.TubeGeometry(cuffCurve, lowDetail ? 12 : 20, 0.022, 5, true),
+      );
       const cuffRing = new THREE.Mesh(cuffRingGeom, ribMat);
-      cuffRing.position.set(endX, endY, 0.025);
-      cuffRing.rotation.set(0, Math.PI * 0.5, side * -0.74);
-      cuffRing.scale.set(0.76, 1.15, 1);
 
-      const cuffInnerGeom = h.trackGeom(new THREE.CircleGeometry(0.18, 8));
+      const endTan = s.evaluator.spineCurve.getTangent(1).normalize();
+      const innerPositions: number[] = [];
+      const innerIndices: number[] = [];
+      const insetCenter = cuffCenter.clone().addScaledVector(endTan, -0.028);
+      innerPositions.push(insetCenter.x, insetCenter.y, insetCenter.z);
+      for (let i = 0; i < cuffSteps; i++) {
+        const p = cuffPts[i]!;
+        const shrunk = new THREE.Vector3()
+          .lerpVectors(cuffCenter, p, 0.94)
+          .addScaledVector(endTan, -0.022);
+        innerPositions.push(shrunk.x, shrunk.y, shrunk.z);
+      }
+      for (let i = 0; i < cuffSteps; i++) {
+        innerIndices.push(0, 1 + i, 1 + ((i + 1) % cuffSteps));
+      }
+      const cuffInnerGeom = new THREE.BufferGeometry();
+      cuffInnerGeom.setAttribute("position", new THREE.Float32BufferAttribute(innerPositions, 3));
+      cuffInnerGeom.setIndex(innerIndices);
+      cuffInnerGeom.computeVertexNormals();
+      h.trackGeom(cuffInnerGeom);
       const cuffInner = new THREE.Mesh(cuffInnerGeom, linerMat);
-      cuffInner.position.set(endX - side * 0.02, endY + 0.02, 0.025);
-      cuffInner.rotation.set(0, side * Math.PI * 0.5, side * -0.74);
-      cuffInner.scale.set(0.74, 1.1, 1);
 
       group.add(mesh, cuffRing, cuffInner);
     };
@@ -899,8 +995,8 @@ function createTeeProduct(lowDetail = false): ProductHandle {
     addGarmentStand(group, h, wireMat, woodMat, {
       standTopY: 3.46,
       hangerCenterY: 2.82,
-      shoulderEndY: 2.5,
-      shoulderHalfW: 0.82,
+      shoulderEndY: 2.46,
+      shoulderHalfW: 0.74,
       standBackZ: -0.34,
       lowDetail,
     });
@@ -1273,31 +1369,30 @@ function createFleeceProduct(lowDetail = false): ProductHandle {
       }),
     );
 
-    const torso = buildDrapedTorsoGeometry(
-      {
-        hemY: 0.22,
-        armpitY: 2.1,
-        shoulderY: 2.86,
-        neckSideY: 3.16,
-        neckFrontDip: 0.16,
-        neckBackDip: 0.05,
-        hemRx: 0.96,
-        waistRx: 0.93,
-        chestRx: 1.0,
-        shoulderRx: 0.9,
-        neckRx: 0.37,
-        hemRz: 0.31,
-        chestRz: 0.3,
-        neckRz: 0.17,
-        hemSag: 0.048,
-        foldAmp: 0.072,
-        foldFreq: 3,
-        pleatSkew: 0.65,
-        flutterAmp: 0.0022,
-        isJacket: true,
-      },
-      lowDetail,
-    );
+    const fleeceTorsoSpec: GarmentTorsoSpec = {
+      hemY: 0.22,
+      armpitY: 2.1,
+      shoulderY: 2.86,
+      neckSideY: 3.16,
+      neckFrontDip: 0.16,
+      neckBackDip: 0.05,
+      hemRx: 0.96,
+      waistRx: 0.93,
+      chestRx: 1.0,
+      shoulderRx: 0.9,
+      neckRx: 0.37,
+      hemRz: 0.31,
+      chestRz: 0.3,
+      neckRz: 0.17,
+      hemSag: 0.048,
+      foldAmp: 0.072,
+      foldFreq: 3,
+      pleatSkew: 0.65,
+      flutterAmp: 0.0022,
+      isJacket: true,
+    };
+
+    const torso = buildDrapedTorsoGeometry(fleeceTorsoSpec, lowDetail);
     h.trackGeom(torso.geom);
     h.trackFlutter(torso.geom, torso.weights, 0.0022, 1.7, 1.05);
     const body = new THREE.Mesh(torso.geom, bodyMat);
@@ -1365,41 +1460,72 @@ function createFleeceProduct(lowDetail = false): ProductHandle {
 
     group.add(body, collarMesh, innerNeck, zip, pull, hemMesh);
 
-    // Lengan panjang jaket fleece jatuh alami menyusuri samping badan + manset rib
+    // Lengan panjang jaket fleece tersambung utuh ke lubang bahu & jatuh alami ke manset rib
     const buildLongSleeve = (side: -1 | 1, phase: number) => {
       const s = buildDrapedSleeveGeometry(
         {
           side,
-          shoulderX: side * 0.88,
-          shoulderY: 2.74,
+          torsoSpec: fleeceTorsoSpec,
+          armpitV: 0.695,
+          shoulderV: 0.875,
+          seamInset: 0.034,
+          armholeDepthAngle: 0.76,
+          shoulderExitAngle: 0.56,
           length: 1.72,
-          droopAngle: 1.24, // jatuh ~71 derajat ke bawah
+          droopAngle: 1.22,
           elbowBendZ: 0.09,
-          baseRy: 0.3,
+          baseRy: 0.34,
           cuffRy: 0.19,
-          baseRz: 0.21,
+          baseRz: 0.24,
           cuffRz: 0.16,
-          foldAmp: 0.044,
-          gravityDrop: 0.16,
+          foldAmp: 0.042,
+          gravityDrop: 0.14,
         },
         lowDetail,
       );
       h.trackGeom(s.geom);
       h.trackFlutter(s.geom, s.weights, 0.0022, phase, 1.1);
       const sleeveMesh = new THREE.Mesh(s.geom, bodyMat);
+      sleeveMesh.name = side < 0 ? "Product_fleece_sleeve_L" : "Product_fleece_sleeve_R";
 
-      const endX = side * (0.88 + Math.cos(1.24) * 1.72);
-      const endY = 2.74 - Math.sin(1.24) * 1.72 - 0.16;
-      const cuffGeom = h.trackGeom(new THREE.TorusGeometry(0.175, 0.036, 5, lowDetail ? 8 : 12));
+      const cuffSteps = lowDetail ? 10 : 16;
+      const cuffPts: THREE.Vector3[] = [];
+      const cuffCenter = new THREE.Vector3();
+      for (let i = 0; i < cuffSteps; i++) {
+        const pt = s.evaluator.evalRing(i / cuffSteps, 1);
+        const v3 = new THREE.Vector3(pt.x, pt.y, pt.z);
+        cuffPts.push(v3);
+        cuffCenter.add(v3);
+      }
+      cuffCenter.divideScalar(cuffSteps);
+
+      const cuffCurve = new THREE.CatmullRomCurve3(cuffPts, true);
+      const cuffGeom = h.trackGeom(
+        new THREE.TubeGeometry(cuffCurve, lowDetail ? 12 : 20, 0.034, 5, true),
+      );
       const cuffMesh = new THREE.Mesh(cuffGeom, trimMat);
-      cuffMesh.position.set(endX, endY, 0.02);
-      cuffMesh.rotation.set(0, Math.PI * 0.5, side * -1.24);
-      cuffMesh.scale.set(0.84, 1.08, 1);
 
-      const cuffInnerGeom = h.trackGeom(new THREE.CircleGeometry(0.15, 8));
+      const endTan = s.evaluator.spineCurve.getTangent(1).normalize();
+      const innerPositions: number[] = [];
+      const innerIndices: number[] = [];
+      const insetCenter = cuffCenter.clone().addScaledVector(endTan, -0.03);
+      innerPositions.push(insetCenter.x, insetCenter.y, insetCenter.z);
+      for (let i = 0; i < cuffSteps; i++) {
+        const p = cuffPts[i]!;
+        const shrunk = new THREE.Vector3()
+          .lerpVectors(cuffCenter, p, 0.94)
+          .addScaledVector(endTan, -0.024);
+        innerPositions.push(shrunk.x, shrunk.y, shrunk.z);
+      }
+      for (let i = 0; i < cuffSteps; i++) {
+        innerIndices.push(0, 1 + i, 1 + ((i + 1) % cuffSteps));
+      }
+      const cuffInnerGeom = new THREE.BufferGeometry();
+      cuffInnerGeom.setAttribute("position", new THREE.Float32BufferAttribute(innerPositions, 3));
+      cuffInnerGeom.setIndex(innerIndices);
+      cuffInnerGeom.computeVertexNormals();
+      h.trackGeom(cuffInnerGeom);
       const cuffInner = new THREE.Mesh(cuffInnerGeom, linerMat);
-      cuffInner.position.set(endX, endY + 0.015, 0.02);
-      cuffInner.rotation.set(Math.PI * 0.5 - 0.25, 0, 0);
 
       group.add(sleeveMesh, cuffMesh, cuffInner);
     };
@@ -1409,8 +1535,8 @@ function createFleeceProduct(lowDetail = false): ProductHandle {
     addGarmentStand(group, h, zipMat, woodMat, {
       standTopY: 3.76,
       hangerCenterY: 3.12,
-      shoulderEndY: 2.8,
-      shoulderHalfW: 0.88,
+      shoulderEndY: 2.76,
+      shoulderHalfW: 0.82,
       standBackZ: -0.38,
       lowDetail,
     });

@@ -174,8 +174,11 @@ export function StageCanvas({
                   if (!label) return;
                   projected!.set(position.x, position.y, position.z).project(camera);
                   const { x, y, z } = projected!;
+                  const px = ((x + 1) * size.w) / 2;
+                  const minPy = size.w <= 768 ? 138 : 116;
+                  const py = Math.max(minPy, ((1 - y) * size.h) / 2);
                   label.style.visibility = z >= -1 && z <= 1 && Math.abs(x) <= 1.2 ? "" : "hidden";
-                  label.style.transform = `translate3d(${(((x + 1) * size.w) / 2).toFixed(2)}px,${(((1 - y) * size.h) / 2).toFixed(2)}px,0) translate(-50%,-100%)`;
+                  label.style.transform = `translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) translate(-50%,-100%)`;
                 });
               }
             }

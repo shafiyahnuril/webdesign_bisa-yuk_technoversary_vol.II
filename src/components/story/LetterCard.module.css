@@ -26,7 +26,8 @@
 }
 
 :global([data-story-segment="b10"]) .mark {
-  color: var(--c10-accent);
+  color: color-mix(in oklch, var(--c10-accent) 42%, var(--c10-ink) 58%);
+  opacity: 1;
 }
 
 .body {

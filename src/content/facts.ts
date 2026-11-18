@@ -50,17 +50,19 @@ export const FACTS = {
   ),
   "terumbu-pemutihan": {
     key: "terumbu-pemutihan",
-    statement: "Tekanan panas tingkat pemutihan menimpa {X} luas terumbu karang dunia pada 2023–2025.",
+    statement:
+      "Tekanan panas tingkat pemutihan menimpa {X} luas terumbu karang dunia pada 2023 hingga 2025.",
     value: "84%",
-    scope: "Terumbu dunia, tiga cekungan samudra (Pasifik, Atlantik, Hindia); peristiwa pemutihan global ke-4, awal 2023 hingga pertengahan 2025",
+    scope:
+      "Terumbu dunia, tiga cekungan samudra (Pasifik, Atlantik, Hindia); peristiwa pemutihan global ke-4, awal 2023 hingga pertengahan 2025",
     year: 2025,
     sourceTitle: "World's Fourth Mass Coral Bleaching Event Likely Ended in 2025",
-    sourceUrl: "https://www.nesdis.noaa.gov/news/worlds-fourth-mass-coral-bleaching-event-likely-ended-2025",
+    sourceUrl:
+      "https://www.nesdis.noaa.gov/news/worlds-fourth-mass-coral-bleaching-event-likely-ended-2025",
     publisher: "NOAA NESDIS (NCEI)",
     accessed: "2026-11-18",
     verified: true,
-    note:
-      "Yang diukur adalah luas yang terkena tekanan panas tingkat pemutihan, bukan luas karang yang pasti memutih atau mati. Halaman sumber tidak menyebut sifat kumulatif secara eksplisit.",
+    note: "Yang diukur adalah luas yang terkena tekanan panas tingkat pemutihan, bukan luas karang yang pasti memutih atau mati. Halaman sumber tidak menyebut sifat kumulatif secara eksplisit.",
   },
   "kenaikan-laut": {
     key: "kenaikan-laut",
@@ -70,12 +72,12 @@ export const FACTS = {
     scope: "Rata-rata global, rekam satelit",
     year: 2023,
     sourceTitle: "Rate of Sea Level Rise Doubled over 30 Years, New Study Shows",
-    sourceUrl: "https://sealevel.nasa.gov/news/280/rate-of-sea-level-rise-doubled-over-30-years-new-study-shows/",
+    sourceUrl:
+      "https://sealevel.nasa.gov/news/280/rate-of-sea-level-rise-doubled-over-30-years-new-study-shows/",
     publisher: "NASA Sea Level Change Portal",
     accessed: "2026-11-18",
     verified: true,
-    note:
-      "Laju tahun 2023; tahun 1993 sekitar 2,1 mm per tahun. Satu tahun dipengaruhi El Niño, jangan dibaca sebagai tren rata-rata jangka panjang.",
+    note: "Laju tahun 2023; tahun 1993 sekitar 2,1 mm per tahun. Satu tahun dipengaruhi El Niño, jangan dibaca sebagai tren rata-rata jangka panjang.",
   },
   "botol-terkumpul": pending(
     "botol-terkumpul",
@@ -89,12 +91,12 @@ export const FACTS = {
     scope: "Indonesia, sumber daratan, estimasi studi 2021",
     year: 2021,
     sourceTitle: "Plastic Waste Discharges from Rivers and Coastlines in Indonesia",
-    sourceUrl: "https://www.worldbank.org/en/country/indonesia/publication/plastic-waste-discharges-from-rivers-and-coastlines-in-indonesia",
+    sourceUrl:
+      "https://www.worldbank.org/en/country/indonesia/publication/plastic-waste-discharges-from-rivers-and-coastlines-in-indonesia",
     publisher: "World Bank",
     accessed: "2026-11-18",
     verified: true,
-    note:
-      "Estimasi model; total kebocoran ke laut sekitar 346,5 kiloton per tahun (rentang 201,1–552,3). Sisa 17% berasal dari pembuangan langsung atau limpasan pesisir. Rentang ketidakpastian tidak diberikan untuk pembagian 83/17.",
+    note: "Estimasi model; total kebocoran ke laut sekitar 346,5 kiloton per tahun (rentang 201,1–552,3). Sisa 17% berasal dari pembuangan langsung atau limpasan pesisir. Rentang ketidakpastian tidak diberikan untuk pembagian 83/17.",
   },
   "produksi-plastik": {
     key: "produksi-plastik",
@@ -109,8 +111,7 @@ export const FACTS = {
     accessed: "2026-11-18",
     verified: true,
     feature: true,
-    note:
-      "Sumber sekunder (OWID): angka terbaca di halaman ('460 million tonnes in 2019'). Halaman tidak menyebut sumber asli untuk angka produksi ini; OWID merujuk OECD Global Plastics Outlook (2022) untuk angka sampah plastik di halaman yang sama, dan OECD tidak bisa dibuka (403) untuk dicek langsung. Porsi bahan fosil tidak ditemukan; jangan ditampilkan.",
+    note: "Sumber sekunder (OWID): angka terbaca di halaman ('460 million tonnes in 2019'). Halaman tidak menyebut sumber asli untuk angka produksi ini; OWID merujuk OECD Global Plastics Outlook (2022) untuk angka sampah plastik di halaman yang sama, dan OECD tidak bisa dibuka (403) untuk dicek langsung. Porsi bahan fosil tidak ditemukan; jangan ditampilkan.",
   },
   "emisi-plastik": pending(
     "emisi-plastik",
@@ -128,13 +129,14 @@ export const FACTS = {
     value: "lebih dari 90%",
     scope: "Wilayah berkinerja terbaik, data lebih dari 40 yurisdiksi",
     year: 2025,
-    sourceTitle: "New data confirms that deposit return systems outperform other collection systems",
-    sourceUrl: "https://www.reloopplatform.org/new-data-confirms-that-deposit-return-systems-outperform-other-collection-systems/",
+    sourceTitle:
+      "New data confirms that deposit return systems outperform other collection systems",
+    sourceUrl:
+      "https://www.reloopplatform.org/new-data-confirms-that-deposit-return-systems-outperform-other-collection-systems/",
     publisher: "Reloop Platform",
     accessed: "2026-11-18",
     verified: true,
-    note:
-      "Hanya untuk wilayah berkinerja terbaik, bukan rata-rata semua sistem. Definisi angka pengumpulan tidak dijelaskan di halaman; tanggal terbit tidak tercantum (tahun diperkirakan dari data akhir 2025). Pembanding di halaman yang sama: kerbside biasanya tidak melebihi 50%.",
+    note: "Hanya untuk wilayah berkinerja terbaik, bukan rata-rata semua sistem. Definisi angka pengumpulan tidak dijelaskan di halaman; tanggal terbit tidak tercantum (tahun diperkirakan dari data akhir 2025). Pembanding di halaman yang sama: kerbside biasanya tidak melebihi 50%.",
   },
   "bank-sampah": pending(
     "bank-sampah",
