@@ -1,3 +1,56 @@
+/* Font fallback bermetrik agar pertukaran font tidak menggeser tata letak (CLS ~ 0).
+   Nilai size-adjust dan override diukur dari berkas woff2 latin Fontsource terhadap
+   Arial (lebar rata-rata huruf berbobot frekuensi teks Indonesia). */
+@font-face {
+  font-family: "Bricolage Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica Neue");
+  size-adjust: 112.5%;
+  ascent-override: 82.7%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica Neue");
+  size-adjust: 102.9%;
+  ascent-override: 94.3%;
+  descent-override: 24.3%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Caveat Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica Neue");
+  size-adjust: 75.7%;
+  ascent-override: 126.8%;
+  descent-override: 39.6%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "JetBrains Fallback";
+  src: local("Courier New"), local("Liberation Mono");
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+
+/* TODO(A): pindahkan empat deklarasi ini ke tokens.css (satu sumber font-family);
+   di sini hanya menambah fallback bermetrik di depan tumpukan sistem. */
+:root {
+  --font-display:
+    "Bricolage Grotesque Variable", "Bricolage Fallback", "Helvetica Neue", Arial, sans-serif;
+  --font-ui:
+    "Instrument Sans Variable", "Instrument Fallback", system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --font-hand: "Caveat Variable", "Caveat Fallback", "Segoe Script", "Bradley Hand", cursive;
+  --font-mono:
+    "JetBrains Mono Variable", "JetBrains Fallback", ui-monospace, "SFMono-Regular", Menlo,
+    monospace;
+}
+
 /* Skala tipografi fluid (docs/02 bagian 2.3). */
 :root {
   --t-hero: clamp(4.5rem, 17vw, 17rem);
@@ -44,4 +97,37 @@
 .t-mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* Kelas skala tambahan (docs/02 bagian 2.3). */
+.t-punch {
+  font: 500 var(--t-punch) / 1.02 var(--font-display);
+  font-stretch: 100%;
+  letter-spacing: -0.02em;
+}
+
+.t-data {
+  font: 500 var(--t-data) / 1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.t-body-lg {
+  font: 400 var(--t-body-lg) / 1.5 var(--font-ui);
+  font-stretch: 100%;
+}
+
+.t-ui-sm {
+  font: 400 var(--t-ui-sm) / 1.4 var(--font-ui);
+  letter-spacing: 0.02em;
+}
+
+.t-letter {
+  font: 500 var(--t-letter) / 1.25 var(--font-hand);
+}
+
+.t-card {
+  font: 600 var(--t-card) / 1.08 var(--font-display);
+  font-stretch: 92%;
+  letter-spacing: -0.02em;
 }
