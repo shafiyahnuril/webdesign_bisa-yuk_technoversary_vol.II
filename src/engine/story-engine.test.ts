@@ -141,6 +141,34 @@ describe("story-engine & input", () => {
     root.remove();
   });
 
+  it("menahan target sampai visual siap tanpa melepaskan jeda menu", () => {
+    const env = mockScrollEnv();
+    const { scheduler, step } = createManualScheduler();
+    const engine = createStoryEngine({ scheduler });
+    engine.mount(document.createElement("div"));
+    activeCleanups.push(() => engine.unmount());
+    engine.setReady?.(false);
+    env.setScrollY(22400);
+    expect(engine.state.target).toBe(0.02);
+    step(1, 10);
+    expect(engine.state.shown).toBeLessThanOrEqual(0.02);
+    engine.pause();
+    engine.setReady?.(true);
+    expect(engine.state.paused).toBe(true);
+    engine.resume();
+    expect(engine.state.target).toBe(1);
+  });
+
+  it("mengurutkan DOM, renderer, lalu audio tanpa bergantung urutan pemasangan komponen", () => {
+    const engine = createStoryEngine();
+    const calls: string[] = [];
+    engine.onFrame(() => calls.push("audio"), 20);
+    engine.onFrame(() => calls.push("renderer"), 10);
+    engine.onFrame(() => calls.push("dom"));
+    engine.reset();
+    expect(calls).toEqual(["dom", "renderer", "audio"]);
+  });
+
   it("memasang listener wheel/touch/scroll dengan passive: true", () => {
     mockScrollEnv(23400, 1000);
     const addSpy = vi.spyOn(window, "addEventListener");

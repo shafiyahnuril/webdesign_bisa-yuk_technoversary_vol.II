@@ -35,6 +35,7 @@ export function StageCanvas({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    engine.setReady?.(false);
     let cancelled = false;
     let failed = false;
     let cleaned = false;
@@ -68,6 +69,7 @@ export function StageCanvas({
       cancelAnimationFrame(readyFrame);
       director?.dispose();
       stage?.dispose();
+      engine.setReady?.(true);
       overlay?.dispose();
       if (import.meta.env.DEV) {
         delete document.documentElement.dataset.capture;
@@ -165,7 +167,7 @@ export function StageCanvas({
             fail(error);
           }
         };
-        stopFrame = engine.onFrame(renderFrame);
+        stopFrame = engine.onFrame(renderFrame, 10);
         // Menu menghentikan progres cerita; idle tetap menggunakan ticker GSAP bersama.
         stopIdle = onTick((dt) => {
           if (!engine.state.paused || reducedMotion) return;
@@ -214,6 +216,7 @@ export function StageCanvas({
           if (!cancelled && !failed) {
             clearTimeout(timeout);
             canvas.dataset.ready = "true";
+            engine.setReady?.(true);
             callbacksRef.current.onReady?.();
           }
         });

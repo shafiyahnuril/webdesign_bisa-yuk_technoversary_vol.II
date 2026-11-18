@@ -41,11 +41,12 @@ export interface StoryEngine {
   pause(): void;
   resume(): void;
   reset(): void;
-  onFrame(fn: (shown: number, dt: number) => void): () => void;
+  onFrame(fn: (shown: number, dt: number) => void, priority?: number): () => void;
   onChapter(fn: (chapter: number, view: StoryState["view"]) => void): () => void;
   setViewportCache(): void;
   /** Pratinjau deterministik hanya tersedia pada build pengembangan. */
   preview?(progress: number): void;
+  setReady?(ready: boolean): void;
 }
 
 const DEFAULT_SCHEDULER: StoryScheduler = {
@@ -79,7 +80,11 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
     view: "1",
   };
 
-  const frameSubs = new Set<(shown: number, dt: number) => void>();
+  const frameSubs = new Map<(shown: number, dt: number) => void, number>();
+  let orderedFrameSubs: Array<(shown: number, dt: number) => void> = [];
+  const sortFrameSubs = () => {
+    orderedFrameSubs = [...frameSubs.keys()].sort((a, b) => frameSubs.get(a)! - frameSubs.get(b)!);
+  };
   const chapterSubs = new Set<(chapter: number, view: StoryState["view"]) => void>();
 
   let mounted = false;
@@ -91,6 +96,7 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
   let stopInput: (() => void) | null = null;
   let stopTick: (() => void) | null = null;
   let lastDiscreteKey = "";
+  let visualReady = true;
 
   const getDomRoot = (): HTMLElement | undefined =>
     opts.domRoot ?? (typeof document !== "undefined" ? document.documentElement : undefined);
@@ -140,7 +146,7 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
     applyCues(shown, domRoot);
     syncRe(shown, domRoot);
     syncDiscrete(forceEmitFlag(forceDiscrete));
-    frameSubs.forEach((fn) => fn(shown, dt));
+    orderedFrameSubs.forEach((fn) => fn(shown, dt));
   };
 
   function forceEmitFlag(v: boolean): boolean {
@@ -160,7 +166,7 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
       state.target = 0;
       return;
     }
-    state.target = clamp01(window.scrollY / maxScroll);
+    state.target = Math.min(visualReady ? 1 : 0.02, clamp01(window.scrollY / maxScroll));
   };
 
   const handleResize = () => {
@@ -294,13 +300,16 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
   const resume = () => {
     if (!state.paused) return;
     state.paused = false;
+    readScrollTarget();
     syncDiscrete(false);
   };
 
-  const onFrame = (fn: (shown: number, dt: number) => void) => {
-    frameSubs.add(fn);
+  const onFrame = (fn: (shown: number, dt: number) => void, priority = 0) => {
+    frameSubs.set(fn, priority);
+    sortFrameSubs();
     return () => {
       frameSubs.delete(fn);
+      sortFrameSubs();
     };
   };
 
@@ -321,6 +330,11 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
     onFrame,
     onChapter,
     setViewportCache,
+    setReady(ready: boolean) {
+      visualReady = ready;
+      if (!ready) state.target = Math.min(state.target, 0.02);
+      if (mounted) readScrollTarget();
+    },
     ...(import.meta.env.DEV
       ? {
           preview(progress: number) {
