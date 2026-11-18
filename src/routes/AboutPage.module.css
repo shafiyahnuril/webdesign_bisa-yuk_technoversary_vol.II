@@ -1,0 +1,40 @@
+.sections {
+  display: grid;
+  gap: var(--s-10);
+  padding: 0 var(--gutter-page) var(--s-10);
+  color: var(--page-ink);
+}
+
+.section {
+  display: grid;
+  gap: var(--s-6);
+  align-content: start;
+}
+
+.section h2 {
+  margin: 0;
+}
+
+.section p {
+  margin: 0;
+}
+
+.text {
+  display: grid;
+  gap: var(--s-5);
+  align-content: start;
+}
+
+.facts {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+}
+
+/* Latar isu: dua kolom (teks | fakta) mulai tablet; HP satu kolom. */
+@media (min-width: 768px) {
+  .split {
+    grid-template-columns: 7fr 5fr;
+    gap: var(--s-9);
+  }
+}
