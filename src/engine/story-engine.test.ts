@@ -92,6 +92,25 @@ describe("story-engine & input", () => {
     expect(typeof storyEngine.setViewportCache).toBe("function");
   });
 
+  it("menyerap sisa momentum pointer setelah loop dan menerima gestur baru setelah jeda", () => {
+    const env = mockScrollEnv();
+    const { scheduler } = createManualScheduler();
+    let clock = 1000;
+    vi.spyOn(performance, "now").mockImplementation(() => clock);
+    const engine = createStoryEngine({ scheduler });
+    engine.mount(document.createElement("div"));
+    activeCleanups.push(() => engine.unmount());
+    engine.reset();
+    for (const at of [1100, 1300, 1500]) {
+      clock = at;
+      window.dispatchEvent(new WheelEvent("wheel", { deltaY: 300, cancelable: true }));
+      expect(env.getScrollY()).toBe(0);
+    }
+    clock = 1900;
+    window.dispatchEvent(new WheelEvent("wheel", { deltaY: 100, cancelable: true }));
+    expect(env.getScrollY()).toBeGreaterThan(0);
+  });
+
   it("pratinjau DEV menyamakan target, shown, palet, dan pelanggan untuk capture deterministik", () => {
     mockScrollEnv();
     const { scheduler } = createManualScheduler();

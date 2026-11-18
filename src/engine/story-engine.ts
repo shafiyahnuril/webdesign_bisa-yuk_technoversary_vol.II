@@ -97,6 +97,7 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
   let stopTick: (() => void) | null = null;
   let lastDiscreteKey = "";
   let visualReady = true;
+  let pointerSettleUntil = 0;
 
   const getDomRoot = (): HTMLElement | undefined =>
     opts.domRoot ?? (typeof document !== "undefined" ? document.documentElement : undefined);
@@ -200,6 +201,8 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
   };
 
   const reset = () => {
+    // Tunggu akhir momentum gestur lama sebelum wheel/sentuh memulai perjalanan baru.
+    pointerSettleUntil = performance.now() + ENGINE.REST_DELAY;
     state.target = 0;
     state.shown = 0;
     safeScrollToTop(0);
@@ -269,6 +272,10 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
       onScrollBy(deltaPx, pointer) {
         if (state.paused || typeof window === "undefined" || typeof window.scrollBy !== "function")
           return;
+        if (pointer && performance.now() < pointerSettleUntil) {
+          pointerSettleUntil = performance.now() + ENGINE.REST_DELAY;
+          return;
+        }
         let delta = deltaPx;
         if (pointer && maxScroll > 0) {
           const anchor = state.shown * maxScroll;
