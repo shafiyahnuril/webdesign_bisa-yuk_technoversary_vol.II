@@ -136,6 +136,21 @@ export const COPY = {
   "article.next": "Artikel berikutnya",
   "filter.all": "Semua",
   "filter.empty": "Belum ada artikel untuk kombinasi ini.",
+  // [USULAN] kunci Galeri Artikel (G4)
+  "page.content.lede": "Dampak dari tindakan kita, dari rumah sampai dunia.",
+  "filter.reset": "Atur ulang filter",
+  "filter.group.kind": "Jenis artikel",
+  "filter.group.level": "Cakupan",
+  "filter.kind.negatif": "Negatif",
+  "filter.kind.positif": "Positif",
+  "filter.level.sehari-hari": "Sehari-hari",
+  "filter.level.nasional": "Nasional",
+  "filter.level.global": "Global",
+  "filter.live.some": "Menampilkan {N} artikel: {F}.",
+  "filter.live.all": "Menampilkan {N} artikel.",
+  "filter.live.none": "Tidak ada artikel untuk kombinasi ini.",
+  "card.minutes": "{N} menit baca",
+  "card.cover.alt": "Sampul artikel: {T}",
 
   // Tambahan kerangka (bukan dari dok 11): judul halaman dan teks sementara
   "page.home.title": "Re:bottle",
