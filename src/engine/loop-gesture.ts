@@ -117,6 +117,12 @@ export function createLoopGesture(opts: LoopGestureOptions): LoopGesture {
       return;
     }
 
+    // Input sudah memenuhi gestur; frame lambat tidak boleh membatalkannya lewat decay.
+    if (pull >= 1) {
+      commitLoop();
+      return;
+    }
+
     if (pull > 0 && now() - lastInput > ENGINE.REST_DELAY) {
       const decayStep = 1 - Math.pow(1 - ENGINE.DECAY, dt * 60);
       pull = Math.max(0, pull - decayStep);
@@ -129,10 +135,6 @@ export function createLoopGesture(opts: LoopGestureOptions): LoopGesture {
     }
 
     emitIfChanged();
-
-    if (pull >= 1) {
-      commitLoop();
-    }
   };
 
   const onWheel = (e: WheelEvent) => addPull(e.deltaY);

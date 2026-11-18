@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { ENGINE } from "@/lib/tokens";
 import { createLoopGesture } from "./loop-gesture";
 import type { StoryEngine, StoryScheduler, StoryState } from "./story-engine";
 
@@ -93,7 +94,7 @@ describe("loop-gesture", () => {
     expect(onPull).not.toHaveBeenCalled();
   });
 
-  it("short pull naik lalu meluruh ke 0 setelah 90ms rest delay (konsisten 60/120/144 Hz)", () => {
+  it("menahan tarikan selama jeda singkat lalu meluruh konsisten pada 60/120/144 Hz", () => {
     const runDecay = (hz: number) => {
       const engine = createFakeEngine(1);
       const env = createManualEnv();
@@ -111,12 +112,11 @@ describe("loop-gesture", () => {
       window.dispatchEvent(new WheelEvent("wheel", { deltaY: 350 }));
       expect(gesture.pull).toBeCloseTo(350 / 1400, 4);
 
-      // Sebelum 90ms rest delay, pull belum meluruh
-      const framesIn80ms = Math.floor(0.08 * hz);
-      for (let i = 0; i < framesIn80ms; i++) env.step(1 / hz);
+      const framesBeforeRest = Math.floor(((ENGINE.REST_DELAY - 20) / 1000) * hz);
+      for (let i = 0; i < framesBeforeRest; i++) env.step(1 / hz);
       expect(gesture.pull).toBeCloseTo(350 / 1400, 4);
 
-      // Setelah lewat 90ms dan 200ms berikutnya, pull meluruh ke 0
+      // Setelah jeda dan 200ms berikutnya, pull meluruh ke 0.
       const framesIn200ms = Math.ceil(0.2 * hz);
       for (let i = 0; i < framesIn200ms; i++) env.step(1 / hz);
       expect(gesture.pull).toBe(0);
@@ -131,6 +131,25 @@ describe("loop-gesture", () => {
     expect(last60?.[0]).toBe(0);
     expect(last120?.[0]).toBe(0);
     expect(last144?.[0]).toBe(0);
+  });
+
+  it("tidak membatalkan tarikan penuh saat frame berikutnya terlambat", () => {
+    const engine = createFakeEngine(1);
+    const env = createManualEnv();
+    const gesture = createLoopGesture({
+      engine,
+      onPull: vi.fn(),
+      scheduler: env.scheduler,
+      now: env.now,
+      raf: env.raf,
+      cancelRaf: env.cancelRaf,
+    });
+    cleanups.push(() => gesture.dispose());
+    gesture.addPull(1400);
+    env.step(0.8);
+    expect(gesture.busy).toBe(true);
+    env.flushRaf();
+    expect(engine.reset).toHaveBeenCalledOnce();
   });
 
   it("End/PageDown/Space tidak mengisi pull, sedangkan ArrowDown (+60) dan touch delta mengisi", () => {

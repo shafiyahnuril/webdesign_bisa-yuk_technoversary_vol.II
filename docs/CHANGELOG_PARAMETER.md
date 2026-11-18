@@ -11,7 +11,13 @@ Revisi 18 November 2026 berdasarkan evaluasi pengguna terhadap gulir yang terlal
 | Sentuh | native | ×0,8 | Pergerakan mengikuti jarak jari |
 | Antrean pointer | tidak dibatasi | ±0,9 viewport dari shown | Regresi burst tanpa frame tambahan |
 | GAIN loop | 1/1400 | 1/1400 | Gestur loop tetap terpisah dari wheel cerita |
-| REST_DELAY loop | 90 ms | 90 ms | Unit loop gesture |
+| REST_DELAY loop | 90 ms | 350 ms | Jeda antar-input lebih toleran; tarikan penuh diproses sebelum decay |
 | DECAY loop | 0,12 | 0,12 per 60 Hz, dinormalisasi dt | Unit loop gesture |
 
 Tidak memakai ScrollTrigger kedua: engine dan seluruh tampilan tetap berbagi satu shown dan ticker GSAP. Input pointer Home sengaja non-passive agar sentakan dinormalisasi; scroll/resize dan mode statis tetap mengikuti perilaku browser. Pengukuran mouse/trackpad dan HP fisik masih diperlukan untuk penyetelan lanjutan.
+
+## Koreksi gerak dan bahan
+
+B3–B5 menggunakan fase gelombang berbasis waktu, terpisah dari progres gulir. B3/B4 memakai redaman kritis posisi dan slerp dengan batas kemiringan ±5°; B5 menghapus getaran berfrekuensi tinggi. Pengujian mencakup scrub maju-mundur, reset, dt=0, serta sampling CPU dan shader air.
+
+Pakaian memakai shell kain bervolume dengan bahu/lengan jatuh, lipatan gravitasi, kelim melengkung, dan flutter maksimum 0,004 unit. Tas memakai sag; kayu, keramik, dan metal tetap rigid. Normal kain diperkecil menjadi 0,14–0,20 dan anyaman diperkecil skalanya agar tidak tampak seperti permukaan plastik timbul.

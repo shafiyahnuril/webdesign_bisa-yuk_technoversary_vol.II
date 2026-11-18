@@ -402,7 +402,7 @@ export const ENGINE = {
   MAX_SPEED_VH: 40,
   CHASE: 4.5,
   GAIN: 1 / 1400,
-  REST_DELAY: 90,
+  REST_DELAY: 350,
   DECAY: 0.12,
 } as const;
 

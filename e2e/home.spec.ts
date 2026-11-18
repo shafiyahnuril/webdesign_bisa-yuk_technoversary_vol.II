@@ -28,16 +28,12 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     const poster = page.locator("[data-story-poster]");
     await expect(poster).toBeAttached();
     await expect
-      .poll(async () =>
-        poster.evaluate((el) => Number(getComputedStyle(el).opacity)),
-      )
+      .poll(async () => poster.evaluate((el) => Number(getComputedStyle(el).opacity)))
       .toBeLessThan(0.05);
 
     // Label skenario wajib di hero
     const scenario = page.locator("[data-scenario-label]");
-    await expect(scenario).toContainText(
-      "Skenario jika pola konsumsi plastik terus berlanjut.",
-    );
+    await expect(scenario).toContainText("Skenario jika pola konsumsi plastik terus berlanjut.");
 
     // Scrollbar hanya disembunyikan pada mode 3D
     const scrollbarStyle = await html.evaluate((el) => {
@@ -57,11 +53,9 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/#/");
-    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute(
-      "data-ready",
-      "true",
-      { timeout: 15_000 },
-    );
+    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute("data-ready", "true", {
+      timeout: 15_000,
+    });
 
     const nav = page.locator("header[data-nav]");
     await expect(nav).toHaveAttribute("data-nav", "open");
@@ -71,16 +65,11 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     await page.waitForTimeout(80);
     const scrollAfterEnd = await page.evaluate(() => window.scrollY);
     expect(scrollAfterEnd).toBe(0);
-    await expect(page.locator("[data-story-root]")).toHaveAttribute(
-      "data-active-chapter",
-      "1",
-    );
+    await expect(page.locator("[data-story-root]")).toHaveAttribute("data-active-chapter", "1");
 
     // 2. PageDown menggerakkan gulir ke bawah secara terkendali (~0.9 * vh)
     await page.keyboard.press("PageDown");
-    await expect
-      .poll(async () => page.evaluate(() => window.scrollY))
-      .toBeGreaterThan(500);
+    await expect.poll(async () => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
 
     // Setelah shown melewati ambang 0.01, navbar terlipat (collapsed) dan tautan keluar dari urutan Tab
     await expect(nav).toHaveAttribute("data-nav", "collapsed", {
@@ -102,13 +91,10 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     });
     await page.waitForTimeout(120);
     const stateDuringFastScroll = await page.evaluate(() => {
-      const maxScroll =
-        document.documentElement.scrollHeight - window.innerHeight;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       const scrollRatio = maxScroll > 0 ? window.scrollY / maxScroll : 0;
       const chapter = Number(
-        document
-          .querySelector("[data-story-root]")
-          ?.getAttribute("data-active-chapter") ?? "1",
+        document.querySelector("[data-story-root]")?.getAttribute("data-active-chapter") ?? "1",
       );
       return { scrollRatio, chapter };
     });
@@ -121,11 +107,9 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/#/");
-    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute(
-      "data-ready",
-      "true",
-      { timeout: 15_000 },
-    );
+    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute("data-ready", "true", {
+      timeout: 15_000,
+    });
 
     // Gulir sedikit agar posisi tidak di 0
     await page.evaluate(() => window.scrollTo(0, 1200));
@@ -142,9 +126,7 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     // Hanya <main id="main"> yang diberi inert; header navbar tidak inert
     const inertCheck = await page.evaluate(() => ({
       mainInert: document.getElementById("main")?.hasAttribute("inert") ?? false,
-      headerInert:
-        document.querySelector("header[data-nav]")?.hasAttribute("inert") ??
-        false,
+      headerInert: document.querySelector("header[data-nav]")?.hasAttribute("inert") ?? false,
     }));
     expect(inertCheck.mainInert).toBe(true);
     expect(inertCheck.headerInert).toBe(false);
@@ -154,9 +136,7 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
       const active = document.activeElement;
       const panel = document.getElementById("menu-panel");
       const btn = document.querySelector('button[aria-controls="menu-panel"]');
-      return Boolean(
-        active && (panel?.contains(active) || btn?.contains(active)),
-      );
+      return Boolean(active && (panel?.contains(active) || btn?.contains(active)));
     });
     expect(focusInside).toBe(true);
 
@@ -183,11 +163,9 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${DEV_BASE}/?debug=1#/`);
-    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute(
-      "data-ready",
-      "true",
-      { timeout: 15_000 },
-    );
+    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute("data-ready", "true", {
+      timeout: 15_000,
+    });
 
     await page.waitForFunction(() =>
       Boolean((window as DevRuntimeWindow).__REBOTTLE_RUNTIME__?.engine?.preview),
@@ -208,8 +186,7 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     await expect(b6Segment).toContainText(
       "Mikroplastik kini ditemukan di makanan dan minuman kita.",
     );
-    const allStageText =
-      (await page.locator("[data-story-stage]").textContent()) ?? "";
+    const allStageText = (await page.locator("[data-story-stage]").textContent()) ?? "";
     expect(allStageText).not.toContain("TODO");
     expect(allStageText).not.toContain("{X}");
     expect(allStageText).not.toContain("Sekian persen");
@@ -225,22 +202,20 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     // 3. Keyframe Bab 7 (shown = 0.629, t ≈ 0.50 di dalam b7: 0.5982..0.6607): Babak II menyalakan data-re="on" dan surat Caveat
     await previewAt(0.629);
     await expect(page.locator("html")).toHaveAttribute("data-re", "on");
-    await expect(
-      page.locator('[data-story-segment="b7"] [data-letter-card]'),
-    ).toContainText("Kamu tidak membuangku ke sungai. Terima kasih.");
+    await expect(page.locator('[data-story-segment="b7"] [data-letter-card]')).toContainText(
+      "Kamu tidak membuangku ke sungai. Terima kasih.",
+    );
 
     // 4. Keyframe Bab 10 akhir (shown = 1.0) untuk memeriksa CTA, lalu resume engine dan jalankan gestur wheel loop nyata
     await previewAt(1.0);
-    await expect(page.locator("[data-cta-closing]")).toContainText(
-      "Bawa botolmu besok.",
-    );
+    await expect(page.locator("[data-cta-closing]")).toContainText("Bawa botolmu besok.");
     await expect(page.locator("html")).toHaveAttribute("data-re", "on");
 
     await page.evaluate(() => {
       (window as DevRuntimeWindow).__REBOTTLE_RUNTIME__?.engine.resume();
     });
 
-    // Kirim rentetan wheel deltaY positif (> 1400px tanpa melampaui REST_DELAY 90ms) untuk menarik kubah loop hingga penuh
+    // Kirim rentetan wheel deltaY positif (> 1400px dalam satu gestur berkelanjutan) untuk menarik kubah loop hingga penuh
     await page.mouse.move(720, 450);
     for (let i = 0; i < 8; i += 1) {
       await page.mouse.wheel(0, 300);
@@ -250,14 +225,8 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     await expect(page.locator("html")).toHaveAttribute("data-re", "off", {
       timeout: 5_000,
     });
-    await expect(page.locator("[data-story-root]")).toHaveAttribute(
-      "data-active-chapter",
-      "1",
-    );
-    await expect(page.locator("header[data-nav]")).toHaveAttribute(
-      "data-nav",
-      "open",
-    );
+    await expect(page.locator("[data-story-root]")).toHaveAttribute("data-active-chapter", "1");
+    await expect(page.locator("header[data-nav]")).toHaveAttribute("data-nav", "open");
   });
 
   test("(5) prefers-reduced-motion merender StaticStory tanpa memuat chunk Three.js, membuka panel berurutan 1,2 detik, dan mereset di akhir", async ({
@@ -270,10 +239,7 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/#/");
 
-    await expect(page.locator("html")).toHaveAttribute(
-      "data-story-mode",
-      "static",
-    );
+    await expect(page.locator("html")).toHaveAttribute("data-story-mode", "static");
     const staticRoot = page.locator("[data-static-story]");
     await expect(staticRoot).toBeVisible();
 
@@ -292,9 +258,7 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     await expect(page.locator("[data-static-unlock-next]")).toHaveCount(0);
 
     // Gulir ke panel 2 hingga terlihat >= 60%: sebelum 1,2 detik belum membuka panel 3, setelah >= 1,2 detik membuka panel 3
-    await page
-      .locator('[data-static-panel="b2"]')
-      .scrollIntoViewIfNeeded();
+    await page.locator('[data-static-panel="b2"]').scrollIntoViewIfNeeded();
     await page.waitForTimeout(400);
     await expect(page.locator("[data-static-panel]")).toHaveCount(2);
 
@@ -303,17 +267,7 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
     });
 
     // Buka berurutan hingga panel ke-11
-    const panelIds = [
-      "b3",
-      "b4",
-      "b5",
-      "b6",
-      "punch",
-      "b7",
-      "b8",
-      "b9",
-      "b10",
-    ];
+    const panelIds = ["b3", "b4", "b5", "b6", "punch", "b7", "b8", "b9", "b10"];
     for (let i = 0; i < panelIds.length; i += 1) {
       const id = panelIds[i]!;
       const panelLoc = page.locator(`[data-static-panel="${id}"]`);
@@ -356,10 +310,7 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
       el.dispatchEvent(evt);
     });
 
-    await expect(page.locator("html")).toHaveAttribute(
-      "data-story-mode",
-      "static",
-    );
+    await expect(page.locator("html")).toHaveAttribute("data-story-mode", "static");
     await expect(page.locator("[data-static-story]")).toBeVisible();
   });
 
@@ -368,11 +319,9 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/#/");
-    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute(
-      "data-ready",
-      "true",
-      { timeout: 15_000 },
-    );
+    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute("data-ready", "true", {
+      timeout: 15_000,
+    });
 
     const nonHomeChecks = [
       { hash: "#/about", pageAttr: "about", expectedBg: "rgb(31, 79, 94)" },
@@ -387,28 +336,21 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
 
     for (const item of nonHomeChecks) {
       await page.goto(`/${item.hash}`);
-      await expect(page.locator("html")).toHaveAttribute(
-        "data-page",
-        item.pageAttr,
-      );
+      await expect(page.locator("html")).toHaveAttribute("data-page", item.pageAttr);
       await expect(page.locator("html")).toHaveAttribute("data-re", "on");
       // Kanvas 3D Home sudah di-unmount
       await expect(page.locator("canvas[data-capture-stage]")).toHaveCount(0);
 
-      const bg = await page.evaluate(
-        () => getComputedStyle(document.body).backgroundColor,
-      );
+      const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
       expect(bg).toBe(item.expectedBg);
     }
 
     // Kembali ke Home: memulihkan warna hero c1 (#0B2B80), font, data-re="off", scrollY=0, dan kanvas hidup kembali
     await page.goto("/#/");
     await expect(page.locator("html")).toHaveAttribute("data-re", "off");
-    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute(
-      "data-ready",
-      "true",
-      { timeout: 15_000 },
-    );
+    await expect(page.locator("canvas[data-capture-stage]")).toHaveAttribute("data-ready", "true", {
+      timeout: 15_000,
+    });
 
     const homeRestored = await page.evaluate(() => {
       const root = document.documentElement;
@@ -431,9 +373,7 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
       await page.goto(`/${route}`);
       await page.waitForTimeout(200);
       const hasOverflow = await page.evaluate(
-        () =>
-          document.documentElement.scrollWidth >
-          document.documentElement.clientWidth + 1,
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       );
       expect(hasOverflow).toBe(false);
     }
