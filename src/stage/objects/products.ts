@@ -105,10 +105,13 @@ export const PRODUCT_ORDER: readonly ProductId[] = [
   "fleece",
 ];
 
+export const MAX_CLOTH_FLUTTER = 0.004;
+
 export interface ProductHandle {
   readonly id: ProductId;
   readonly group: THREE.Group;
   setDim(factor: number): void;
+  updateFlutter?(timeSec: number, enabled: boolean): void;
   reset(): void;
   dispose(): void;
 }
@@ -118,33 +121,109 @@ interface ColorTrackedMaterial {
   readonly base: THREE.Color;
 }
 
+interface ClothFlutterTarget {
+  readonly geom: THREE.BufferGeometry;
+  readonly rest: Float32Array;
+  readonly weights: Float32Array;
+  readonly amp: number;
+  readonly phase: number;
+  readonly freq: number;
+  displaced: boolean;
+}
+
+type BuildHelpers = {
+  trackMat: (m: THREE.MeshStandardMaterial) => THREE.MeshStandardMaterial;
+  trackGeom: (g: THREE.BufferGeometry) => THREE.BufferGeometry;
+  trackSet: (s: PbrTextureSet) => PbrTextureSet;
+  trackFlutter: (
+    geom: THREE.BufferGeometry,
+    weights: Float32Array,
+    amp: number,
+    phase: number,
+    freq: number,
+  ) => void;
+};
+
 function makeTrackedProduct(
   id: ProductId,
-  buildFn: (
-    trackMat: (m: THREE.MeshStandardMaterial) => THREE.MeshStandardMaterial,
-    trackGeom: (g: THREE.BufferGeometry) => THREE.BufferGeometry,
-    trackSet: (s: PbrTextureSet) => PbrTextureSet,
-  ) => THREE.Group,
+  buildFn: (h: BuildHelpers) => THREE.Group,
 ): ProductHandle {
   const trackedMats: ColorTrackedMaterial[] = [];
   const geoms: THREE.BufferGeometry[] = [];
   const sets: PbrTextureSet[] = [];
+  const flutters: ClothFlutterTarget[] = [];
 
-  const group = buildFn(
-    (m) => {
+  const group = buildFn({
+    trackMat(m) {
       trackedMats.push({ mat: m, base: m.color.clone() });
       return m;
     },
-    (g) => {
+    trackGeom(g) {
       geoms.push(g);
       return g;
     },
-    (s) => {
+    trackSet(s) {
       sets.push(s);
       return s;
     },
-  );
+    trackFlutter(geom, weights, amp, phase, freq) {
+      const pos = geom.getAttribute("position") as THREE.BufferAttribute | undefined;
+      if (!pos) return;
+      const rest = new Float32Array(pos.array as ArrayLike<number>);
+      flutters.push({
+        geom,
+        rest,
+        weights,
+        amp: Math.min(MAX_CLOTH_FLUTTER, Math.max(0, amp)),
+        phase,
+        freq,
+        displaced: false,
+      });
+    },
+  });
   group.name = `Product_${id}`;
+
+  const applyFlutter = (timeSec: number, enabled: boolean) => {
+    for (const target of flutters) {
+      const pos = target.geom.getAttribute("position") as THREE.BufferAttribute | undefined;
+      if (!pos) continue;
+      const arr = pos.array as Float32Array;
+      const rest = target.rest;
+
+      if (!enabled || timeSec === 0) {
+        if (target.displaced) {
+          arr.set(rest);
+          pos.needsUpdate = true;
+          target.displaced = false;
+        }
+        continue;
+      }
+
+      const count = Math.min(target.weights.length, Math.floor(arr.length / 3));
+      for (let i = 0; i < count; i++) {
+        const w = target.weights[i] ?? 0;
+        const idx = i * 3;
+        const rx = rest[idx] ?? 0;
+        const ry = rest[idx + 1] ?? 0;
+        const rz = rest[idx + 2] ?? 0;
+        if (w <= 0.001) {
+          arr[idx] = rx;
+          arr[idx + 1] = ry;
+          arr[idx + 2] = rz;
+          continue;
+        }
+        const wave = Math.sin(timeSec * target.freq + ry * 2.1 + rx * 2.8 + target.phase);
+        const cross = Math.cos(timeSec * (target.freq * 0.72) + ry * 1.5 - rx * 1.9 + target.phase);
+        const dz = wave * target.amp * w;
+        const dx = cross * target.amp * 0.32 * w;
+        arr[idx] = rx + dx;
+        arr[idx + 1] = ry;
+        arr[idx + 2] = rz + dz;
+      }
+      pos.needsUpdate = true;
+      target.displaced = true;
+    }
+  };
 
   return {
     id,
@@ -155,6 +234,9 @@ function makeTrackedProduct(
         entry.mat.color.copy(entry.base).multiplyScalar(f);
       }
     },
+    updateFlutter(timeSec: number, enabled: boolean) {
+      applyFlutter(timeSec, enabled);
+    },
     reset() {
       group.visible = true;
       group.scale.set(1, 1, 1);
@@ -162,6 +244,7 @@ function makeTrackedProduct(
       for (const entry of trackedMats) {
         entry.mat.color.copy(entry.base);
       }
+      applyFlutter(0, false);
     },
     dispose() {
       group.removeFromParent();
@@ -172,40 +255,447 @@ function makeTrackedProduct(
   };
 }
 
-/** Tote bag kanvas tenun + jahitan & saku depan reusable (Bab 9 & Bab 10a). */
-export function createToteProduct(): ProductHandle {
-  return makeTrackedProduct("tote", (trackMat, trackGeom, trackSet) => {
+function buildIndexedGridGeometry(
+  uSegs: number,
+  vSegs: number,
+  evalVertex: (u: number, v: number) => { x: number; y: number; z: number; w: number },
+  wrapU = true,
+): { geom: THREE.BufferGeometry; weights: Float32Array } {
+  const cols = uSegs + 1;
+  const rows = vSegs + 1;
+  const vertCount = cols * rows;
+  const positions = new Float32Array(vertCount * 3);
+  const uvs = new Float32Array(vertCount * 2);
+  const weights = new Float32Array(vertCount);
+  const indices: number[] = [];
+
+  for (let iv = 0; iv <= vSegs; iv++) {
+    const v = iv / vSegs;
+    for (let iu = 0; iu <= uSegs; iu++) {
+      const uEff = wrapU && iu === uSegs ? 0 : iu / uSegs;
+      const p = evalVertex(uEff, v);
+      const idx = iv * cols + iu;
+      positions[idx * 3] = p.x;
+      positions[idx * 3 + 1] = p.y;
+      positions[idx * 3 + 2] = p.z;
+      uvs[idx * 2] = iu / uSegs;
+      uvs[idx * 2 + 1] = v;
+      weights[idx] = p.w;
+    }
+  }
+
+  for (let iv = 0; iv < vSegs; iv++) {
+    for (let iu = 0; iu < uSegs; iu++) {
+      const a = iv * cols + iu;
+      const b = a + 1;
+      const c = (iv + 1) * cols + iu;
+      const d = c + 1;
+      indices.push(a, b, c);
+      indices.push(b, d, c);
+    }
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geom.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+  geom.setIndex(indices);
+  geom.computeVertexNormals();
+  return { geom, weights };
+}
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = clamp01((x - edge0) / Math.max(1e-5, edge1 - edge0));
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Penyangga rak meja dari baja sikat untuk menggantung kaus & jaket secara fisik ke rak.
+ */
+function addGarmentStand(
+  group: THREE.Group,
+  h: BuildHelpers,
+  metalMat: THREE.MeshStandardMaterial,
+  woodMat: THREE.MeshStandardMaterial,
+  opts: {
+    standTopY: number;
+    hangerCenterY: number;
+    shoulderEndY: number;
+    shoulderHalfW: number;
+    standBackZ: number;
+    lowDetail: boolean;
+  },
+) {
+  const segs = opts.lowDetail ? 8 : 14;
+  // Pelat dasar bertumpu rata di atas papan rak (y = 0)
+  const baseGeom = h.trackGeom(new THREE.CylinderGeometry(0.42, 0.46, 0.036, segs));
+  const baseMesh = new THREE.Mesh(baseGeom, metalMat);
+  baseMesh.position.set(0, 0.018, opts.standBackZ);
+
+  // Tiang vertikal ramping di belakang garmen
+  const poleH = opts.standTopY - 0.14;
+  const poleGeom = h.trackGeom(new THREE.CylinderGeometry(0.024, 0.03, poleH, segs));
+  const poleMesh = new THREE.Mesh(poleGeom, metalMat);
+  poleMesh.position.set(0, poleH * 0.5 + 0.02, opts.standBackZ);
+
+  // Lengan lengkung atas menuju posisi kait hanger di z=0
+  const armCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, poleH + 0.01, opts.standBackZ),
+    new THREE.Vector3(0, opts.standTopY, opts.standBackZ * 0.55),
+    new THREE.Vector3(0, opts.standTopY - 0.03, 0),
+  ]);
+  const armGeom = h.trackGeom(
+    new THREE.TubeGeometry(armCurve, opts.lowDetail ? 8 : 14, 0.022, 6, false),
+  );
+  const armMesh = new THREE.Mesh(armGeom, metalMat);
+
+  const ringGeom = h.trackGeom(new THREE.TorusGeometry(0.055, 0.016, 6, 10));
+  const ringMesh = new THREE.Mesh(ringGeom, metalMat);
+  ringMesh.position.set(0, opts.standTopY - 0.05, 0);
+  ringMesh.rotation.y = Math.PI * 0.5;
+
+  // Batang hanger kayu berkontur di dalam bahu pakaian
+  const sw = opts.shoulderHalfW;
+  const hangerCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-sw, opts.shoulderEndY, -0.02),
+    new THREE.Vector3(-sw * 0.52, opts.hangerCenterY - 0.06, 0.015),
+    new THREE.Vector3(0, opts.hangerCenterY, 0.02),
+    new THREE.Vector3(sw * 0.52, opts.hangerCenterY - 0.06, 0.015),
+    new THREE.Vector3(sw, opts.shoulderEndY, -0.02),
+  ]);
+  const hangerGeom = h.trackGeom(
+    new THREE.TubeGeometry(hangerCurve, opts.lowDetail ? 10 : 18, 0.032, 6, false),
+  );
+  const hangerMesh = new THREE.Mesh(hangerGeom, woodMat);
+
+  // Kait kawat dari pusat hanger ke cincin tiang
+  const hookCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, opts.hangerCenterY, 0.01),
+    new THREE.Vector3(0, opts.hangerCenterY + 0.24, 0.01),
+    new THREE.Vector3(0, opts.standTopY - 0.14, 0.03),
+    new THREE.Vector3(0, opts.standTopY - 0.06, 0),
+  ]);
+  const hookGeom = h.trackGeom(new THREE.TubeGeometry(hookCurve, 10, 0.018, 6, false));
+  const hookMesh = new THREE.Mesh(hookGeom, metalMat);
+
+  group.add(baseMesh, poleMesh, armMesh, ringMesh, hangerMesh, hookMesh);
+}
+
+interface GarmentTorsoSpec {
+  hemY: number;
+  armpitY: number;
+  shoulderY: number;
+  neckSideY: number;
+  neckFrontDip: number;
+  neckBackDip: number;
+  hemRx: number;
+  waistRx: number;
+  chestRx: number;
+  shoulderRx: number;
+  neckRx: number;
+  hemRz: number;
+  chestRz: number;
+  neckRz: number;
+  hemSag: number;
+  foldAmp: number;
+  foldFreq: number;
+  pleatSkew: number;
+  flutterAmp: number;
+  isJacket: boolean;
+}
+
+function buildDrapedTorsoGeometry(spec: GarmentTorsoSpec, lowDetail: boolean) {
+  const uSegs = lowDetail ? 14 : 26;
+  const vSegs = lowDetail ? 10 : 18;
+
+  return buildIndexedGridGeometry(uSegs, vSegs, (u, v) => {
+    const theta = u * Math.PI * 2;
+    const cosT = Math.cos(theta);
+    const sinT = Math.sin(theta);
+    const absCos = Math.abs(cosT);
+
+    // Profil lebar (x): melebar lembut di hem, sedikit meramping di pinggang, penuh di dada, miring ke kerah
+    let rx: number;
+    if (v < 0.42) {
+      const k = smoothstep(0, 0.42, v);
+      rx = THREE.MathUtils.lerp(spec.hemRx, spec.waistRx, k);
+    } else if (v < 0.7) {
+      const k = smoothstep(0.42, 0.7, v);
+      rx = THREE.MathUtils.lerp(spec.waistRx, spec.chestRx, k);
+    } else if (v < 0.87) {
+      const k = smoothstep(0.7, 0.87, v);
+      rx = THREE.MathUtils.lerp(spec.chestRx, spec.shoulderRx, k);
+    } else {
+      const k = smoothstep(0.87, 1.0, v);
+      rx = THREE.MathUtils.lerp(spec.shoulderRx, spec.neckRx, k);
+    }
+
+    // Ketebalan volume depan-belakang (z): penuh di dada & bawah, menjepit di jahitan bahu luar
+    let rz = THREE.MathUtils.lerp(spec.hemRz, spec.chestRz, smoothstep(0, 0.65, v));
+    if (v > 0.74) {
+      const shoulderPinch = smoothstep(0.74, 0.94, v) * smoothstep(0.32, 0.96, absCos);
+      rz = THREE.MathUtils.lerp(rz, spec.neckRz, smoothstep(0.84, 1.0, v));
+      rz *= 1 - 0.62 * shoulderPinch;
+    }
+
+    // Tinggi y dengan lengkung hem gravitasi (tengah lebih berat) & scoop kerah depan/belakang
+    const frontFactor = Math.max(0, sinT);
+    const backFactor = Math.max(0, -sinT);
+    const centerWeight = 1 - absCos * absCos;
+
+    const hemRipple =
+      -spec.hemSag * centerWeight +
+      spec.foldAmp * 0.24 * Math.sin(spec.foldFreq * theta + 0.5) * (1 - 0.35 * absCos);
+    const yBottom = spec.hemY + hemRipple;
+
+    const neckDip =
+      (frontFactor * spec.neckFrontDip + backFactor * spec.neckBackDip) *
+      smoothstep(0.95, 0.0, absCos);
+    const shoulderSlope = smoothstep(0.28, 1.0, absCos) * (spec.neckSideY - spec.shoulderY);
+    const yTop = spec.neckSideY - neckDip - shoulderSlope * 0.22;
+
+    let y: number;
+    if (v <= 0.72) {
+      y = THREE.MathUtils.lerp(yBottom, spec.armpitY, v / 0.72);
+    } else if (v <= 0.88) {
+      const kv = (v - 0.72) / 0.16;
+      const shoulderEdgeY = THREE.MathUtils.lerp(spec.armpitY, spec.shoulderY, kv);
+      const centerChestY = THREE.MathUtils.lerp(spec.armpitY, spec.neckSideY - neckDip * 0.75, kv);
+      y = THREE.MathUtils.lerp(centerChestY, shoulderEdgeY, smoothstep(0.22, 0.95, absCos));
+    } else {
+      const kv = (v - 0.88) / 0.12;
+      const shoulderBaseY = THREE.MathUtils.lerp(
+        spec.neckSideY - neckDip * 0.75,
+        spec.shoulderY,
+        smoothstep(0.22, 0.95, absCos),
+      );
+      y = THREE.MathUtils.lerp(shoulderBaseY, yTop, kv);
+    }
+
+    // Lipatan gravitasi vertikal & diagonal dari titik hanger bahu menuju hem bawah
+    const gravityMask = Math.pow(1 - v, 1.25);
+    const diagPhase = spec.pleatSkew * (1 - v) * Math.sign(cosT || 1);
+    const primaryPleat = Math.sin(spec.foldFreq * theta + diagPhase + 0.35);
+    const secondaryPleat = Math.sin((spec.foldFreq + 3) * theta - diagPhase * 1.15 + 1.1);
+    const faceAmount = 0.38 + 0.62 * Math.abs(sinT);
+
+    // Sedikit tarikan catenary di dada atas antara dua bahu hanger
+    const upperDrapeMask = smoothstep(0.42, 0.78, v) * smoothstep(1.0, 0.84, v);
+    const catenarySag = -0.022 * upperDrapeMask * centerWeight * Math.abs(sinT);
+
+    // Jaket memiliki bukaan belahan ritsleting tipis di tengah depan agar terbaca berlapis
+    let zipValley = 0;
+    if (spec.isJacket && sinT > 0.7) {
+      const centerFront = smoothstep(0.25, 0.0, absCos);
+      zipValley = -0.028 * centerFront * smoothstep(0.08, 0.88, v);
+    }
+
+    const foldZ =
+      gravityMask *
+      (spec.foldAmp * primaryPleat + spec.foldAmp * 0.42 * secondaryPleat) *
+      faceAmount;
+    const foldR = gravityMask * (spec.foldAmp * 0.36 * primaryPleat) * (0.4 + 0.6 * absCos);
+
+    const x = (rx + foldR * 0.55) * cosT;
+    let z = (rz + catenarySag) * sinT + foldZ * (sinT >= 0 ? 1 : -1) + zipValley;
+
+    // Sedikit lengkung alami bagian dada depan lebih maju dan punggung lebih relaks
+    if (v > 0.15 && v < 0.88) {
+      z += 0.018 * Math.sin(Math.PI * ((v - 0.15) / 0.73)) * centerWeight;
+    }
+
+    // Bobot micro-flutter: nol di bahu/kerah/ritsleting tengah, naik halus ke hem bawah
+    const w = Math.pow(1 - v, 1.65) * (spec.isJacket ? 0.55 + 0.45 * absCos : 0.7 + 0.3 * absCos);
+
+    return { x, y, z, w };
+  });
+}
+
+interface SleeveSpec {
+  side: -1 | 1; // -1 kiri, +1 kanan
+  shoulderX: number;
+  shoulderY: number;
+  length: number;
+  droopAngle: number; // radian ke bawah dari horizontal
+  elbowBendZ: number;
+  baseRy: number;
+  cuffRy: number;
+  baseRz: number;
+  cuffRz: number;
+  foldAmp: number;
+  gravityDrop: number;
+}
+
+function buildDrapedSleeveGeometry(spec: SleeveSpec, lowDetail: boolean) {
+  const uSegs = lowDetail ? 10 : 16;
+  const vSegs = lowDetail ? 6 : 10;
+
+  return buildIndexedGridGeometry(uSegs, vSegs, (u, s) => {
+    const phi = u * Math.PI * 2;
+    const cosP = Math.cos(phi);
+    const sinP = Math.sin(phi);
+
+    // s = 0 pangkal bahu, s = 1 ujung manset
+    const dirX = spec.side * Math.cos(spec.droopAngle);
+    const dirY = -Math.sin(spec.droopAngle);
+
+    // Sumbu lengan melengkung turun akibat gravitasi + tekukan siku halus ke depan (+z)
+    const cx = spec.shoulderX + dirX * spec.length * s;
+    const cy = spec.shoulderY + dirY * spec.length * s - spec.gravityDrop * (s * s);
+    const cz = 0.015 + spec.elbowBendZ * Math.sin(Math.PI * 0.85 * s);
+
+    // Turunan tangen untuk orientasi penampang lengan agar tegak lurus sumbu lengan
+    const ry = THREE.MathUtils.lerp(spec.baseRy, spec.cuffRy, smoothstep(0, 1, s));
+    const rz = THREE.MathUtils.lerp(spec.baseRz, spec.cuffRz, smoothstep(0, 1, s));
+
+    // Lipatan kerut ketiak & tekukan kain lengan bagian bawah
+    const underarmPinch = Math.max(0, -cosP) * smoothstep(0.05, 0.5, s) * smoothstep(1.0, 0.35, s);
+    const crease =
+      spec.foldAmp *
+      (Math.sin(4 * phi + s * 4.2) * smoothstep(0.1, 0.95, s) +
+        0.7 * Math.sin(7 * phi - s * 2.8) * underarmPinch);
+
+    // Orientasi penampang lokal
+    const nx = -dirY;
+    const ny = dirX;
+    const localUp = cosP * (ry + crease * 0.45);
+    const localZ = sinP * (rz + crease);
+
+    const x = cx + nx * localUp * spec.side;
+    const y = cy + ny * localUp * spec.side - 0.018 * s * Math.max(0, -cosP);
+    const z = cz + localZ;
+
+    const w = Math.pow(s, 1.45) * 0.82;
+    return { x, y, z, w };
+  });
+}
+
+/**
+ * Tote bag kanvas tenun bervolume lembut (sag gravitasi di perut bawah + mulut tas mengerucut + strap melengkung).
+ */
+export function createToteProduct(lowDetail = false): ProductHandle {
+  return makeTrackedProduct("tote", (h) => {
     const group = new THREE.Group();
     const spec = PRODUCT_SPECS.tote;
-    const canvasSet = trackSet(makeFabricPbrSet("canvas", 256, 2, 2));
+    const canvasSet = h.trackSet(makeFabricPbrSet("canvas", 256, 2, 2));
 
-    const bodyGeom = trackGeom(new RoundedBoxGeometry(spec.width, spec.height, spec.depth, 2, 0.1));
-    const pocketGeom = trackGeom(new RoundedBoxGeometry(1.5, 1.1, 0.08, 2, 0.04));
-    const seamGeom = trackGeom(new THREE.BoxGeometry(spec.width + 0.02, 0.12, spec.depth + 0.02));
-    const handleGeom = trackGeom(new THREE.TorusGeometry(0.7, 0.055, 8, 18, Math.PI));
+    const uSegs = lowDetail ? 14 : 20;
+    const vSegs = lowDetail ? 8 : 14;
 
-    const bodyMat = trackMat(
+    const { geom: bodyGeom, weights: bodyWeights } = buildIndexedGridGeometry(
+      uSegs,
+      vSegs,
+      (u, v) => {
+        const theta = u * Math.PI * 2;
+        const cosT = Math.cos(theta);
+        const sinT = Math.sin(theta);
+
+        // Superellipse agar tampak seperti tas kanvas berjahit sudut lembut, bukan kotak kaku
+        const sCos = Math.sign(cosT) * Math.pow(Math.abs(cosT), 0.74);
+        const sSin = Math.sign(sinT) * Math.pow(Math.abs(sinT), 0.82);
+
+        const halfW = spec.width * 0.5;
+        const halfD = spec.depth * 0.5;
+
+        // Perut bawah mengembang akibat beban gravitasi; mulut atas mengerucut ringan di sumbu z
+        const belly = Math.sin(Math.PI * Math.pow(v, 0.72));
+        const topPinchZ = THREE.MathUtils.lerp(1.06, 0.7, smoothstep(0.58, 1.0, v));
+        const sideGussetIn = -0.06 * smoothstep(0.35, 1.0, v) * Math.pow(Math.abs(cosT), 2.4);
+
+        const rx = halfW * (0.94 + 0.08 * belly) + sideGussetIn;
+        const rz = halfD * (topPinchZ + 0.22 * belly * (1 - v * 0.4));
+
+        // Ripple & lipatan diagonal kain kanvas
+        const ripple =
+          0.026 *
+          Math.sin(4 * theta + v * 2.2) *
+          smoothstep(0.06, 0.85, v) *
+          (0.4 + 0.6 * Math.abs(sinT));
+        const topEdgeWave =
+          v > 0.88 ? -0.045 * (1 - Math.abs(cosT) * Math.abs(cosT)) * smoothstep(0.88, 1, v) : 0;
+
+        const x = (rx + ripple * 0.5) * sCos;
+        const z = (rz + ripple) * sSin;
+        const y = v * (spec.height - 0.14) + topEdgeWave;
+        const w = smoothstep(0.45, 1.0, v) * 0.45;
+        return { x, y, z, w };
+      },
+    );
+    h.trackGeom(bodyGeom);
+    h.trackFlutter(bodyGeom, bodyWeights, 0.0022, 0.2, 1.15);
+
+    // Jahitan keliman atas melengkung mengikuti mulut tas
+    const hemPts: THREE.Vector3[] = [];
+    const hemSteps = lowDetail ? 14 : 20;
+    for (let i = 0; i <= hemSteps; i++) {
+      const t = (i / hemSteps) * Math.PI * 2;
+      const cosT = Math.cos(t);
+      const sinT = Math.sin(t);
+      const sCos = Math.sign(cosT) * Math.pow(Math.abs(cosT), 0.74);
+      const sSin = Math.sign(sinT) * Math.pow(Math.abs(sinT), 0.82);
+      const rx = spec.width * 0.5 * 0.94 - 0.055 * Math.pow(Math.abs(cosT), 2.4);
+      const rz = spec.depth * 0.5 * 0.71;
+      const wave = -0.045 * (1 - cosT * cosT);
+      hemPts.push(new THREE.Vector3(rx * sCos, spec.height - 0.14 + wave, rz * sSin));
+    }
+    const hemCurve = new THREE.CatmullRomCurve3(hemPts, true);
+    const hemGeom = h.trackGeom(
+      new THREE.TubeGeometry(hemCurve, lowDetail ? 16 : 24, 0.048, 5, true),
+    );
+
+    // Saku depan bervolume lembut (sedikit cembung mengikuti perut kanvas)
+    const { geom: pocketGeom } = buildIndexedGridGeometry(
+      lowDetail ? 7 : 12,
+      lowDetail ? 5 : 8,
+      (u, v) => {
+        const px = (u - 0.5) * 1.48;
+        const py = 0.52 + v * 1.12;
+        const bulge = 0.06 * Math.sin(Math.PI * u) * Math.sin(Math.PI * (0.15 + 0.75 * v));
+        const sagDip = -0.03 * Math.sin(Math.PI * u) * smoothstep(0.75, 1.0, v);
+        const pz = spec.depth * 0.49 + 0.06 + bulge;
+        return { x: px, y: py + sagDip, z: pz, w: 0 };
+      },
+      false,
+    );
+    h.trackGeom(pocketGeom);
+
+    // Tali jinjing kanvas melengkung lembut dengan sedikit kecondongan alami
+    const makeHandleGeom = (zSign: 1 | -1) => {
+      const zBase = zSign * spec.depth * 0.25;
+      const lean = zSign * 0.14;
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.62, spec.height - 0.22, zBase),
+        new THREE.Vector3(-0.52, spec.height + 0.36, zBase + lean * 0.65),
+        new THREE.Vector3(0, spec.height + 0.62, zBase + lean),
+        new THREE.Vector3(0.52, spec.height + 0.36, zBase + lean * 0.65),
+        new THREE.Vector3(0.62, spec.height - 0.22, zBase),
+      ]);
+      return h.trackGeom(new THREE.TubeGeometry(curve, lowDetail ? 10 : 16, 0.052, 5, false));
+    };
+
+    const bodyMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: spec.color,
         map: canvasSet.map ?? null,
         normalMap: canvasSet.normalMap ?? null,
         normalScale: new THREE.Vector2(0.55, 0.55),
         roughnessMap: canvasSet.roughnessMap ?? null,
-        roughness: 0.78,
+        roughness: 0.8,
         metalness: 0,
+        side: THREE.DoubleSide,
       }),
     );
-    const pocketMat = trackMat(
+    const pocketMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#22655F",
         map: canvasSet.map ?? null,
         normalMap: canvasSet.normalMap ?? null,
         normalScale: new THREE.Vector2(0.5, 0.5),
-        roughness: 0.82,
+        roughness: 0.84,
         metalness: 0,
+        side: THREE.DoubleSide,
       }),
     );
-    const handleMat = trackMat(
+    const handleMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#16433F",
         normalMap: canvasSet.normalMap ?? null,
@@ -215,71 +705,55 @@ export function createToteProduct(): ProductHandle {
     );
 
     const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
-    bodyMesh.position.set(0, spec.height * 0.5, 0);
-
-    const topHem = new THREE.Mesh(seamGeom, handleMat);
-    topHem.position.set(0, spec.height - 0.14, 0);
-
+    const topHem = new THREE.Mesh(hemGeom, handleMat);
     const frontPocket = new THREE.Mesh(pocketGeom, pocketMat);
-    frontPocket.position.set(0, 1.05, spec.depth * 0.5 + 0.02);
+    const frontHandle = new THREE.Mesh(makeHandleGeom(1), handleMat);
+    const backHandle = new THREE.Mesh(makeHandleGeom(-1), handleMat);
 
-    const frontHandle = new THREE.Mesh(handleGeom, handleMat);
-    frontHandle.position.set(0, spec.height - 0.06, 0.22);
-    const backHandle = new THREE.Mesh(handleGeom, handleMat);
-    backHandle.position.set(0, spec.height - 0.06, -0.22);
-
+    // children[0] dipertahankan sebagai bodyMesh sesuai kontrak tes
     group.add(bodyMesh, topHem, frontPocket, frontHandle, backHandle);
     return group;
   });
 }
 
-function createTeeProduct(): ProductHandle {
-  return makeTrackedProduct("tee", (trackMat, trackGeom, trackSet) => {
+function createTeeProduct(lowDetail = false): ProductHandle {
+  return makeTrackedProduct("tee", (h) => {
     const group = new THREE.Group();
-    const cottonSet = trackSet(makeFabricPbrSet("cotton", 256, 3, 3));
-    const metalSet = trackSet(makeBrushedMetalSet(256, 1, 1));
+    const cottonSet = h.trackSet(makeFabricPbrSet("cotton", 256, 3, 3));
+    const metalSet = h.trackSet(makeBrushedMetalSet(256, 1, 1));
+    const woodSet = h.trackSet(makeWoodGrainSet(256, 1, 1));
 
-    const shape = new THREE.Shape();
-    shape.moveTo(-0.85, 0);
-    shape.lineTo(0.85, 0);
-    shape.lineTo(0.85, 1.85);
-    shape.lineTo(1.5, 1.55);
-    shape.lineTo(1.5, 2.35);
-    shape.lineTo(0.75, 2.82);
-    shape.lineTo(0.32, 2.82);
-    shape.quadraticCurveTo(0, 2.52, -0.32, 2.82);
-    shape.lineTo(-0.75, 2.82);
-    shape.lineTo(-1.5, 2.35);
-    shape.lineTo(-1.5, 1.55);
-    shape.lineTo(-0.85, 1.85);
-    shape.closePath();
-
-    const bodyGeom = trackGeom(
-      new THREE.ExtrudeGeometry(shape, {
-        depth: 0.24,
-        bevelEnabled: true,
-        bevelThickness: 0.03,
-        bevelSize: 0.03,
-        bevelSegments: 2,
-        curveSegments: 4,
-      }),
-    );
-    bodyGeom.translate(0, 0, -0.12);
-    const bodyMat = trackMat(
+    const bodyMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: PRODUCT_SPECS.tee.color,
         map: cottonSet.map ?? null,
         normalMap: cottonSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.45, 0.45),
+        normalScale: new THREE.Vector2(0.52, 0.52),
         roughnessMap: cottonSet.roughnessMap ?? null,
-        roughness: 0.86,
+        roughness: 0.88,
+        metalness: 0,
+        side: THREE.DoubleSide,
+      }),
+    );
+    const ribMat = h.trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#3F8066",
+        map: cottonSet.map ?? null,
+        normalMap: cottonSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.6, 0.6),
+        roughness: 0.9,
         metalness: 0,
       }),
     );
-    const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
-
-    // Hanger kawat baja sikat
-    const wireMat = trackMat(
+    const linerMat = h.trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#1F4438",
+        roughness: 0.94,
+        metalness: 0,
+        side: THREE.DoubleSide,
+      }),
+    );
+    const wireMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#7E8E9E",
         normalMap: metalSet.normalMap ?? null,
@@ -287,57 +761,265 @@ function createTeeProduct(): ProductHandle {
         metalness: 0.85,
       }),
     );
-    const barGeom = trackGeom(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8));
-    const hookGeom = trackGeom(new THREE.TorusGeometry(0.14, 0.028, 6, 12, Math.PI * 1.35));
-    const leftArm = new THREE.Mesh(barGeom, wireMat);
-    leftArm.position.set(-0.45, 2.94, 0);
-    leftArm.rotation.z = 1.24;
-    const rightArm = new THREE.Mesh(barGeom, wireMat);
-    rightArm.position.set(0.45, 2.94, 0);
-    rightArm.rotation.z = -1.24;
-    const hook = new THREE.Mesh(hookGeom, wireMat);
-    hook.position.set(0, 3.24, 0);
+    const woodMat = h.trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#8E6F51",
+        map: woodSet.map ?? null,
+        normalMap: woodSet.normalMap ?? null,
+        roughness: 0.64,
+        metalness: 0,
+      }),
+    );
 
-    group.add(bodyMesh, leftArm, rightArm, hook);
+    const torso = buildDrapedTorsoGeometry(
+      {
+        hemY: 0.22,
+        armpitY: 1.88,
+        shoulderY: 2.52,
+        neckSideY: 2.86,
+        neckFrontDip: 0.27,
+        neckBackDip: 0.08,
+        hemRx: 0.9,
+        waistRx: 0.82,
+        chestRx: 0.9,
+        shoulderRx: 0.82,
+        neckRx: 0.34,
+        hemRz: 0.25,
+        chestRz: 0.23,
+        neckRz: 0.14,
+        hemSag: 0.062,
+        foldAmp: 0.068,
+        foldFreq: 4,
+        pleatSkew: 0.85,
+        flutterAmp: 0.0038,
+        isJacket: false,
+      },
+      lowDetail,
+    );
+    h.trackGeom(torso.geom);
+    h.trackFlutter(torso.geom, torso.weights, 0.0038, 0.4, 1.45);
+    const torsoMesh = new THREE.Mesh(torso.geom, bodyMat);
+    torsoMesh.name = "Product_tee_torso";
+
+    // Lapisan dalam gelap di kerah & bawah agar siluet berongga saat dilihat dari sudut 3/4
+    const innerNeckGeom = h.trackGeom(
+      new THREE.CylinderGeometry(0.32, 0.36, 0.34, lowDetail ? 10 : 14, 1, true),
+    );
+    const innerNeck = new THREE.Mesh(innerNeckGeom, linerMat);
+    innerNeck.position.set(0, 2.58, -0.01);
+    innerNeck.scale.set(1, 1, 0.4);
+
+    // Kerah rib memutar mengikuti lekuk leher
+    const collarPts: THREE.Vector3[] = [];
+    const collarSteps = lowDetail ? 12 : 20;
+    for (let i = 0; i <= collarSteps; i++) {
+      const t = (i / collarSteps) * Math.PI * 2;
+      const cosT = Math.cos(t);
+      const sinT = Math.sin(t);
+      const frontF = Math.max(0, sinT);
+      const backF = Math.max(0, -sinT);
+      const absCos = Math.abs(cosT);
+      const dip = (frontF * 0.27 + backF * 0.08) * smoothstep(0.95, 0, absCos);
+      collarPts.push(new THREE.Vector3(0.34 * cosT, 2.86 - dip, 0.14 * sinT));
+    }
+    const collarCurve = new THREE.CatmullRomCurve3(collarPts, true);
+    const collarGeom = h.trackGeom(
+      new THREE.TubeGeometry(collarCurve, lowDetail ? 14 : 22, 0.038, 5, true),
+    );
+    const collarMesh = new THREE.Mesh(collarGeom, ribMat);
+
+    // Jahitan lipat bawah (hem seam)
+    const hemPts: THREE.Vector3[] = [];
+    for (let i = 0; i <= collarSteps; i++) {
+      const t = (i / collarSteps) * Math.PI * 2;
+      const cosT = Math.cos(t);
+      const sinT = Math.sin(t);
+      const absCos = Math.abs(cosT);
+      const cW = 1 - absCos * absCos;
+      const wave = -0.062 * cW + 0.016 * Math.sin(4 * t + 0.5) * (1 - 0.35 * absCos);
+      const zFold =
+        (0.068 * Math.sin(4 * t + 0.85 * Math.sign(cosT || 1) + 0.35) +
+          0.028 * Math.sin(7 * t - 0.98 * Math.sign(cosT || 1) + 1.1)) *
+        (0.38 + 0.62 * Math.abs(sinT)) *
+        (sinT >= 0 ? 1 : -1);
+      hemPts.push(new THREE.Vector3(0.9 * cosT, 0.23 + wave, 0.25 * sinT + zFold));
+    }
+    const hemCurve = new THREE.CatmullRomCurve3(hemPts, true);
+    const hemGeom = h.trackGeom(
+      new THREE.TubeGeometry(hemCurve, lowDetail ? 14 : 22, 0.026, 5, true),
+    );
+    const hemMesh = new THREE.Mesh(hemGeom, ribMat);
+
+    group.add(torsoMesh, innerNeck, collarMesh, hemMesh);
+
+    // Lengan pendek kanan & kiri jatuh lembut ke bawah
+    const buildSleeve = (side: -1 | 1, phase: number) => {
+      const s = buildDrapedSleeveGeometry(
+        {
+          side,
+          shoulderX: side * 0.78,
+          shoulderY: 2.46,
+          length: 0.78,
+          droopAngle: 0.74,
+          elbowBendZ: 0.03,
+          baseRy: 0.28,
+          cuffRy: 0.24,
+          baseRz: 0.16,
+          cuffRz: 0.15,
+          foldAmp: 0.038,
+          gravityDrop: 0.12,
+        },
+        lowDetail,
+      );
+      h.trackGeom(s.geom);
+      h.trackFlutter(s.geom, s.weights, 0.0034, phase, 1.5);
+      const mesh = new THREE.Mesh(s.geom, bodyMat);
+
+      // Cincin lipat ujung lengan + rongga gelap manset
+      const endX = side * (0.78 + Math.cos(0.74) * 0.78);
+      const endY = 2.46 - Math.sin(0.74) * 0.78 - 0.12;
+      const cuffRingGeom = h.trackGeom(new THREE.TorusGeometry(0.2, 0.024, 5, lowDetail ? 8 : 12));
+      const cuffRing = new THREE.Mesh(cuffRingGeom, ribMat);
+      cuffRing.position.set(endX, endY, 0.025);
+      cuffRing.rotation.set(0, Math.PI * 0.5, side * -0.74);
+      cuffRing.scale.set(0.76, 1.15, 1);
+
+      const cuffInnerGeom = h.trackGeom(new THREE.CircleGeometry(0.18, 8));
+      const cuffInner = new THREE.Mesh(cuffInnerGeom, linerMat);
+      cuffInner.position.set(endX - side * 0.02, endY + 0.02, 0.025);
+      cuffInner.rotation.set(0, side * Math.PI * 0.5, side * -0.74);
+      cuffInner.scale.set(0.74, 1.1, 1);
+
+      group.add(mesh, cuffRing, cuffInner);
+    };
+    buildSleeve(-1, 1.1);
+    buildSleeve(1, 2.3);
+
+    addGarmentStand(group, h, wireMat, woodMat, {
+      standTopY: 3.46,
+      hangerCenterY: 2.82,
+      shoulderEndY: 2.5,
+      shoulderHalfW: 0.82,
+      standBackZ: -0.34,
+      lowDetail,
+    });
     return group;
   });
 }
 
-function createBackpackProduct(): ProductHandle {
-  return makeTrackedProduct("backpack", (trackMat, trackGeom, trackSet) => {
+function createBackpackProduct(lowDetail = false): ProductHandle {
+  return makeTrackedProduct("backpack", (h) => {
     const group = new THREE.Group();
     const spec = PRODUCT_SPECS.backpack;
-    const nylonSet = trackSet(makeFabricPbrSet("nylon", 256, 2, 2));
-    const metalSet = trackSet(makeBrushedMetalSet(256, 1, 1));
+    const nylonSet = h.trackSet(makeFabricPbrSet("nylon", 256, 2, 2));
+    const metalSet = h.trackSet(makeBrushedMetalSet(256, 1, 1));
 
-    const bodyGeom = trackGeom(
-      new RoundedBoxGeometry(spec.width, spec.height, spec.depth, 2, 0.14),
+    const uSegs = lowDetail ? 14 : 20;
+    const vSegs = lowDetail ? 10 : 14;
+
+    // Siluet ransel nilon ripstop bervolume lembut (puncak melengkung, dasar penuh, lekuk bahu kain)
+    const { geom: bodyGeom, weights: bodyWeights } = buildIndexedGridGeometry(
+      uSegs,
+      vSegs,
+      (u, v) => {
+        const theta = u * Math.PI * 2;
+        const cosT = Math.cos(theta);
+        const sinT = Math.sin(theta);
+
+        const sCos = Math.sign(cosT) * Math.pow(Math.abs(cosT), 0.78);
+        const sSin = Math.sign(sinT) * Math.pow(Math.abs(sinT), 0.82);
+
+        const domeW = THREE.MathUtils.lerp(1.04, 0.56, Math.pow(v, 2.1));
+        const cargoBelly = Math.sin(Math.PI * Math.pow(v, 0.65));
+        const frontSlump =
+          sinT > 0
+            ? 0.14 * Math.sin(Math.PI * smoothstep(0.08, 0.72, v)) * (1 - 0.35 * v)
+            : -0.04 * (1 - v);
+
+        const rx = spec.width * 0.5 * domeW * (0.94 + 0.08 * Math.sin(Math.PI * v));
+        const rz =
+          spec.depth * 0.5 * (0.76 + 0.28 * cargoBelly) * (v > 0.84 ? 1 - (v - 0.84) * 2.2 : 1);
+
+        const gather =
+          0.025 *
+          Math.sin(5 * theta + v * 1.9) *
+          smoothstep(0.15, 0.82, v) *
+          smoothstep(1.0, 0.7, v);
+
+        const x = (rx + gather * 0.5) * sCos;
+        const z = (rz + gather) * sSin + frontSlump * Math.max(0, sinT);
+        const domeY =
+          v * (spec.height - 0.22) +
+          (v > 0.75 ? 0.22 * (1 - Math.abs(cosT) * 0.45) * ((v - 0.75) / 0.25) : 0);
+        const w = smoothstep(0.35, 0.9, v) * (0.3 + 0.7 * Math.abs(sinT));
+        return { x, y: domeY, z, w };
+      },
     );
-    const pocketGeom = trackGeom(new RoundedBoxGeometry(1.7, 1.4, 0.35, 2, 0.08));
-    const strapGeom = trackGeom(new THREE.BoxGeometry(0.32, 2.4, 0.16));
-    const buckleGeom = trackGeom(new THREE.BoxGeometry(0.38, 0.16, 0.12));
-    const loopGeom = trackGeom(new THREE.TorusGeometry(0.24, 0.05, 6, 12, Math.PI));
+    h.trackGeom(bodyGeom);
+    h.trackFlutter(bodyGeom, bodyWeights, 0.0014, 0.9, 1.05);
 
-    const bodyMat = trackMat(
+    // Saku depan bervolume bulat + jahitan ritsleting
+    const { geom: pocketGeom } = buildIndexedGridGeometry(
+      lowDetail ? 10 : 16,
+      lowDetail ? 8 : 12,
+      (u, v) => {
+        const px = (u - 0.5) * 1.66 * (1 - 0.16 * Math.pow(v, 2));
+        const py = 0.28 + v * 1.38;
+        const bulge = 0.26 * Math.sin(Math.PI * u) * Math.sin(Math.PI * v);
+        const pz = spec.depth * 0.44 + 0.08 + bulge;
+        return { x: px, y: py, z: pz, w: 0 };
+      },
+      false,
+    );
+    h.trackGeom(pocketGeom);
+
+    const buckleGeom = h.trackGeom(new RoundedBoxGeometry(0.42, 0.14, 0.12, 2, 0.03));
+
+    // Tali bahu empuk melengkung berbentuk huruf S yang terhubung ke bagian bawah ransel
+    const makeStrapGeom = (side: -1 | 1) => {
+      const sx = side * 0.68;
+      const bz = -spec.depth * 0.42;
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(sx * 0.72, spec.height - 0.42, bz + 0.04),
+        new THREE.Vector3(sx * 1.06, spec.height - 0.78, bz - 0.26),
+        new THREE.Vector3(sx * 1.12, spec.height * 0.46, bz - 0.34),
+        new THREE.Vector3(sx * 0.96, 0.74, bz - 0.2),
+        new THREE.Vector3(sx * 0.88, 0.36, bz + 0.04),
+      ]);
+      return h.trackGeom(new THREE.TubeGeometry(curve, lowDetail ? 12 : 20, 0.11, 7, false));
+    };
+
+    const loopCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.24, spec.height - 0.12, -0.08),
+      new THREE.Vector3(-0.18, spec.height + 0.26, -0.1),
+      new THREE.Vector3(0, spec.height + 0.34, -0.1),
+      new THREE.Vector3(0.18, spec.height + 0.26, -0.1),
+      new THREE.Vector3(0.24, spec.height - 0.12, -0.08),
+    ]);
+    const loopGeom = h.trackGeom(new THREE.TubeGeometry(loopCurve, 12, 0.045, 6, false));
+
+    const bodyMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: spec.color,
         map: nylonSet.map ?? null,
         normalMap: nylonSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.45, 0.45),
+        normalScale: new THREE.Vector2(0.48, 0.48),
         roughnessMap: nylonSet.roughnessMap ?? null,
         roughness: 0.48,
         metalness: 0.06,
+        side: THREE.DoubleSide,
       }),
     );
-    const accentMat = trackMat(
+    const accentMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#1F374A",
         normalMap: nylonSet.normalMap ?? null,
         roughness: 0.56,
         metalness: 0.04,
+        side: THREE.DoubleSide,
       }),
     );
-    const buckleMat = trackMat(
+    const buckleMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#8D9AA8",
         normalMap: metalSet.normalMap ?? null,
@@ -347,37 +1029,45 @@ function createBackpackProduct(): ProductHandle {
     );
 
     const body = new THREE.Mesh(bodyGeom, bodyMat);
-    body.position.set(0, spec.height * 0.5, 0);
-
     const pocket = new THREE.Mesh(pocketGeom, accentMat);
-    pocket.position.set(0, 1.05, spec.depth * 0.5 + 0.1);
-
     const zipBar = new THREE.Mesh(buckleGeom, buckleMat);
-    zipBar.position.set(0, 1.72, spec.depth * 0.5 + 0.22);
+    zipBar.position.set(0, 1.56, spec.depth * 0.52 + 0.12);
 
-    const strapL = new THREE.Mesh(strapGeom, accentMat);
-    strapL.position.set(-0.72, 1.65, -spec.depth * 0.5 - 0.08);
-    const strapR = new THREE.Mesh(strapGeom, accentMat);
-    strapR.position.set(0.72, 1.65, -spec.depth * 0.5 - 0.08);
-
+    const strapL = new THREE.Mesh(makeStrapGeom(-1), accentMat);
+    const strapR = new THREE.Mesh(makeStrapGeom(1), accentMat);
     const loop = new THREE.Mesh(loopGeom, accentMat);
-    loop.position.set(0, spec.height, 0);
 
     group.add(body, pocket, zipBar, strapL, strapR, loop);
     return group;
   });
 }
 
-function createRugProduct(): ProductHandle {
-  return makeTrackedProduct("rug", (trackMat, trackGeom, trackSet) => {
+function createRugProduct(lowDetail = false): ProductHandle {
+  return makeTrackedProduct("rug", (h) => {
     const group = new THREE.Group();
-    const woolSet = trackSet(makeFabricPbrSet("wool", 256, 3, 4));
-    const woodSet = trackSet(makeWoodGrainSet(256, 1, 1));
+    const woolSet = h.trackSet(makeFabricPbrSet("wool", 256, 3, 4));
+    const woodSet = h.trackSet(makeWoodGrainSet(256, 1, 1));
+    const cottonSet = h.trackSet(makeFabricPbrSet("cotton", 256, 1, 1));
 
-    const cylGeom = trackGeom(new THREE.CylinderGeometry(0.55, 0.55, 3.2, 16));
-    const coreGeom = trackGeom(new THREE.CylinderGeometry(0.18, 0.18, 3.22, 10));
+    // Gulungan karpet wol dengan sedikit kompresi empuk di sabuk pengikat tengah
+    const rSegs = lowDetail ? 12 : 20;
+    const hSegs = lowDetail ? 10 : 16;
+    const cylGeom = h.trackGeom(new THREE.CylinderGeometry(0.55, 0.56, 3.2, rSegs, hSegs));
+    const pos = cylGeom.getAttribute("position") as THREE.BufferAttribute;
+    for (let i = 0; i < pos.count; i++) {
+      const px = pos.getX(i);
+      const py = pos.getY(i) + 1.6; // 0..3.2
+      const pz = pos.getZ(i);
+      const tieCinch = Math.exp(-Math.pow((py - 1.55) / 0.24, 2));
+      const scaleR = 1 - 0.055 * tieCinch + 0.014 * Math.sin(py * 5.2);
+      pos.setXYZ(i, px * scaleR, py, pz * scaleR);
+    }
+    cylGeom.computeVertexNormals();
 
-    const bodyMat = trackMat(
+    const coreGeom = h.trackGeom(new THREE.CylinderGeometry(0.18, 0.18, 3.22, 10));
+    const strapGeom = h.trackGeom(new THREE.TorusGeometry(0.525, 0.036, 7, rSegs));
+
+    const bodyMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: PRODUCT_SPECS.rug.color,
         map: woolSet.map ?? null,
@@ -388,7 +1078,7 @@ function createRugProduct(): ProductHandle {
         metalness: 0,
       }),
     );
-    const coreMat = trackMat(
+    const coreMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#7E6045",
         map: woodSet.map ?? null,
@@ -396,28 +1086,37 @@ function createRugProduct(): ProductHandle {
         roughness: 0.72,
       }),
     );
+    const strapMat = h.trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#2D5A52",
+        normalMap: cottonSet.normalMap ?? null,
+        roughness: 0.82,
+      }),
+    );
 
     const cyl = new THREE.Mesh(cylGeom, bodyMat);
-    cyl.position.set(0, 1.6, 0);
     const core = new THREE.Mesh(coreGeom, coreMat);
     core.position.set(0, 1.6, 0);
+    const tieStrap = new THREE.Mesh(strapGeom, strapMat);
+    tieStrap.position.set(0, 1.55, 0);
+    tieStrap.rotation.x = Math.PI * 0.5;
 
-    group.add(cyl, core);
+    group.add(cyl, core, tieStrap);
     return group;
   });
 }
 
 function createBenchProduct(): ProductHandle {
-  return makeTrackedProduct("bench", (trackMat, trackGeom, trackSet) => {
+  return makeTrackedProduct("bench", (h) => {
     const group = new THREE.Group();
-    const woodSet = trackSet(makeWoodGrainSet(256, 2, 1));
-    const metalSet = trackSet(makeBrushedMetalSet(256, 1, 1));
+    const woodSet = h.trackSet(makeWoodGrainSet(256, 2, 1));
+    const metalSet = h.trackSet(makeBrushedMetalSet(256, 1, 1));
 
-    const seatGeom = trackGeom(new RoundedBoxGeometry(3.4, 0.16, 0.52, 2, 0.03));
-    const backGeom = trackGeom(new RoundedBoxGeometry(3.4, 0.56, 0.16, 2, 0.03));
-    const legGeom = trackGeom(new THREE.BoxGeometry(0.24, 0.78, 1.08));
+    const seatGeom = h.trackGeom(new RoundedBoxGeometry(3.4, 0.16, 0.52, 2, 0.03));
+    const backGeom = h.trackGeom(new RoundedBoxGeometry(3.4, 0.56, 0.16, 2, 0.03));
+    const legGeom = h.trackGeom(new THREE.BoxGeometry(0.24, 0.78, 1.08));
 
-    const woodMat = trackMat(
+    const woodMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#C29C76",
         map: woodSet.map ?? null,
@@ -428,7 +1127,7 @@ function createBenchProduct(): ProductHandle {
         metalness: 0,
       }),
     );
-    const frameMat = trackMat(
+    const frameMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#27373E",
         normalMap: metalSet.normalMap ?? null,
@@ -450,15 +1149,16 @@ function createBenchProduct(): ProductHandle {
     const legR = new THREE.Mesh(legGeom, frameMat);
     legR.position.set(1.35, 0.39, 0);
 
+    // Kayu & kaki metal tetap rigid (tanpa flutter), indeks children[0..4] dipertahankan
     group.add(frontSeat, backSeat, backrest, legL, legR);
     return group;
   });
 }
 
 function createPotProduct(): ProductHandle {
-  return makeTrackedProduct("pot", (trackMat, trackGeom, trackSet) => {
+  return makeTrackedProduct("pot", (h) => {
     const group = new THREE.Group();
-    const ceramicSet = trackSet(makeCeramicGlazeSet(256));
+    const ceramicSet = h.trackSet(makeCeramicGlazeSet(256));
 
     const pts = [
       new THREE.Vector2(0, 0),
@@ -470,11 +1170,11 @@ function createPotProduct(): ProductHandle {
       new THREE.Vector2(0.58, 1.45),
       new THREE.Vector2(0, 1.45),
     ];
-    const potGeom = trackGeom(new THREE.LatheGeometry(pts, 16));
-    const soilGeom = trackGeom(new THREE.CylinderGeometry(0.62, 0.58, 0.08, 14));
-    const leafGeom = trackGeom(new THREE.ConeGeometry(0.26, 1.1, 8));
+    const potGeom = h.trackGeom(new THREE.LatheGeometry(pts, 16));
+    const soilGeom = h.trackGeom(new THREE.CylinderGeometry(0.62, 0.58, 0.08, 14));
+    const leafGeom = h.trackGeom(new THREE.ConeGeometry(0.26, 1.1, 8));
 
-    const potMat = trackMat(
+    const potMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: PRODUCT_SPECS.pot.color,
         map: ceramicSet.map ?? null,
@@ -484,14 +1184,14 @@ function createPotProduct(): ProductHandle {
         metalness: 0.04,
       }),
     );
-    const soilMat = trackMat(
+    const soilMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#3B2D22",
         roughness: 0.94,
         metalness: 0,
       }),
     );
-    const leafMat = trackMat(
+    const leafMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: "#3A7459",
         roughness: 0.54,
@@ -504,7 +1204,6 @@ function createPotProduct(): ProductHandle {
     soilMesh.position.set(0, 1.46, 0);
     group.add(potMesh, soilMesh);
 
-    // 5 daun kerucut di atas pot
     for (let i = 0; i < 5; i++) {
       const angle = (i / 5) * Math.PI * 2;
       const leaf = new THREE.Mesh(leafGeom, leafMat);
@@ -517,41 +1216,14 @@ function createPotProduct(): ProductHandle {
   });
 }
 
-function createFleeceProduct(): ProductHandle {
-  return makeTrackedProduct("fleece", (trackMat, trackGeom, trackSet) => {
+function createFleeceProduct(lowDetail = false): ProductHandle {
+  return makeTrackedProduct("fleece", (h) => {
     const group = new THREE.Group();
-    const fleeceSet = trackSet(makeFabricPbrSet("fleece", 256, 2, 2));
-    const metalSet = trackSet(makeBrushedMetalSet(256, 1, 1));
+    const fleeceSet = h.trackSet(makeFabricPbrSet("fleece", 256, 2, 2));
+    const metalSet = h.trackSet(makeBrushedMetalSet(256, 1, 1));
+    const woodSet = h.trackSet(makeWoodGrainSet(256, 1, 1));
 
-    const shape = new THREE.Shape();
-    shape.moveTo(-0.92, 0);
-    shape.lineTo(0.92, 0);
-    shape.lineTo(0.92, 2.1);
-    shape.lineTo(1.5, 0.95);
-    shape.lineTo(1.5, 2.55);
-    shape.lineTo(0.85, 3.2);
-    shape.lineTo(0.32, 3.4);
-    shape.lineTo(-0.32, 3.4);
-    shape.lineTo(-0.85, 3.2);
-    shape.lineTo(-1.5, 2.55);
-    shape.lineTo(-1.5, 0.95);
-    shape.lineTo(-0.92, 2.1);
-    shape.closePath();
-
-    const bodyGeom = trackGeom(
-      new THREE.ExtrudeGeometry(shape, {
-        depth: 0.34,
-        bevelEnabled: true,
-        bevelThickness: 0.03,
-        bevelSize: 0.03,
-        bevelSegments: 2,
-        curveSegments: 4,
-      }),
-    );
-    bodyGeom.translate(0, 0, -0.17);
-    const zipGeom = trackGeom(new THREE.BoxGeometry(0.08, 3.05, 0.42));
-
-    const bodyMat = trackMat(
+    const bodyMat = h.trackMat(
       new THREE.MeshStandardMaterial({
         color: PRODUCT_SPECS.fleece.color,
         map: fleeceSet.map ?? null,
@@ -560,22 +1232,186 @@ function createFleeceProduct(): ProductHandle {
         roughnessMap: fleeceSet.roughnessMap ?? null,
         roughness: 0.9,
         metalness: 0,
+        side: THREE.DoubleSide,
       }),
     );
-    const zipMat = trackMat(
+    const trimMat = h.trackMat(
       new THREE.MeshStandardMaterial({
-        color: "#697984",
+        color: "#29544F",
+        map: fleeceSet.map ?? null,
+        normalMap: fleeceSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.7, 0.7),
+        roughness: 0.92,
+        metalness: 0,
+      }),
+    );
+    const linerMat = h.trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#1B3835",
+        roughness: 0.95,
+        metalness: 0,
+        side: THREE.DoubleSide,
+      }),
+    );
+    const zipMat = h.trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#6E808B",
         normalMap: metalSet.normalMap ?? null,
-        roughness: 0.32,
-        metalness: 0.78,
+        roughness: 0.3,
+        metalness: 0.82,
+      }),
+    );
+    const woodMat = h.trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#8A6A4C",
+        map: woodSet.map ?? null,
+        normalMap: woodSet.normalMap ?? null,
+        roughness: 0.65,
+        metalness: 0,
       }),
     );
 
-    const body = new THREE.Mesh(bodyGeom, bodyMat);
-    const zip = new THREE.Mesh(zipGeom, zipMat);
-    zip.position.set(0, 1.55, 0.02);
+    const torso = buildDrapedTorsoGeometry(
+      {
+        hemY: 0.22,
+        armpitY: 2.1,
+        shoulderY: 2.86,
+        neckSideY: 3.16,
+        neckFrontDip: 0.16,
+        neckBackDip: 0.05,
+        hemRx: 0.96,
+        waistRx: 0.93,
+        chestRx: 1.0,
+        shoulderRx: 0.9,
+        neckRx: 0.37,
+        hemRz: 0.31,
+        chestRz: 0.3,
+        neckRz: 0.17,
+        hemSag: 0.048,
+        foldAmp: 0.072,
+        foldFreq: 3,
+        pleatSkew: 0.65,
+        flutterAmp: 0.0022,
+        isJacket: true,
+      },
+      lowDetail,
+    );
+    h.trackGeom(torso.geom);
+    h.trackFlutter(torso.geom, torso.weights, 0.0022, 1.7, 1.05);
+    const body = new THREE.Mesh(torso.geom, bodyMat);
+    body.name = "Product_fleece_torso";
 
-    group.add(body, zip);
+    // Kerah berdiri jaket fleece yang sedikit terbuka di depan atas
+    const collarSegs = lowDetail ? 10 : 16;
+    const collarGeom = h.trackGeom(
+      new THREE.CylinderGeometry(0.38, 0.36, 0.24, collarSegs, 1, true, 0.25, Math.PI * 2 - 0.5),
+    );
+    const collarMesh = new THREE.Mesh(collarGeom, trimMat);
+    collarMesh.position.set(0, 3.16, -0.01);
+    collarMesh.scale.set(1, 1, 0.48);
+
+    const innerNeckGeom = h.trackGeom(
+      new THREE.CylinderGeometry(0.33, 0.37, 0.34, lowDetail ? 8 : 14, 1, true),
+    );
+    const innerNeck = new THREE.Mesh(innerNeckGeom, linerMat);
+    innerNeck.position.set(0, 3.0, -0.01);
+    innerNeck.scale.set(1, 1, 0.44);
+
+    // Ritsleting logam melengkung mengikuti kontur dada & perut depan jaket
+    const zipPts: THREE.Vector3[] = [];
+    const zipSteps = 10;
+    for (let i = 0; i <= zipSteps; i++) {
+      const v = 0.04 + (i / zipSteps) * 0.87;
+      const y = THREE.MathUtils.lerp(0.24, 3.02, v);
+      const rz = THREE.MathUtils.lerp(0.31, 0.29, smoothstep(0, 0.7, v));
+      const chestCurve = 0.018 * Math.sin(Math.PI * clamp01((v - 0.15) / 0.73));
+      const fold = 0.072 * Math.pow(1 - v, 1.25) * Math.sin(3 * (Math.PI * 0.5) + 0.35);
+      zipPts.push(new THREE.Vector3(0, y, rz + chestCurve + fold - 0.01));
+    }
+    const zipCurve = new THREE.CatmullRomCurve3(zipPts);
+    const zipGeom = h.trackGeom(new THREE.TubeGeometry(zipCurve, 10, 0.024, 5, false));
+    const zip = new THREE.Mesh(zipGeom, zipMat);
+
+    // Kepala tarik ritsleting dekat atas dada
+    const pullGeom = h.trackGeom(new THREE.BoxGeometry(0.05, 0.11, 0.04));
+    const pull = new THREE.Mesh(pullGeom, zipMat);
+    const topZipPt = zipPts[zipPts.length - 1]!;
+    pull.position.set(0, topZipPt.y - 0.08, topZipPt.z + 0.03);
+    pull.rotation.x = 0.18;
+
+    // Manset pinggang rib di tepi bawah jaket
+    const hemPts: THREE.Vector3[] = [];
+    const hemSteps = lowDetail ? 12 : 20;
+    for (let i = 0; i <= hemSteps; i++) {
+      const t = (i / hemSteps) * Math.PI * 2;
+      const cosT = Math.cos(t);
+      const sinT = Math.sin(t);
+      const absCos = Math.abs(cosT);
+      const sag = -0.048 * (1 - absCos * absCos);
+      const zFold =
+        0.072 *
+        Math.sin(3 * t + 0.65 * Math.sign(cosT || 1) + 0.35) *
+        (0.38 + 0.62 * Math.abs(sinT)) *
+        (sinT >= 0 ? 1 : -1);
+      hemPts.push(new THREE.Vector3(0.95 * cosT, 0.24 + sag, 0.3 * sinT + zFold));
+    }
+    const hemCurve = new THREE.CatmullRomCurve3(hemPts, true);
+    const hemGeom = h.trackGeom(
+      new THREE.TubeGeometry(hemCurve, lowDetail ? 14 : 20, 0.042, 5, true),
+    );
+    const hemMesh = new THREE.Mesh(hemGeom, trimMat);
+
+    group.add(body, collarMesh, innerNeck, zip, pull, hemMesh);
+
+    // Lengan panjang jaket fleece jatuh alami menyusuri samping badan + manset rib
+    const buildLongSleeve = (side: -1 | 1, phase: number) => {
+      const s = buildDrapedSleeveGeometry(
+        {
+          side,
+          shoulderX: side * 0.88,
+          shoulderY: 2.74,
+          length: 1.72,
+          droopAngle: 1.24, // jatuh ~71 derajat ke bawah
+          elbowBendZ: 0.09,
+          baseRy: 0.3,
+          cuffRy: 0.19,
+          baseRz: 0.21,
+          cuffRz: 0.16,
+          foldAmp: 0.044,
+          gravityDrop: 0.16,
+        },
+        lowDetail,
+      );
+      h.trackGeom(s.geom);
+      h.trackFlutter(s.geom, s.weights, 0.0022, phase, 1.1);
+      const sleeveMesh = new THREE.Mesh(s.geom, bodyMat);
+
+      const endX = side * (0.88 + Math.cos(1.24) * 1.72);
+      const endY = 2.74 - Math.sin(1.24) * 1.72 - 0.16;
+      const cuffGeom = h.trackGeom(new THREE.TorusGeometry(0.175, 0.036, 5, lowDetail ? 8 : 12));
+      const cuffMesh = new THREE.Mesh(cuffGeom, trimMat);
+      cuffMesh.position.set(endX, endY, 0.02);
+      cuffMesh.rotation.set(0, Math.PI * 0.5, side * -1.24);
+      cuffMesh.scale.set(0.84, 1.08, 1);
+
+      const cuffInnerGeom = h.trackGeom(new THREE.CircleGeometry(0.15, 8));
+      const cuffInner = new THREE.Mesh(cuffInnerGeom, linerMat);
+      cuffInner.position.set(endX, endY + 0.015, 0.02);
+      cuffInner.rotation.set(Math.PI * 0.5 - 0.25, 0, 0);
+
+      group.add(sleeveMesh, cuffMesh, cuffInner);
+    };
+    buildLongSleeve(-1, 2.1);
+    buildLongSleeve(1, 3.3);
+
+    addGarmentStand(group, h, zipMat, woodMat, {
+      standTopY: 3.76,
+      hangerCenterY: 3.12,
+      shoulderEndY: 2.8,
+      shoulderHalfW: 0.88,
+      standBackZ: -0.38,
+      lowDetail,
+    });
     return group;
   });
 }
@@ -586,30 +1422,74 @@ export class Products {
 
   private readonly byId: Record<ProductId, ProductHandle>;
   private readonly shelfTopY: number;
+  private lowDetail: boolean;
+  private dimFactor = 1;
+  private compactMode = false;
 
-  constructor(parent: THREE.Object3D, shelfTopY = 0.76) {
+  constructor(parent: THREE.Object3D, shelfTopY = 0.76, lowDetail = false) {
     this.group.name = "O-PRODUCTS";
     this.shelfTopY = shelfTopY;
+    this.lowDetail = lowDetail;
 
-    const built: Record<ProductId, ProductHandle> = {
-      tote: createToteProduct(),
-      tee: createTeeProduct(),
-      backpack: createBackpackProduct(),
-      rug: createRugProduct(),
-      bench: createBenchProduct(),
-      pot: createPotProduct(),
-      fleece: createFleeceProduct(),
-    };
+    const built = this.buildAll(lowDetail);
     this.byId = built;
     this.items = PRODUCT_ORDER.map((id) => built[id]);
 
+    this.layoutAll();
+    parent.add(this.group);
+  }
+
+  private buildAll(lowDetail: boolean): Record<ProductId, ProductHandle> {
+    return {
+      tote: createToteProduct(lowDetail),
+      tee: createTeeProduct(lowDetail),
+      backpack: createBackpackProduct(lowDetail),
+      rug: createRugProduct(lowDetail),
+      bench: createBenchProduct(),
+      pot: createPotProduct(),
+      fleece: createFleeceProduct(lowDetail),
+    };
+  }
+
+  private layoutAll(): void {
     for (const item of this.items) {
       const spec = PRODUCT_SPECS[item.id];
       item.group.position.set(spec.x, this.shelfTopY, 0);
+      item.group.visible = this.compactMode ? spec.portraitVisible : true;
+      item.setDim(this.dimFactor);
       this.group.add(item.group);
     }
+  }
 
-    parent.add(this.group);
+  setQuality(
+    lowOrConfig: boolean | "high" | "medium" | "low" | { tier: "high" | "medium" | "low" },
+  ): void {
+    const nextLow =
+      typeof lowOrConfig === "boolean"
+        ? lowOrConfig
+        : typeof lowOrConfig === "string"
+          ? lowOrConfig === "low"
+          : lowOrConfig.tier === "low";
+    if (nextLow === this.lowDetail) return;
+    this.lowDetail = nextLow;
+
+    for (const item of this.items) {
+      item.dispose();
+    }
+    const rebuilt = this.buildAll(nextLow);
+    this.byId.tote = rebuilt.tote;
+    this.byId.tee = rebuilt.tee;
+    this.byId.backpack = rebuilt.backpack;
+    this.byId.rug = rebuilt.rug;
+    this.byId.bench = rebuilt.bench;
+    this.byId.pot = rebuilt.pot;
+    this.byId.fleece = rebuilt.fleece;
+    (this.items as ProductHandle[]).splice(
+      0,
+      this.items.length,
+      ...PRODUCT_ORDER.map((id) => rebuilt[id]),
+    );
+    this.layoutAll();
   }
 
   getProduct(id: ProductId): ProductHandle {
@@ -617,13 +1497,23 @@ export class Products {
   }
 
   setDim(factor: number): void {
+    this.dimFactor = clamp01(factor);
     for (const item of this.items) {
-      item.setDim(factor);
+      item.setDim(this.dimFactor);
+    }
+  }
+
+  /** Update flutter lembut berbasis waktu saja (non-aktif pada tier LOW atau reducedMotion). */
+  updateFlutter(timeSec: number, enabled = true): void {
+    const active = enabled && !this.lowDetail;
+    for (const item of this.items) {
+      item.updateFlutter?.(timeSec, active);
     }
   }
 
   /** Pada mode HP portrait, hanya 5 produk tampil (tanpa backpack dan fleece). */
   setCompactMode(compact: boolean): void {
+    this.compactMode = compact;
     for (const item of this.items) {
       const spec = PRODUCT_SPECS[item.id];
       item.group.visible = compact ? spec.portraitVisible : true;
@@ -632,6 +1522,7 @@ export class Products {
 
   reset(): void {
     this.group.visible = true;
+    this.dimFactor = 1;
     this.setDim(1);
     for (const item of this.items) {
       item.reset();

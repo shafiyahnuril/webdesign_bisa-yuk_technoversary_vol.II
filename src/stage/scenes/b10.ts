@@ -69,7 +69,11 @@ export function createB10Scene(): Scene {
     build(stageCtx: StageContext) {
       ctx = stageCtx;
       shelf = new Shelf(stageCtx.scene);
-      products = new Products(stageCtx.scene, SHELF_SPECS.topY);
+      products = new Products(
+        stageCtx.scene,
+        SHELF_SPECS.topY,
+        stageCtx.qualityConfig.tier === "low",
+      );
       tumbler = new Tumbler(stageCtx.scene, stageCtx.quality === "low" ? 24 : 48);
 
       shelf.group.visible = false;
@@ -135,6 +139,7 @@ export function createB10Scene(): Scene {
       shelf.group.visible = true;
 
       products.reset();
+      products.setQuality(ctx.qualityConfig);
       products.setCompactMode(isPortrait);
       products.group.visible = true;
 
@@ -192,6 +197,7 @@ export function createB10Scene(): Scene {
       bottle.group.visible = false;
       shelf.group.visible = true;
       products.group.visible = true;
+      products.setQuality(ctx.qualityConfig);
       products.setCompactMode(isPortrait);
       tumbler.group.visible = true;
       tumbler.setQuality(ctx.qualityConfig);
@@ -200,6 +206,7 @@ export function createB10Scene(): Scene {
       tl.progress(clamp01(t));
 
       products.setDim(state.dim);
+      products.updateFlutter(ctx.uniforms.uTime.value, !ctx.reducedMotion);
       ctx.lights.spot.intensity = state.spot;
       ctx.lights.spot.castShadow = false;
       ctx.lights.spot.position.set(plinthX, 7, 4);
@@ -234,6 +241,7 @@ export function createB10Scene(): Scene {
       if (!ctx) return;
       turnAngle = 0;
       ctx.lights.spot.intensity = 0;
+      products?.updateFlutter(0, false);
       products?.setDim(1);
       tumbler?.setTurnAngle(0);
       if (shelf) shelf.group.visible = false;
