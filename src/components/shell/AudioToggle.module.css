@@ -1,0 +1,43 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-touch-target);
+  height: var(--size-touch-target);
+  padding: 0;
+  border-radius: var(--radius-full);
+  border: var(--line-thin) solid color-mix(in srgb, var(--ui-ink) 28%, transparent);
+  background: transparent;
+  color: var(--ui-ink);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    border-color var(--dur-base) var(--ease-out-expo),
+    color var(--dur-base) var(--ease-out-expo),
+    transform var(--dur-fast) var(--ease-out-expo);
+}
+
+.toggle:hover {
+  border-color: var(--ui-ink);
+}
+
+.toggle:active {
+  transform: scale(0.96);
+}
+
+.toggle[data-active="true"] {
+  border-color: var(--accent-now);
+}
+
+.icon {
+  width: var(--size-icon);
+  height: var(--size-icon);
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .toggle {
+    width: var(--size-menu-button-mobile);
+    height: var(--size-menu-button-mobile);
+  }
+}
