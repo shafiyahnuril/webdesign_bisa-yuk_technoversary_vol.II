@@ -5,62 +5,82 @@
 export const COPY = {
   // Hero / Bab 1
   "hero.title": "Re:bottle",
-  "hero.tagline": "Bawa botolmu besok.",
+  "hero.tagline":
+    "Satu teguk selesai dalam hitungan menit. Namun bagiku, perjalanan melintasi sungai, arus laut, dan waktu baru saja dimulai.",
   "hero.hint": "(Gulir untuk mulai)",
   "hero.scenario": "Skenario jika pola konsumsi plastik terus berlanjut.",
   "ch1.title": "Lahir",
-  "ch1.line": "Dibuat dari fosil, usia 0 hari.",
-  "ch1.sub": "Bening, baru, siap dipakai.", // USULAN
+  "ch1.line":
+    "Aku lahir dari panas cetakan dan tekanan mesin—bening, ringan, dan dirancang tanpa cela untuk satu tujuan sederhana: menjaga seteguk air tetap dingin sampai ke tanganmu.",
+  "ch1.sub":
+    "Namun tubuhku ditempa dari rantai polimer yang nyaris abadi. Ada paradoks sunyi sejak detik pertamaku: aku dibuat dengan ketahanan ratusan tahun hanya untuk menemanimu melewati satu siang yang terik.", // USULAN
   // Bab 2
   "ch2.title": "Sekali Pakai",
-  "ch2.line": "Dipakai 10 menit.",
-  "ch2.sub": "Setelah itu, tidak ada yang bertanya ke mana ia pergi.", // USULAN
+  "ch2.line":
+    "Sepuluh menit. Hanya selama itu genggam tanganmu terasa hangat di dinding tubuhku, sebelum tegukan terakhir habis dan tutupku kembali diputar rapat.",
+  "ch2.sub":
+    "Saat aku terlepas dari jemarimu, tugasku di hidupmu selesai begitu saja. Tetapi di luar genggaman itu, tubuhku tidak ikut menghilang—aku tetap utuh, menunggu ke mana gravitasi dan angin membawaku pergi.", // USULAN
   // Bab 3 (angka counter berasal dari facts.ts `lama-terurai`)
   "ch3.title": "Tersesat",
   "ch3.counter.label": "tahun lagi", // USULAN
   // Angka counter hanya tampil bila fakta `lama-terurai` verified:true; selama false, pakai `ch3.fallback`.
   "ch3.counter.value": "{X}",
   "ch3.fallback": "Plastik bisa bertahan sangat lama sebelum terurai.", // USULAN
-  "ch3.sub": "Sungai membawanya melewati kota yang tidak menoleh.", // USULAN
+  "ch3.sub":
+    "Hujan sore mendorongku masuk ke selokan beton, lalu arus membawaku menyusuri sungai yang membelah kota yang tak pernah menoleh ke belakang. Di sepanjang tepian yang berlumpur, aku mengapung bersama ribuan kemasan lain yang juga kehilangan tujuannya. Kota terus bergerak maju, sementara kami perlahan hanyut menuju muara.", // USULAN
   // Bab 4
   "ch4.title": "Lautan",
-  "ch4.line": "Air naik. Karang memutih.",
-  "ch4.sub": "Ia terapung di bawah matahari yang makin terik.", // USULAN
+  "ch4.line":
+    "Muara akhirnya melepas tubuhku ke samudra lepas yang tampak tenang dari kejauhan, namun menyimpan beban sunyi di bawah setiap gulungan ombaknya.",
+  "ch4.sub":
+    "Aku melayang di atas hamparan terumbu karang yang kian pucat oleh suhu laut yang memanas dari tahun ke tahun. Di kedalaman yang hening ini, aku bukan lagi sekadar wadah minuman—aku menjadi tamu asing di rumah yang sedang berjuang bernapas.", // USULAN
   // Opsional; tampil bersama angka dari fakta `terumbu-pemutihan` (verified).
   "ch4.fact": "Sekian persen terumbu karang pernah mengalami pemutihan.",
   // Bab 5
   "ch5.title": "Terurai",
-  "ch5.line": "Ia tidak hilang. Ia hanya menjadi lebih kecil.", // USULAN
+  "ch5.line":
+    "Banyak yang mengira waktu akan menghapusku di tengah laut. Kenyataan di permukaan air jauh lebih sunyi: terik matahari, garam, dan benturan gelombang tidak pernah benar-benar melenyapkanku dari bumi. Tubuhku hanya retak dan terkelupas perlahan, pecah menjadi ribuan serpihan mikroplastik halus yang tak lagi kasatmata namun tetap berlayar mengikuti arus.", // USULAN
   "ch5.counter.label": "partikel", // USULAN
   // Bab 6
   "ch6.title": "Kembali ke Kita",
   "ch6.line": "Kamu makan sekitar {X} mikroplastik per minggu.",
-  "ch6.sub": "Dari ikan, garam, dan air yang kita anggap bersih.", // USULAN
+  "ch6.sub":
+    "Tanpa suara dan tanpa wujud yang kamu kenali, perjalanan panjangku berputar kembali ke meja makan. Apa yang dulu dilepas begitu saja dalam sepuluh menit, kini pulang melalui ikan, garam, dan air dalam keheningan yang paling dekat dengan tubuhmu.", // USULAN
   "ch6.footnote": "Perkiraan rata-rata dari kajian; hasil tiap orang berbeda.", // USULAN
   // Dipakai selama fakta `mikroplastik-mingguan` belum verified:true (dok 11 §2.6).
-  "ch6.fallback": "Mikroplastik kini ditemukan di makanan dan minuman kita.", // USULAN
+  "ch6.fallback":
+    "Mikroplastik kini ditemukan di makanan dan minuman kita. Serpihan yang dulu terlepas dari tubuhku kini melayang di kolom air, terserap ke dalam rantai makanan laut yang sunyi.", // USULAN
   // Punchline
-  "punch.line": "Bagaimana jika semua ini tidak terjadi?", // DISEPAKATI D12: tanpa subteks
+  "punch.line":
+    "Bagaimana jika semua ini tidak terjadi? Tarik napas sejenak—karena akhir perjalananku selalu dimulai dari satu pilihan kecil di tanganmu.", // DISEPAKATI D12: tanpa subteks
   // Bab 7
   "ch7.title": "Di Tempat yang Benar",
-  "ch7.line": "Satu keputusan, 10 detik.",
-  "ch7.letter": "Kamu tidak membuangku ke sungai. Terima kasih.",
+  "ch7.line":
+    "Semuanya berubah hanya dalam sepuluh detik ketika kamu berhenti sejenak di depan tempat sampah terpilah. Alih-alih terlempar ke selokan, kamu menaruhku di wadah khusus plastik yang kering dan bersih.",
+  "ch7.letter":
+    "Kamu tidak membuangku ke sungai. Terima kasih. Sepuluh detik jedamu hari ini menyelamatkan sungai dan laut dari kehadiranku.",
   "ch7.bins": "Plastik · Kertas · Organik", // USULAN
   // Bab 8
   "ch8.title": "Perjalanan Kedua",
-  "ch8.letter": "Aku beruntung. Tidak semua temanku sampai di sini.",
+  "ch8.letter":
+    "Aku beruntung. Tidak semua temanku sampai di sini. Di jalur pemilahan ini, tubuhku kembali dipandang sebagai bahan yang berharga.",
   // Hanya tampil bila fakta `botol-terkumpul` verified:true (saat ini false: sembunyikan).
   "ch8.fact": "Sekian persen botol plastik berhasil terkumpul.",
-  "ch8.sub": "Dipilah, dikelompokkan, lalu dibersihkan.", // USULAN
+  "ch8.sub":
+    "Di atas sabuk pemilah yang berderak tenang, aku tidak lagi sendirian sebagai sampah yang tersesat. Tangan-tangan pekerja dan sensor pemilah mengelompokkanku bersama ribuan botol jernih lainnya—memisahkan tutup, melepas label, dan memastikan materialku siap menempuh perjalanan kedua.", // USULAN
   // Bab 9
   "ch9.title": "Hidup Baru, Tapi...",
-  "ch9.letter": "Aku jadi sesuatu yang baru, tapi prosesnya butuh energi dan air.",
+  "ch9.letter":
+    "Aku lahir kembali setelah dicacah, dicuci, dan dilebur. Tapi jujur saja—proses ini butuh air, energi, dan tidak bisa diulang selamanya. Daur ulang menyelamatkanku hari ini, namun ia bukan alasan untuk terus memproduksi dan membuang tanpa henti.",
   "ch9.stations": "Cacah · Cuci · Lebur · Cetak", // USULAN
   "ch9.note": "Hasilnya biasanya serat atau benda lain, bukan botol lagi.", // USULAN
   // Bab 10
-  "ch10a.letter": "Aku jadi sesuatu yang berguna.",
-  "ch10b.letter": "Ternyata aku tidak sendirian.",
-  "ch10d.letter": "Aku senang diselamatkan. Tapi aku akan lebih senang kalau tidak perlu dibuat.",
+  "ch10a.letter":
+    "Terima kasih sudah menemaniku menyusuri dua kemungkinan hidupku.",
+  "ch10b.letter":
+    "Jika kamu harus memakai botol sepertiku hari ini, pilahlah agar aku tidak berakhir di lautan.",
+  "ch10d.letter":
+    "Namun masa depan terbaik adalah saat kamu tak lagi membutuhkanku untuk sekali teguk. Gunakan botol yang bisa kamu isi ulang berkali-kali, hari demi hari.",
   "ch10e.cta": "Bawa botolmu besok.",
   "end.hint": "(Terus gulir)",
 
