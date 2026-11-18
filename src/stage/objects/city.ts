@@ -86,8 +86,12 @@ export class CityEnvironment {
   readonly trashCups: THREE.InstancedMesh;
   readonly trashBottles: THREE.InstancedMesh;
 
-  readonly totalTrashCount: number;
+  totalTrashCount: number;
   private _visibleTrashCount: number;
+  private readonly maxFarCount: number;
+  private readonly desktopTrashCap: number;
+  private readonly compactTrashCap: number;
+  private compactMode: boolean;
 
   private readonly trashSpecs: TrashItemSpec[] = [];
   private readonly bagCapacity: number;
@@ -115,11 +119,15 @@ export class CityEnvironment {
     parent.add(this.group);
 
     const compact = isPortrait || quality.tier === "low";
+    this.compactMode = compact;
     const farCount = compact ? 30 : 60;
+    this.maxFarCount = farCount;
     const midCount = 40;
     const nearCount = 3;
     const fenceCount = 40;
-    this.totalTrashCount = compact ? TRASH_COUNT_COMPACT : TRASH_COUNT_DESKTOP;
+    this.desktopTrashCap = compact ? TRASH_COUNT_COMPACT : TRASH_COUNT_DESKTOP;
+    this.compactTrashCap = TRASH_COUNT_COMPACT;
+    this.totalTrashCount = this.desktopTrashCap;
     this.minTrashVisible = compact ? 2 : 4;
     this._visibleTrashCount = this.minTrashVisible;
 
@@ -309,10 +317,19 @@ export class CityEnvironment {
     return this._visibleTrashCount;
   }
 
+  setCompactMode(compact: boolean): void {
+    this.compactMode = compact;
+    this.farBuildings.count = compact ? Math.min(30, this.maxFarCount) : this.maxFarCount;
+    this.totalTrashCount = compact
+      ? Math.min(this.compactTrashCap, this.desktopTrashCap)
+      : this.desktopTrashCap;
+  }
+
   setTrashVisibleFraction(fraction01: number): void {
     const k = clamp01(fraction01);
-    const next = Math.round(lerp(this.minTrashVisible, this.totalTrashCount, k));
-    this._visibleTrashCount = clamp(next, this.minTrashVisible, this.totalTrashCount);
+    const minVis = this.compactMode ? Math.min(2, this.minTrashVisible) : this.minTrashVisible;
+    const next = Math.round(lerp(minVis, this.totalTrashCount, k));
+    this._visibleTrashCount = clamp(next, minVis, this.totalTrashCount);
   }
 
   /**

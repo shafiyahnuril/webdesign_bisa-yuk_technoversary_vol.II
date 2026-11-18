@@ -186,7 +186,11 @@ export class Hand implements SharedObjectHandle {
     thumbProx.position.set(-0.1, 0.62, 0.38);
     thumbProx.rotation.z = degToRad(HAND_DIMENSIONS.thumbAngleDeg);
 
-    const thumbProxMesh = makeCapsuleAlongNegX(0.09, HAND_DIMENSIONS.thumbProxLength, this.material);
+    const thumbProxMesh = makeCapsuleAlongNegX(
+      0.09,
+      HAND_DIMENSIONS.thumbProxLength,
+      this.material,
+    );
     thumbProxMesh.name = "thumb_a";
     this.geometries.push(thumbProxMesh.geometry);
 
@@ -194,7 +198,11 @@ export class Hand implements SharedObjectHandle {
     thumbDist.name = "thumb_b_pivot";
     thumbDist.position.set(-HAND_DIMENSIONS.thumbProxLength, 0, 0);
 
-    const thumbDistMesh = makeCapsuleAlongNegX(0.08, HAND_DIMENSIONS.thumbDistLength, this.material);
+    const thumbDistMesh = makeCapsuleAlongNegX(
+      0.08,
+      HAND_DIMENSIONS.thumbDistLength,
+      this.material,
+    );
     thumbDistMesh.name = "thumb_b";
     this.geometries.push(thumbDistMesh.geometry);
 
@@ -209,6 +217,7 @@ export class Hand implements SharedObjectHandle {
 
     parent.add(this.group);
     this.reset();
+    this.group.visible = false;
   }
 
   setPose(from: HandPoseName, to: HandPoseName, progress01: number): void {

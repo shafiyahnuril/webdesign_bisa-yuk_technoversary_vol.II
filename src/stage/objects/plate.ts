@@ -72,6 +72,7 @@ export class PlateSet {
     });
     this.plateMesh = new THREE.Mesh(plateGeom, this.plateMat);
     this.plateMesh.name = "O-PLATE-DISH";
+    this.plateMesh.renderOrder = 1;
 
     // 2. Filet elipsoid (1.3, 0.12, 0.6) #C9D3E6 + alur kulit
     const filletGeom = new THREE.SphereGeometry(1, 20, 14);
@@ -92,6 +93,7 @@ export class PlateSet {
     this.filletMesh = new THREE.Mesh(filletGeom, this.filletMat);
     this.filletMesh.name = "O-PLATE-FILLET";
     this.filletMesh.position.set(0, 0.14, 0);
+    this.filletMesh.renderOrder = 2;
 
     // 3. Garpu (kanan) & Pisau (kiri)
     this.cutleryMat = createClayMaterial({
@@ -106,14 +108,17 @@ export class PlateSet {
     const forkShaftGeom = new THREE.BoxGeometry(0.1, 0.02, 1.28);
     const forkShaft = new THREE.Mesh(forkShaftGeom, this.cutleryMat);
     forkShaft.position.set(0, 0.02, 0.18);
+    forkShaft.renderOrder = 1;
     const forkHeadGeom = new THREE.BoxGeometry(0.14, 0.02, 0.08);
     const forkHead = new THREE.Mesh(forkHeadGeom, this.cutleryMat);
     forkHead.position.set(0, 0.02, -0.45);
+    forkHead.renderOrder = 1;
     const tineGeom = new THREE.BoxGeometry(0.018, 0.02, 0.32);
     this.forkGroup.add(forkShaft, forkHead);
     for (let t = 0; t < 4; t++) {
       const tine = new THREE.Mesh(tineGeom, this.cutleryMat);
       tine.position.set(-0.052 + t * 0.035, 0.02, -0.64);
+      tine.renderOrder = 1;
       this.forkGroup.add(tine);
     }
     this.forkGroup.position.set(2.02, 0.02, 0);
@@ -122,10 +127,11 @@ export class PlateSet {
     this.knifeMesh = new THREE.Mesh(knifeGeom, this.cutleryMat);
     this.knifeMesh.name = "O-PLATE-KNIFE";
     this.knifeMesh.position.set(-2.02, 0.02, 0);
+    this.knifeMesh.renderOrder = 1;
 
     this.plateRoot.add(this.plateMesh, this.filletMesh, this.forkGroup, this.knifeMesh);
 
-    // 4. Meja gelap 20x20 #05080F
+    // 4. Meja gelap 20x20 #05080F tanpa depthWrite agar tidak memotong piring/alat makan saat naik
     const tableGeom = new THREE.PlaneGeometry(20, 20);
     tableGeom.rotateX(-Math.PI / 2);
     this.tableMat = createClayMaterial({
@@ -134,15 +140,21 @@ export class PlateSet {
       transparent: true,
       opacity: 1,
     });
+    this.tableMat.depthWrite = false;
     this.tableMesh = new THREE.Mesh(tableGeom, this.tableMat);
     this.tableMesh.name = "O-PLATE-TABLE";
     this.tableMesh.position.set(0, -0.02, 0);
+    this.tableMesh.renderOrder = -1;
 
     this.group.add(this.tableMesh, this.plateRoot);
   }
 
   setFilletGlow(intensity: number): void {
     this.filletMat.emissiveIntensity = clamp01(intensity) * 0.28;
+  }
+
+  setTableOpacity(opacity: number): void {
+    this.tableMat.opacity = clamp01(opacity);
   }
 
   setOpacity(opacity: number): void {

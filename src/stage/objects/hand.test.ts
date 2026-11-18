@@ -18,6 +18,7 @@ describe("O-HAND (prosedural clay)", () => {
     const scene = new THREE.Scene();
     const hand = new Hand(scene);
 
+    expect(hand.group.visible).toBe(false);
     expect(HAND_DIMENSIONS.palmWidth).toBeCloseTo(0.85, 5);
     expect(HAND_DIMENSIONS.palmHeight).toBeCloseTo(0.95, 5);
     expect(HAND_DIMENSIONS.palmThickness).toBeCloseTo(0.34, 5);

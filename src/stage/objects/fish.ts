@@ -134,8 +134,8 @@ export class FishSchool {
       opacity: 1,
     });
 
-    // ~280 + 8 + 4 + 8 + 32 = ~332 tris per ikan (3 ikan <= 1000 tris)
-    this.bodyGeom = new THREE.SphereGeometry(1, 14, 10);
+    // ~216 + 8 + 4 + 8 + 32 = ~268 tris per ikan (3 ikan <= 1000 tris)
+    this.bodyGeom = new THREE.SphereGeometry(1, 12, 9);
     this.bodyGeom.scale(1.0, 0.45, 0.22);
     this.tailGeom = createTailPrismGeometry();
     this.dorsalGeom = createFinTriangleGeometry(0.45, 0.35);

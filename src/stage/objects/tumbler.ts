@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { createClayMaterial } from "../materials/clay";
+import type { QualityConfig } from "../quality";
 
 export const TUMBLER_SPECS = {
   totalHeight: 2.22,
@@ -32,6 +33,33 @@ export const TUMBLER_PROFILE: readonly (readonly [number, number])[] = [
   [0.0, 2.1],
 ];
 
+function createPlinthGeometry(radialSegments: number): THREE.BufferGeometry {
+  return new THREE.CylinderGeometry(
+    TUMBLER_SPECS.plinthRadius,
+    TUMBLER_SPECS.plinthRadius,
+    TUMBLER_SPECS.plinthHeight,
+    radialSegments,
+  );
+}
+
+function createBodyGeometry(radialSegments: number): THREE.BufferGeometry {
+  const bodyPoints = TUMBLER_PROFILE.slice(0, 8).map(([r, y]) => new THREE.Vector2(r, y));
+  bodyPoints.push(new THREE.Vector2(0, 1.86));
+  const geom = new THREE.LatheGeometry(bodyPoints, radialSegments);
+  geom.computeVertexNormals();
+  return geom;
+}
+
+function createLidGeometry(radialSegments: number): THREE.BufferGeometry {
+  const lidPoints = [
+    new THREE.Vector2(0, 1.862),
+    ...TUMBLER_PROFILE.slice(8).map(([r, y]) => new THREE.Vector2(r, y)),
+  ];
+  const geom = new THREE.LatheGeometry(lidPoints, radialSegments);
+  geom.computeVertexNormals();
+  return geom;
+}
+
 export class Tumbler {
   readonly group = new THREE.Group();
   readonly plinthMesh: THREE.Mesh;
@@ -41,20 +69,18 @@ export class Tumbler {
   readonly ringMesh: THREE.Mesh;
   readonly handleMesh: THREE.Mesh;
 
-  private readonly geometries: THREE.BufferGeometry[] = [];
+  private radialSegments: number;
+  private readonly ringGeometry: THREE.BufferGeometry;
+  private readonly handleGeometry: THREE.BufferGeometry;
   private readonly materials: THREE.Material[] = [];
 
   constructor(parent: THREE.Object3D, radialSegments = 48) {
+    this.radialSegments = radialSegments;
     this.group.name = "O-TUMBLER-PLINTH";
     this.group.position.set(TUMBLER_SPECS.desktopX, 0, 0);
 
     // O-PLINTH: Cylinder(r 0.5, tinggi 0.25, 48 segmen) #E6EEE4, roughness 0.9
-    const plinthGeom = new THREE.CylinderGeometry(
-      TUMBLER_SPECS.plinthRadius,
-      TUMBLER_SPECS.plinthRadius,
-      TUMBLER_SPECS.plinthHeight,
-      radialSegments,
-    );
+    const plinthGeom = createPlinthGeometry(radialSegments);
     const plinthMat = createClayMaterial({
       color: TUMBLER_SPECS.plinthColor,
       roughness: 0.9,
@@ -68,10 +94,7 @@ export class Tumbler {
     this.vesselGroup.name = "O-TUMBLER";
     this.vesselGroup.position.set(0, TUMBLER_SPECS.plinthHeight, 0);
 
-    const bodyPoints = TUMBLER_PROFILE.slice(0, 8).map(([r, y]) => new THREE.Vector2(r, y));
-    bodyPoints.push(new THREE.Vector2(0, 1.86));
-    const bodyGeom = new THREE.LatheGeometry(bodyPoints, radialSegments);
-    bodyGeom.computeVertexNormals();
+    const bodyGeom = createBodyGeometry(radialSegments);
     const bodyMat = createClayMaterial({
       color: TUMBLER_SPECS.bodyColor,
       roughness: TUMBLER_SPECS.bodyRoughness,
@@ -79,12 +102,7 @@ export class Tumbler {
     });
     this.bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
 
-    const lidPoints = [
-      new THREE.Vector2(0, 1.862),
-      ...TUMBLER_PROFILE.slice(8).map(([r, y]) => new THREE.Vector2(r, y)),
-    ];
-    const lidGeom = new THREE.LatheGeometry(lidPoints, radialSegments);
-    lidGeom.computeVertexNormals();
+    const lidGeom = createLidGeometry(radialSegments);
     const lidMat = createClayMaterial({
       color: TUMBLER_SPECS.lidColor,
       roughness: 0.75,
@@ -93,27 +111,41 @@ export class Tumbler {
     this.lidMesh = new THREE.Mesh(lidGeom, lidMat);
 
     // Cincin bawah y 0.06..0.16 tanpa teks/logo
-    const ringGeom = new THREE.CylinderGeometry(0.343, 0.343, 0.1, 32, 1, true);
+    this.ringGeometry = new THREE.CylinderGeometry(0.343, 0.343, 0.1, 32, 1, true);
     const ringMat = createClayMaterial({
       color: TUMBLER_SPECS.ringColor,
       roughness: 0.45,
       metalness: 0.15,
     });
-    this.ringMesh = new THREE.Mesh(ringGeom, ringMat);
+    this.ringMesh = new THREE.Mesh(this.ringGeometry, ringMat);
     this.ringMesh.position.set(0, 0.11, 0);
 
     // Pegangan tutup: Torus(r 0.11, tabung 0.02) tegak hingga puncak y = 2.22
-    const handleGeom = new THREE.TorusGeometry(0.11, 0.02, 10, 24);
-    this.handleMesh = new THREE.Mesh(handleGeom, lidMat);
+    this.handleGeometry = new THREE.TorusGeometry(0.11, 0.02, 10, 24);
+    this.handleMesh = new THREE.Mesh(this.handleGeometry, lidMat);
     this.handleMesh.position.set(0, 2.09, 0);
 
     this.vesselGroup.add(this.bodyMesh, this.lidMesh, this.ringMesh, this.handleMesh);
     this.group.add(this.plinthMesh, this.vesselGroup);
 
-    this.geometries.push(plinthGeom, bodyGeom, lidGeom, ringGeom, handleGeom);
     this.materials.push(plinthMat, bodyMat, lidMat, ringMat);
 
     parent.add(this.group);
+  }
+
+  setQuality(config: QualityConfig): void {
+    const nextSegments = config.tier === "low" ? 24 : 48;
+    if (this.radialSegments === nextSegments) return;
+    this.radialSegments = nextSegments;
+
+    this.plinthMesh.geometry.dispose();
+    this.plinthMesh.geometry = createPlinthGeometry(nextSegments);
+
+    this.bodyMesh.geometry.dispose();
+    this.bodyMesh.geometry = createBodyGeometry(nextSegments);
+
+    this.lidMesh.geometry.dispose();
+    this.lidMesh.geometry = createLidGeometry(nextSegments);
   }
 
   setPlacementX(x: number): void {
@@ -132,7 +164,11 @@ export class Tumbler {
 
   dispose(): void {
     this.group.removeFromParent();
-    for (const g of this.geometries) g.dispose();
+    this.plinthMesh.geometry.dispose();
+    this.bodyMesh.geometry.dispose();
+    this.lidMesh.geometry.dispose();
+    this.ringGeometry.dispose();
+    this.handleGeometry.dispose();
     for (const m of this.materials) m.dispose();
   }
 }
