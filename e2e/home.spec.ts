@@ -4,15 +4,7 @@ import { test, expect } from "@playwright/test";
 // sedangkan server Vite DEV resmi berada di http://localhost:4174 (menyediakan ?debug & window.__REBOTTLE_RUNTIME__).
 const DEV_BASE = "http://localhost:4174";
 
-interface DevRuntimeWindow extends Window {
-  __REBOTTLE_RUNTIME__?: {
-    engine: {
-      pause(): void;
-      resume(): void;
-      preview?(progress: number): void;
-    };
-  };
-}
+type DevRuntimeWindow = Window;
 
 test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => {
   test("(1) Home 3D memasang canvas[data-ready], memudarkan poster, menampilkan label skenario hero, data-re=off, dan menyembunyikan scrollbar", async ({
