@@ -5,9 +5,9 @@
 | T0.1 | Inisialisasi repo: Vite + React + TS strict, ESLint, Prettier, Vitest, struktur folder 06 bagian 2, `.gitignore`, `.env.example` | Pihak A | selesai | |
 | T0.2 | Salin `docs/`, tulis `CLAUDE.md`, `DECISIONS.md`, `CHANGELOG_PARAMETER.md`, `PERF_LOG.md` (kosong dengan templat) | Pihak A | selesai | |
 | T0.3 | Token: `lib/tokens.ts` (PALETTE, CUES, LENGTHS, warna) + `gen-tokens.mjs` → `tokens.generated.css`; `typography.css`, `base.css` | Pihak A | selesai | |
-| T0.4 | Font Fontsource (4 keluarga, subset latin), preload kritis, fallback metrik | Pihak B | sebagian (font self-host; preload belum) | |
+| T0.4 | Font Fontsource (4 keluarga, subset latin), preload kritis, fallback metrik | Pihak B | selesai lokal (fallback bermetrik; preload menunggu kontrak A, belum di-push) | |
 | T0.5 | `App.tsx`: `HashRouter`, rute, `Suspense`, `AppShell` kosong, `HomePage` lazy placeholder | Pihak A | selesai | |
-| T0.6 | Workflow GitHub Pages `deploy.yml` | Pihak B | kode siap (aktifkan Pages manual) | |
+| T0.6 | Workflow GitHub Pages `deploy.yml` | Pihak B | terverifikasi (YAML valid); aktifkan Pages + secret manual | |
 | T0.7 | `hooks/`: `useReducedMotion`, `useMedia`, `useSignal`, `useDocumentMeta` | Pihak A | selesai | |
 | T1.1 | `engine/timeline.ts`: `LENGTHS_VH`, `STARTS`, `PUNCH`, `segmentAt`, `chapterAt`, `temperatureAt`, `babakAt` + tes unit | Pihak A | siap | |
 | T1.2 | `engine/story-engine.ts`: scroller tinggi, `target`, ratchet berbasis `dt`, `pause/resume/reset`, `onFrame`, `onChapter` | Pihak A | siap | |

@@ -49,7 +49,8 @@ Setiap keputusan di seluruh dokumen diberi salah satu tanda:
 
 1. Salin seluruh folder `rebottle-docs/` ke repo sebagai `docs/` (lokasi baku: `/docs`).
 2. Letakkan berkas `CLAUDE.md` (templat di bagian 6) di akar repo. Ini memaksa agen coding membaca dokumen sebelum bekerja.
-   > **Keputusan terbaru:** `docs/`, `CLAUDE.md`, dan `.claude/` bersifat **lokal**: dikecualikan lewat `.git/info/exclude` dan **tidak pernah di-commit/di-push**. Rekan tim menerimanya lewat `rebottle-docs.zip`, bukan lewat git (lihat dok 13).
+   > **Keputusan terbaru:** folder `docs/`, `rebottle_assets/`, dan `rebottle_design_system.html` **sengaja di-commit dan di-push**. Yang tetap lokal hanya `CLAUDE.md`, `.claude/`, `docs/bukti/`, `docs/tinjauan/` (dikecualikan lewat `.git/info/exclude`).
+  > **Alur git (disepakati):** tanpa pull request dan tanpa branch fitur; semua kerja langsung di `main` (commit bertahap, `pull --rebase`, push setelah verifikasi hijau).
 3. Di sesi baru, buka dengan perintah: *"Baca `CLAUDE.md`, lalu `docs/00_INDEX_DAN_ATURAN_KERJA.md`, lalu kerjakan tugas berikutnya di `docs/10_TASK_BREAKDOWN.md`."*
 4. Setiap selesai satu tugas, agen **mencentang** tugas di `10_TASK_BREAKDOWN.md` dan mencatat keputusan baru di `docs/DECISIONS.md`.
 

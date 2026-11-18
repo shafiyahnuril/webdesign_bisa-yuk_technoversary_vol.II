@@ -11,7 +11,7 @@
 ## 1. Definisi selesai (berlaku untuk SEMUA tugas)
 
 Sebuah tugas baru boleh dicentang bila:
-1. **Perilaku sesuai spesifikasi** di dokumen terkait (cantumkan bagian di PR/commit).
+1. **Perilaku sesuai spesifikasi** di dokumen terkait (cantumkan bagian di catatan `docs/BOARD.md`; tidak ada PR).
 2. `npm run typecheck` dan `npm run lint` bersih. Tes terkait lulus (`npm run test`).
 3. **Tidak ada re-render React per frame** (untuk tugas yang menyentuh Home).
 4. Tidak melanggar prinsip di `00` bagian 4 (palet, hanya `shown`, tanpa fitur dibatalkan).
@@ -39,13 +39,13 @@ F0 Fondasi ──► F1 Mesin + Rangka Home (placeholder) ──┬─► F3 Pan
 
 | ID | Tugas | Selesai bila | Dok. | Jalur |
 |---|---|---|---|---|
-| ☑ T0.1 | Inisialisasi repo: Vite + React + TS strict, ESLint, Prettier, Vitest, struktur folder 06 bagian 2, `.gitignore`, `.env.example` | `npm run dev/build/test/lint` jalan di mesin bersih | 06 | A |
-| ☑ T0.2 | Salin `docs/`, tulis `CLAUDE.md`, `DECISIONS.md`, `CHANGELOG_PARAMETER.md`, `PERF_LOG.md` (kosong dengan templat) | Berkas ada dan terisi templat | 00 | A |
-| ☑ T0.3 | Token: `lib/tokens.ts` (PALETTE, CUES, LENGTHS, warna) + `gen-tokens.mjs` → `tokens.generated.css`; `typography.css`, `base.css` | Variabel CSS dan TS identik; skrip berjalan di `predev/prebuild` | 02 | A |
-| ☑ T0.4 | Font Fontsource (4 keluarga, subset latin), preload kritis, fallback metrik | Font tampil tanpa CLS; ukuran sesuai 09 bagian 1.1 | 02 | B |
-| ☑ T0.5 | `App.tsx`: `HashRouter`, rute, `Suspense`, `AppShell` kosong, `HomePage` lazy placeholder | Semua rute dapat dibuka; Home di chunk terpisah | 06 | A |
-| ☑ T0.6 | Workflow GitHub Pages `deploy.yml` | Push ke `main` men-deploy; URL berfungsi | 06 | B |
-| ☑ T0.7 | `hooks/`: `useReducedMotion`, `useMedia`, `useSignal`, `useDocumentMeta` | Uji unit dasar lulus | 06 | A |
+| ☐ T0.1 | Inisialisasi repo: Vite + React + TS strict, ESLint, Prettier, Vitest, struktur folder 06 bagian 2, `.gitignore`, `.env.example` | `npm run dev/build/test/lint` jalan di mesin bersih | 06 | A |
+| ☐ T0.2 | Salin `docs/`, tulis `CLAUDE.md`, `DECISIONS.md`, `CHANGELOG_PARAMETER.md`, `PERF_LOG.md` (kosong dengan templat) | Berkas ada dan terisi templat | 00 | A |
+| ☐ T0.3 | Token: `lib/tokens.ts` (PALETTE, CUES, LENGTHS, warna) + `gen-tokens.mjs` → `tokens.generated.css`; `typography.css`, `base.css` | Variabel CSS dan TS identik; skrip berjalan di `predev/prebuild` | 02 | A |
+| ☐ T0.4 | Font Fontsource (4 keluarga, subset latin), preload kritis, fallback metrik | Font tampil tanpa CLS; ukuran sesuai 09 bagian 1.1 | 02 | B |
+| ☐ T0.5 | `App.tsx`: `HashRouter`, rute, `Suspense`, `AppShell` kosong, `HomePage` lazy placeholder | Semua rute dapat dibuka; Home di chunk terpisah | 06 | A |
+| ☐ T0.6 | Workflow GitHub Pages `deploy.yml` | Push ke `main` men-deploy; URL berfungsi | 06 | B |
+| ☐ T0.7 | `hooks/`: `useReducedMotion`, `useMedia`, `useSignal`, `useDocumentMeta` | Uji unit dasar lulus | 06 | A |
 
 ---
 

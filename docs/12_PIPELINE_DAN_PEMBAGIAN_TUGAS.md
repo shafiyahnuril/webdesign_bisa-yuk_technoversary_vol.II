@@ -31,7 +31,7 @@ Alasan aturan 2 sangat kuat: seluruh Home berbagi satu sumber `shown`, satu ratc
 | `src/engine/**`, `src/stage/**`, `src/audio/**`, `src/lib/**`, `src/hooks/**` | **A** |
 | `src/pages/home/**` (semua komponen Home) | **A** |
 | `src/components/chrome/**` (Navbar, MenuPanel, Scrim, ChapterMarker, BrandMark, AudioToggle, LetterCard, CursorRing) dan `src/components/static/**` | **A** (B hanya **memakai** `Navbar`, tidak mengubahnya) |
-| `src/app/**`, `vite.config.ts`, `package.json`, `tokens.generated.css`, CI | **A** (B boleh PR kecil untuk deploy) |
+| `src/app/**`, `vite.config.ts`, `package.json`, `tokens.generated.css`, CI | **A** (B boleh commit kecil terpisah untuk deploy) |
 | `public/img/**`, `public/og/**`, favicon (semua aset 2D) | **A** |
 | `src/pages/about/**`, `konten/**`, `artikel/**`, `contact/**`, `notfound/**` | **B** |
 | `src/components/shared/**` (FactBlock, SourceList, FilterPill, ArticleCard, ArticleBody, dll.) | **B** |
@@ -97,13 +97,13 @@ Repo + token + rute (T0.1, T0.3, T0.5, T0.7), `Navbar` minimal dengan varian sta
 ```
 1 AMBIL   → ambil dari docs/BOARD.md, tulis nama + ID
 2 BACA    → dokumen terkait + CLAUDE.md + 00 (prinsip)
-3 CABANG  → fitur/T1.7-navbar
+3 SINKRON → git pull --rebase origin main (tanpa branch)
 4 BANGUN  → hanya di folder milik sendiri; konstanta ke token/copy
 5 UJI     → typecheck, lint, test; cek keyboard + reduced-motion
 6 BUKTI   → tangkapan layar/rekaman 10 dtk; A: catatan FPS untuk tugas 3D
-7 PR      → judul "T1.7 navbar"; bagian dok, cara uji, bukti, deviasi
-8 TINJAU  → pihak lain meninjau ringan (kontrak, folder, token); cukup 5 menit
-9 GABUNG  → squash ke main; centang tugas; catat keputusan
+7 COMMIT  → bertahap per bidang, satu kalimat; catat bagian dok, cara uji, bukti, deviasi di BOARD
+8 PUSH    → push ke main setelah verifikasi hijau
+9 TINJAU  → pihak lain meninjau ringan commit di main (kontrak, folder, token); lalu centang tugas, catat keputusan
 ```
 
 ### 5.2 Urutan jalur A (rekomendasi, mengikuti ketergantungan teknis)
@@ -124,13 +124,15 @@ B tidak menunggu A setelah paket awal. Bila halaman butuh sampul/Navbar, B memak
 
 ### 5.4 Aturan git
 
-- `main` selalu bisa dijalankan. Cabang `fitur/Tx.y-nama`, usia ≤ 3 hari.
-- Satu PR = satu tugas (≤ 2 poin boleh digabung).
+- **Kesepakatan tim: tanpa pull request dan tanpa branch fitur.** Semua kerja langsung di `main`.
+- `main` selalu bisa dijalankan: push hanya setelah typecheck, lint, test, build hijau.
+- Satu sesi/gelombang = satu tugas, di-commit bertahap per bidang lalu push sekali.
 - CODEOWNERS memetakan folder bagian 2 ke pemilik.
-- Rebase ke `main` sebelum PR.
-- Commit: `T1.7: navbar mengempis dua ambang`.
+- `git pull --rebase origin main` sebelum setiap push; tidak pernah `push --force`.
+- Perubahan di berkas milik pihak lain: satu commit `chore(kontrak):` terpisah, kecil, dan diberi tahu lebih dulu.
+- Commit: satu kalimat, Conventional Commits berbahasa Indonesia (`feat(navbar): ...`).
 
-### 5.5 Daftar tinjauan PR
+### 5.5 Daftar tinjauan (commit di `main`)
 
 - [ ] Sesuai dokumen; tidak melanggar 00 §4.
 - [ ] Tidak ada warna/angka ajaib di luar token.
@@ -153,7 +155,7 @@ Artikel: kerangka 11 §4 → tulis → ≥ 2 sumber berbeda penerbit → tinjau 
 ### 5.7 Sinkronisasi
 
 - Sinkron 15 menit **1–2× seminggu**; fokus pada perubahan kontrak.
-- `docs/BOARD.md` adalah satu-satunya papan tugas (`ID | Tugas | Pemilik | Status | PR`).
+- `docs/BOARD.md` adalah satu-satunya papan tugas (`ID | Tugas | Pemilik | Status | Commit`).
 - Keputusan baru: `docs/DECISIONS.md` di hari yang sama.
 
 ---

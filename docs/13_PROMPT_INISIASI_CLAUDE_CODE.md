@@ -1,5 +1,9 @@
 # 13 · PROMPT INISIASI PROYEK UNTUK CLAUDE CODE (versi 2)
 
+> **Revisi alur git:** tim sepakat TIDAK memakai pull request dan tidak membuat branch fitur; semua kerja langsung di `main`.
+
+> **REVISI:** prompt ini sudah dipakai. Keputusan terbaru: `docs/`, `rebottle_assets/`, dan `rebottle_design_system.html` **sengaja di-push**; aturan "docs hanya lokal" di bawah **tidak berlaku lagi** (yang tetap lokal: `CLAUDE.md`, `.claude/`, `docs/bukti/`, `docs/tinjauan/`).
+>
 > Tujuan: Claude Code menyelesaikan **Fase 0 (Fondasi)** dan **paket awal H1** (dok 10 dan 12), **membuat struktur folder lengkap** sesuai dok 06, **memasukkan zip dokumen ke folder LOKAL `docs/` tanpa pernah di-commit atau di-push**, lalu men-*commit* dan *push* hanya kode proyek **tanpa jejak AI**.
 
 ## Cara pakai (di laptop)
@@ -236,7 +240,7 @@ LANGKAH 5 · RUTE, SHELL, PAKET AWAL H1 (T0.5, T0.7)
 LANGKAH 6 · DOKUMEN LOKAL DAN README (T0.2)
 ==================================================
 1. `CLAUDE.md` di akar (LOKAL, tidak di-commit): gunakan templat `docs/00_INDEX_DAN_ATURAN_KERJA.md` bagian 6 persis; tambahkan di bagian "Perintah": `npm run gen:tokens`; tambahkan satu aturan: "Pesan commit tanpa atribusi AI; `docs/`, `CLAUDE.md`, `.claude/` tidak pernah di-commit."
-2. Di `docs/` (lokal) buat bila belum ada: `DECISIONS.md`, `CHANGELOG_PARAMETER.md`, `PERF_LOG.md`, `BOARD.md` memakai templat `docs/10_TASK_BREAKDOWN.md` bagian 3 dan `docs/12_…` (BOARD: `ID | Tugas | Pemilik | Status | PR`; isi T0.1–T11.5 dengan status "siap"; tandai T0.x yang selesai).
+2. Di `docs/` (lokal) buat bila belum ada: `DECISIONS.md`, `CHANGELOG_PARAMETER.md`, `PERF_LOG.md`, `BOARD.md` memakai templat `docs/10_TASK_BREAKDOWN.md` bagian 3 dan `docs/12_…` (BOARD: `ID | Tugas | Pemilik | Status | Commit`; isi T0.1–T11.5 dengan status "siap"; tandai T0.x yang selesai).
 3. `README.md` (DI-COMMIT): templat `docs/06_ARCHITECTURE.md` bagian 12 (Tim = TODO, Halaman, Teknologi, Menjalankan: `npm install` lalu `npm run dev`, Catatan). Jangan menyebut AI/Claude/`docs/` di README. Gabungkan dengan README/LICENSE yang sudah ada.
 4. Centang di `docs/10_TASK_BREAKDOWN.md` (lokal): T0.1–T0.7.
 
