@@ -1,4 +1,12 @@
-import { useEffect, useId, useMemo, useRef, type CSSProperties, type ElementType } from "react";
+import {
+  Fragment,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type ElementType,
+} from "react";
 import { computeCues } from "@/engine/cues";
 import { storyEngine, type StoryEngine } from "@/engine/story-engine";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -70,6 +78,14 @@ export function SplitHeadline({
   const activeFilter = (melt || shimmer) && allowEffects;
 
   const letters = useMemo(() => splitLetters(text), [text]);
+  const words = useMemo(() => {
+    const groups: LetterParams[][] = [[]];
+    for (const letter of letters) {
+      if (/\s/.test(letter.ch)) groups.push([]);
+      else groups[groups.length - 1]!.push(letter);
+    }
+    return groups.filter((group) => group.length > 0);
+  }, [letters]);
 
   useEffect(() => {
     const disp = displacementRef.current;
@@ -85,12 +101,7 @@ export function SplitHeadline({
     return engine.onFrame((shown) => updateFilter(shown));
   }, [activeFilter, activeMelt, engine]);
 
-  const classes = [
-    "t-chapter",
-    styles.headline,
-    activeMelt ? styles.melt : "",
-    className ?? "",
-  ]
+  const classes = ["t-chapter", styles.headline, activeMelt ? styles.melt : "", className ?? ""]
     .filter(Boolean)
     .join(" ");
 
@@ -102,21 +113,10 @@ export function SplitHeadline({
       data-melt={activeMelt ? "on" : "off"}
     >
       {activeFilter ? (
-        <svg
-          width="0"
-          height="0"
-          aria-hidden="true"
-          focusable="false"
-          className={styles.filterSvg}
-        >
+        <svg width="0" height="0" aria-hidden="true" focusable="false" className={styles.filterSvg}>
           <defs>
             <filter id={filterId} x="-15%" y="-25%" width="130%" height="150%">
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.012"
-                numOctaves={2}
-                seed={7}
-              />
+              <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves={2} seed={7} />
               <feDisplacementMap
                 ref={displacementRef}
                 in="SourceGraphic"
@@ -132,29 +132,30 @@ export function SplitHeadline({
 
       <span className="sr-only">{text}</span>
       <span aria-hidden="true" className={styles.letters}>
-        {letters.map((item, idx) =>
-          item.ch === " " ? (
-            <span key={idx} className={styles.space}>
-              {"\u00A0"}
+        {words.map((word, wordIndex) => (
+          <Fragment key={wordIndex}>
+            {wordIndex > 0 ? " " : null}
+            <span className={styles.word}>
+              {word.map((item, index) => (
+                <span
+                  key={index}
+                  className={styles.char}
+                  style={
+                    activeMelt
+                      ? ({
+                          "--d": item.drop,
+                          "--s": item.stretch,
+                          "--k": item.skew,
+                        } as CSSProperties)
+                      : undefined
+                  }
+                >
+                  {item.ch}
+                </span>
+              ))}
             </span>
-          ) : (
-            <span
-              key={idx}
-              className={styles.char}
-              style={
-                activeMelt
-                  ? ({
-                      "--d": item.drop,
-                      "--s": item.stretch,
-                      "--k": item.skew,
-                    } as CSSProperties)
-                  : undefined
-              }
-            >
-              {item.ch}
-            </span>
-          ),
-        )}
+          </Fragment>
+        ))}
       </span>
     </Component>
   );

@@ -38,10 +38,17 @@
 
 @media (prefers-reduced-motion: reduce) {
   .melt {
-    font-variation-settings: "wght" 700, "wdth" 90;
+    font-variation-settings:
+      "wght" 700,
+      "wdth" 90;
   }
 
   .melt .char {
     transform: none;
   }
+}
+
+.word {
+  display: inline-block;
+  white-space: nowrap;
 }
