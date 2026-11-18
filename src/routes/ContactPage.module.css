@@ -1,0 +1,107 @@
+.page {
+  display: grid;
+  gap: var(--s-10);
+  padding: calc(var(--s-11) + var(--s-5)) var(--gutter-page) var(--s-11);
+  color: var(--page-ink);
+  animation: fadeIn 0.6s var(--ease-out-expo) both;
+}
+
+.hero {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.brand {
+  margin: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* "Re:" menyala: aksen penuh (penutup kampanye), bukan garis luar pudar. */
+.re {
+  color: var(--page-accent);
+  font-weight: 700;
+}
+
+.headline {
+  margin: 0;
+  max-width: 14ch;
+  outline: none;
+}
+
+.headline:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 6px;
+}
+
+.intro {
+  margin: 0;
+  max-width: 56ch;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--s-10);
+  align-items: start;
+}
+
+.colTitle {
+  margin: 0 0 var(--s-6);
+}
+
+.formCol {
+  min-width: 0;
+}
+
+.info {
+  display: grid;
+  gap: var(--s-5);
+  margin: 0 0 var(--s-6);
+}
+
+.info dt {
+  opacity: 0.85;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.info dd {
+  margin: var(--s-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.page a {
+  color: var(--page-ink);
+  text-underline-offset: 3px;
+}
+
+.page a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.links {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    animation: none;
+  }
+}
