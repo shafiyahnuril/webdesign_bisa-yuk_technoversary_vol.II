@@ -1,14 +1,17 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import { FactBlock } from "@/components/content/FactBlock";
-import { LicenseTable } from "@/components/content/LicenseTable";
-import { SourceList } from "@/components/content/SourceList";
+import { CountUp } from "@/components/content/CountUp";
+import { CreditChips } from "@/components/content/CreditChips";
+import { FactCard } from "@/components/content/FactCard";
+import { factParts, formatFactValue } from "@/components/content/factUtils";
+import { SourceAccordion } from "@/components/content/SourceAccordion";
 import { buildSourceGroups } from "@/components/content/sourceGroups";
 import { TempDiagram } from "@/components/content/TempDiagram";
 import type { Article } from "@/content/articles";
 import { COPY } from "@/content/copy";
-import type { Fact } from "@/content/facts";
+import { CREDITS } from "@/content/credits";
+import { FACTS, type Fact } from "@/content/facts";
 import AboutPage from "./AboutPage";
 
 const baseFact: Fact = {
@@ -40,99 +43,180 @@ const baseArticle: Article = {
   sources: [],
 };
 
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <AboutPage />
+    </MemoryRouter>,
+  );
+}
+
 describe("TempDiagram", () => {
-  it("menyediakan judul SVG dan tabel ringkasan tersembunyi", () => {
-    render(<TempDiagram />);
-    // Nama aksesibel = judul + deskripsi (aria-labelledby dua id).
-    const svg = screen.getByRole("img", { name: new RegExp(COPY["about.temp.diagram.title"]) });
-    expect(svg.querySelector("title")?.textContent).toBe(COPY["about.temp.diagram.title"]);
+  it("menyediakan label, catatan jujur, dan tabel ringkasan tersembunyi", () => {
+    const { container } = render(<TempDiagram />);
+    expect(screen.getByRole("figure", { name: COPY["about.temp.diagram.title"] })).toBeTruthy();
     const table = screen.getByRole("table");
     expect(table.className).toContain("sr-only");
     expect(within(table).getByText(COPY["about.temp.band1"])).toBeTruthy();
     expect(within(table).getByText(COPY["about.temp.band2"])).toBeTruthy();
-    expect(screen.getAllByText(COPY["about.temp.diagram.note"]).length).toBeGreaterThan(0);
+    expect(screen.getByText(COPY["about.temp.diagram.note"])).toBeTruthy();
+    // Bagian visual disembunyikan dari pembaca layar; datanya ada di tabel.
+    expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy();
   });
 });
 
-describe("FactBlock", () => {
-  it("tersembunyi bila fakta belum terverifikasi (produksi)", () => {
-    // FACTS nyata semuanya `verified: false`; di bawah Vitest `DEV` = true, jadi hanya penanda [DATA].
-    const { container } = render(
-      <FactBlock value="" label="Kamu makan sekitar {X}." source={{ id: "mikroplastik-mingguan" }} />,
-    );
-    expect(container.querySelector(".t-data")?.textContent).toBe(COPY["about.fact.dev"]);
-    expect(container.textContent).not.toMatch(/\d/);
+describe("angka dan kartu fakta", () => {
+  it("memecah nilai fakta menjadi prefiks, angka, sufiks, dan satuan", () => {
+    expect(factParts({ ...baseFact, value: "84%", unit: undefined })).toMatchObject({
+      prefix: "",
+      number: 84,
+      suffix: "%",
+    });
+    expect(factParts({ ...baseFact, value: "lebih dari 90%", unit: undefined })).toMatchObject({
+      prefix: "lebih dari",
+      number: 90,
+      suffix: "%",
+    });
+    expect(factParts({ ...baseFact, value: 4.5, unit: "mm" })).toMatchObject({
+      number: 4.5,
+      decimals: 1,
+      unit: "mm",
+    });
   });
 
-  it("tidak menampilkan nilai bila value kosong atau id tidak dikenal", () => {
-    const { container } = render(<FactBlock value="450" label="x" source={{ id: "tidak-ada" }} />);
-    expect(container.textContent).not.toContain("450");
+  it("memakai koma desimal pada kalimat fakta", () => {
+    expect(formatFactValue({ ...baseFact, value: 4.5, unit: "mm" })).toBe("4,5 mm");
+  });
+
+  it("CountUp memuat nilai akhir sejak render pertama", () => {
+    const { container } = render(<CountUp to={460} active={false} />);
+    expect(container.textContent).toBe("460");
+  });
+
+  it("FactCard menampilkan kalimat, satuan terpisah, dan chip sumber aman", () => {
+    render(<FactCard fact={baseFact} />);
+    expect(screen.getByText("Nilainya 12 juta ton per tahun.")).toBeTruthy();
+    expect(screen.getByText("juta ton", { selector: "p" })).toBeTruthy();
+    const link = screen.getByRole("link", { name: /Lembaga A, 2023/ });
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(link.getAttribute("target")).toBe("_blank");
   });
 });
 
-describe("SourceList", () => {
-  it("hanya memuat sumber fakta terverifikasi dan artikel yang punya sumber", () => {
-    const groups = buildSourceGroups(
+describe("SourceAccordion", () => {
+  const groups = buildSourceGroups(
+    { ok: baseFact, belum: { ...baseFact, verified: false, sourceUrl: "https://example.org/belum" } },
+    [
+      baseArticle,
       {
-        ok: baseFact,
-        belum: { ...baseFact, verified: false, sourceUrl: "https://example.org/belum" },
-        kosong: { ...baseFact, value: null, sourceUrl: "https://example.org/kosong" },
-        todo: { ...baseFact, sourceUrl: "TODO" },
+        ...baseArticle,
+        code: "A2",
+        title: "Artikel Dua",
+        sources: [{ title: "S", url: "https://example.org/s", publisher: "B", year: 2022 }],
       },
-      [
-        baseArticle,
-        {
-          ...baseArticle,
-          code: "A2",
-          title: "Artikel Dua",
-          sources: [{ title: "S", url: "https://example.org/s", publisher: "B", year: 2022 }],
-        },
-      ],
-    );
-    expect(groups.map((g) => g.title)).toEqual([COPY["about.sources.facts"], "Artikel Dua"]);
-    expect(groups[0]?.items).toHaveLength(1);
+    ],
+  );
 
-    render(<SourceList groups={groups} />);
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(2);
-    for (const a of links) {
+  it("hanya memuat sumber terverifikasi; kelompok pertama terbuka, sisanya tertutup", () => {
+    expect(groups.map((g) => g.title)).toEqual([COPY["about.sources.facts"], "Artikel Dua"]);
+    const { container } = render(<SourceAccordion groups={groups} />);
+    const details = container.querySelectorAll("details");
+    expect(details).toHaveLength(2);
+    expect(details[0]?.open).toBe(true);
+    expect(details[1]?.open).toBe(false);
+    expect(screen.getAllByText("1 sumber")).toHaveLength(2);
+    for (const a of container.querySelectorAll("ol a")) {
       expect(a.getAttribute("target")).toBe("_blank");
       expect(a.getAttribute("rel")).toBe("noopener noreferrer");
     }
   });
 
   it("menampilkan catatan bila belum ada sumber", () => {
-    render(<SourceList groups={[]} />);
+    render(<SourceAccordion groups={[]} />);
     expect(screen.getByText(COPY["about.sources.empty"])).toBeTruthy();
   });
 });
 
-describe("LicenseTable", () => {
-  it("menyembunyikan metode yang masih TODO", () => {
-    render(
-      <LicenseTable
-        credits={[
-          { type: "illustration", name: "Sampul", license: "Hak milik tim", method: "TODO: isi" },
-        ]}
-      />,
-    );
-    expect(screen.queryByText(/TODO/)).toBeNull();
+describe("CreditChips", () => {
+  it("menampilkan seluruh isi credits.ts dalam tiga kelompok dan menyembunyikan metode TODO", () => {
+    const { container } = render(<CreditChips credits={CREDITS} />);
+    for (const c of CREDITS) expect(container.textContent).toContain(c.name);
+    expect(screen.getByRole("heading", { name: COPY["about.licenses.type.font"] })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: COPY["about.licenses.type.lib"] })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: COPY["about.licenses.group.asset"] })).toBeTruthy();
+    expect(container.textContent).not.toContain("TODO");
+  });
+
+  it("menulis nama font dengan font itu sendiri", () => {
+    render(<CreditChips credits={CREDITS} />);
+    const caveat = screen.getByText(/^Caveat/);
+    expect((caveat as HTMLElement).style.fontFamily).toBe("var(--font-hand)");
   });
 });
 
 describe("AboutPage", () => {
-  it("menampilkan H1, subtema, dan tujuh bagian tanpa teks TODO", () => {
-    const { container } = render(
-      <MemoryRouter>
-        <AboutPage />
-      </MemoryRouter>,
-    );
+  it("menampilkan H1, subtema, bagian bertajuk, dan penutup tanpa teks TODO", () => {
+    const { container } = renderPage();
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(COPY["about.hero.title"]);
     expect(screen.getByText("Kampanye Peduli Lingkungan")).toBeTruthy();
-    // Hitung bagian utama; kelompok sumber artikel berada di dalamnya.
-    expect(container.querySelectorAll(":scope > div > section").length).toBe(6);
+    const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(titles).toEqual(
+      expect.arrayContaining([
+        COPY["about.background.title"],
+        COPY["about.scenarios.title"],
+        COPY["about.temp.section"],
+        COPY["about.sources.title"],
+        COPY["about.licenses.title"],
+        COPY["about.team.title"],
+      ]),
+    );
     expect(screen.getByText(COPY["about.closing"])).toBeTruthy();
     expect(container.textContent).not.toContain("TODO");
     expect(document.documentElement.dataset.page).toBe("about");
+  });
+
+  it("memakai ulang teks copy.ts untuk latar belakang dan skenario", () => {
+    renderPage();
+    expect(screen.getByText(COPY["about.background.1"])).toBeTruthy();
+    expect(screen.getByText(COPY["about.background.2"])).toBeTruthy();
+    expect(screen.getByText(COPY["about.scenario.body"])).toBeTruthy();
+    expect(screen.getByText(COPY["about.temp.band1.desc"])).toBeTruthy();
+    expect(screen.getByText(COPY["about.temp.band2.desc"])).toBeTruthy();
+  });
+
+  it("hanya menampilkan fakta terverifikasi sebagai kartu (selebihnya penanda DEV)", () => {
+    const { container } = renderPage();
+    const cards = container.querySelectorAll("figure[data-cursor='info']");
+    const verified = Object.values(FACTS as Record<string, Fact>).filter(
+      (f) => f.verified && f.value !== null,
+    );
+    // Satu kartu per fakta terverifikasi (di Latar belakang atau Angka); diagram suhu bukan kartu.
+    expect(cards.length).toBe(verified.length);
+    for (const el of container.querySelectorAll("[data-fact-pending]")) {
+      expect(el.textContent).toContain(COPY["about.fact.dev"]);
+    }
+  });
+
+  it("menjadikan indeks samping hanya-baca (tanpa tombol atau tautan)", () => {
+    const { container } = renderPage();
+    const aside = container.querySelector("aside");
+    expect(aside?.getAttribute("aria-hidden")).toBe("true");
+    expect(aside?.querySelector("a, button")).toBeNull();
+  });
+
+  it("memberi tautan penutup ke beranda dan Contact", () => {
+    renderPage();
+    expect(screen.getByRole("link", { name: COPY["about.closing.home"] }).getAttribute("href")).toBe("/");
+    expect(
+      screen.getByRole("link", { name: new RegExp(COPY["about.closing.contact"]) }).getAttribute("href"),
+    ).toBe("/contact");
+  });
+
+  it("membersihkan listener gulir saat unmount", () => {
+    const { unmount } = renderPage();
+    act(() => {
+      fireEvent.scroll(window);
+    });
+    expect(() => unmount()).not.toThrow();
   });
 });

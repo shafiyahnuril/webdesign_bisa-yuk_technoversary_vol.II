@@ -1,74 +1,150 @@
 .figure {
+  display: grid;
+  gap: var(--s-5);
   margin: 0;
+  padding: var(--s-8) var(--s-7) var(--s-6);
+  border: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 22%, transparent);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--page-ink) 6%, transparent);
 }
 
-.svg {
+.chart {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.track {
+  position: relative;
+  display: grid;
+  gap: var(--s-6);
+}
+
+.row {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.row .name {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--page-ink);
+  font-weight: 600;
+}
+
+.lane {
+  position: relative;
+  height: var(--s-7);
+}
+
+.guide,
+.targetLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--line-thin);
+  background: color-mix(in srgb, var(--page-ink) 35%, transparent);
+}
+
+.targetLine {
+  width: 2px;
+  background: var(--page-accent);
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
   display: block;
-  width: 100%;
-  height: auto;
 }
 
-.band1 {
-  fill: var(--c4-accent);
-}
-
-.band2 {
-  fill: var(--c7-accent);
-}
-
-.axis,
-.guide {
-  fill: none;
-  stroke: var(--page-ink);
-  stroke-opacity: 0.4;
-}
-
-.target {
-  fill: none;
-  stroke: var(--page-accent);
-  stroke-width: 2;
-}
-
-.legend,
-.note {
-  fill: var(--page-ink);
-  font: 500 19px var(--font-ui);
-}
-
-.tick,
-.tickTarget {
-  fill: var(--page-ink);
-  font: 400 19px var(--font-mono);
-}
-
-.tickTarget {
-  fill: var(--page-accent);
-  font-weight: 700;
-}
-
-.fill {
+.barFill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-full);
+  transform-origin: left center;
   transform: scaleX(0);
-  transform-box: view-box;
-  transition: transform 0.9s var(--ease-out-expo);
+  transition: transform var(--dur-band-fill) var(--ease-out-expo);
+}
+
+.bar1 .barFill {
+  background: var(--c4-accent);
+}
+
+.bar2 .barFill {
+  background: var(--c7-accent);
 }
 
 .in {
   transform: scaleX(1);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .fill {
-    transform: scaleX(1);
-    transition: none;
+.end {
+  position: absolute;
+  inset: 0 var(--s-4) 0 auto;
+  display: flex;
+  align-items: center;
+  font-size: var(--t-ui);
+  font-weight: 600;
+  color: var(--c4-bg);
+}
+
+.outside {
+  position: absolute;
+  top: 50%;
+  margin-left: var(--s-3);
+  translate: 0 -50%;
+  font-size: var(--t-ui);
+  font-weight: 600;
+  color: var(--page-ink);
+  white-space: nowrap;
+}
+
+.axis {
+  position: relative;
+  height: var(--s-6);
+  border-top: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 55%, transparent);
+}
+
+.tick {
+  position: absolute;
+  top: var(--s-2);
+  translate: -50% 0;
+  font-size: var(--t-ui-sm);
+  color: var(--page-ink);
+  white-space: nowrap;
+}
+
+.first {
+  translate: 0 0;
+}
+
+.last {
+  translate: -100% 0;
+}
+
+.target {
+  color: var(--page-accent);
+  font-weight: 700;
+}
+
+.note {
+  margin: 0;
+  color: var(--page-ink);
+}
+
+@media (max-width: 767px) {
+  .figure {
+    padding: var(--s-6) var(--s-5) var(--s-5);
+  }
+
+  .minor {
+    display: none;
   }
 }
 
-@media (max-width: 480px) {
-  /* Teks viewBox mengecil di HP; perbesar sedikit agar tetap terbaca. */
-  .legend,
-  .note,
-  .tick,
-  .tickTarget {
-    font-size: 25px;
+@media (prefers-reduced-motion: reduce) {
+  .barFill {
+    transform: scaleX(1);
+    transition: none;
   }
 }

@@ -20,7 +20,8 @@ interface Particle {
   size: number;
   hex: boolean;
   rot: number;
-  color: string;
+  /** Indeks warna pada palet. */
+  ci: number;
   // Dorongan dari kursor (piksel), meluruh pelan.
   ox: number;
   oy: number;
@@ -53,7 +54,10 @@ export function ParticleField({ colors = COLORS }: ParticleFieldProps) {
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    const palette = colors.map(resolveColor);
+    // Warna diselesaikan saat gambar pertama (bukan saat efek berjalan): var() tema halaman
+    // baru terpasang setelah efek anak selesai.
+    let palette: string[] | null = null;
+    const paletteNow = () => (palette ??= colors.map(resolveColor));
     const mobile = window.matchMedia("(max-width: 720px)").matches;
     const finePointer = window.matchMedia("(pointer: fine)").matches && !mobile;
     let w = 0;
@@ -81,7 +85,7 @@ export function ParticleField({ colors = COLORS }: ParticleFieldProps) {
         size: rand(SIZE_MIN, SIZE_MAX),
         hex: Math.random() < 0.5,
         rot: rand(0, Math.PI),
-        color: palette[Math.random() < 0.6 ? 0 : 1] ?? "transparent",
+        ci: Math.random() < 0.6 ? 0 : 1,
         ox: 0,
         oy: 0,
       };
@@ -93,7 +97,7 @@ export function ParticleField({ colors = COLORS }: ParticleFieldProps) {
         ctx.save();
         ctx.translate(p.x + p.ox, p.y + p.oy);
         ctx.rotate(p.rot);
-        ctx.fillStyle = p.color;
+        ctx.fillStyle = paletteNow()[p.ci] ?? "transparent";
         ctx.beginPath();
         if (p.hex) {
           for (let i = 0; i < 6; i++) {
@@ -116,13 +120,17 @@ export function ParticleField({ colors = COLORS }: ParticleFieldProps) {
     };
 
     if (reduced) {
-      draw(); // gambar statis satu kali
+      // Gambar statis satu kali (setelah frame pertama agar variabel tema sudah terpasang).
+      const once = requestAnimationFrame(draw);
       const onResize = () => {
         resize();
         draw();
       };
       window.addEventListener("resize", onResize);
-      return () => window.removeEventListener("resize", onResize);
+      return () => {
+        cancelAnimationFrame(once);
+        window.removeEventListener("resize", onResize);
+      };
     }
 
     const pointer = { x: -9999, y: -9999 };

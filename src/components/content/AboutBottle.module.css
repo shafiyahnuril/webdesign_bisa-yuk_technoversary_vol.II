@@ -1,0 +1,73 @@
+/* HP dan tablet: botol kecil di area hero, ikut tergulir. Desktop: menempel di sisi kanan. */
+.bottle {
+  position: absolute;
+  top: calc(var(--s-10) + var(--s-3));
+  right: var(--gutter-page);
+  width: var(--s-8);
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .bottle {
+    width: var(--s-10);
+    top: calc(var(--s-11) + var(--s-4));
+  }
+}
+
+@media (min-width: 1100px) {
+  .bottle {
+    position: fixed;
+    top: 50%;
+    width: var(--s-11);
+    translate: 0 -50%;
+  }
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.outline {
+  fill: color-mix(in srgb, var(--page-ink) 6%, transparent);
+  stroke: var(--page-ink);
+  stroke-width: var(--line-firm);
+  stroke-linejoin: round;
+}
+
+.cap {
+  fill: var(--page-accent);
+}
+
+.fill {
+  fill: color-mix(in srgb, var(--page-accent) 55%, transparent);
+}
+
+/* Tinggi air: kosong di atas halaman, hampir penuh di bawah (satuan = unit viewBox). */
+.water {
+  transform: translateY(calc((1 - var(--scroll, 0)) * 150px + 10px));
+  transition: transform 0.3s linear;
+}
+
+.slosh {
+  animation: slosh 3.2s linear infinite;
+  animation-play-state: var(--wave-state, running);
+}
+
+@keyframes slosh {
+  to {
+    transform: translateX(-40px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .water {
+    transition: none;
+  }
+
+  .slosh {
+    animation: none;
+  }
+}

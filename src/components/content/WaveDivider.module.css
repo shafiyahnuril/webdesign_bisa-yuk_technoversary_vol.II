@@ -1,0 +1,33 @@
+.wave {
+  height: var(--s-6);
+  overflow: hidden;
+  /* Gelombang tidak ikut melebar ke gutter; berhenti di tepi kolom isi. */
+}
+
+.svg {
+  display: block;
+  width: 200%;
+  height: 100%;
+  animation: drift 28s linear infinite;
+  animation-play-state: var(--wave-state, running);
+}
+
+.line {
+  fill: none;
+  stroke: var(--page-accent);
+  stroke-opacity: 0.55;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+@keyframes drift {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svg {
+    animation: none;
+  }
+}

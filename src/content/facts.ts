@@ -19,6 +19,8 @@ export interface Fact {
   verified: boolean;
   /** Batasan, rentang, ketidakpastian. */
   note?: string;
+  /** Tampil sebagai angka besar di samping bagian Latar belakang (About), bukan di daftar Angka. */
+  feature?: boolean;
 }
 
 const pending = (key: string, statement: string, note: string): Fact => ({
@@ -106,6 +108,7 @@ export const FACTS = {
     publisher: "Our World in Data",
     accessed: "2026-11-18",
     verified: true,
+    feature: true,
     note:
       "Sumber sekunder (OWID): angka terbaca di halaman ('460 million tonnes in 2019'). Halaman tidak menyebut sumber asli untuk angka produksi ini; OWID merujuk OECD Global Plastics Outlook (2022) untuk angka sampah plastik di halaman yang sama, dan OECD tidak bisa dibuka (403) untuk dicek langsung. Porsi bahan fosil tidak ditemukan; jangan ditampilkan.",
   },

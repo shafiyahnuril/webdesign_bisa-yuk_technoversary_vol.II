@@ -1,0 +1,88 @@
+.wide {
+  grid-column: span 7;
+}
+
+.narrow {
+  grid-column: span 5;
+}
+
+.card {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+  height: 100%;
+  margin: 0;
+  padding: var(--s-7);
+  border: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 22%, transparent);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--page-ink) 6%, transparent);
+  transition: transform var(--dur-hover) var(--ease-out-expo);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--s-3);
+  margin: 0;
+  color: var(--page-accent);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  font-size: calc(var(--t-data) * 0.8);
+}
+
+.wide .value {
+  font-size: var(--t-data);
+}
+
+.prefix {
+  flex-basis: 100%;
+  font: 400 var(--t-ui-sm) / 1.4 var(--font-ui);
+  letter-spacing: 0.02em;
+  color: var(--page-ink);
+}
+
+.unit {
+  margin: 0;
+  font: 400 var(--t-body) / 1.2 var(--font-ui);
+  color: var(--page-ink);
+}
+
+.caption {
+  margin: var(--s-2) 0 0;
+  color: var(--page-ink);
+}
+
+.chip {
+  justify-self: start;
+  margin-top: var(--s-2);
+  padding: var(--s-1) var(--s-3);
+  border: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 40%, transparent);
+  border-radius: var(--r-full);
+  color: var(--page-ink);
+  text-decoration: none;
+}
+
+a.chip:hover {
+  border-color: var(--page-accent);
+  color: var(--page-accent);
+}
+
+@media (max-width: 767px) {
+  .wide,
+  .narrow {
+    grid-column: 1 / -1;
+  }
+
+  .card {
+    padding: var(--s-6);
+  }
+}

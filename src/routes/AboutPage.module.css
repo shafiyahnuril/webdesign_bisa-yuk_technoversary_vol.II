@@ -1,22 +1,91 @@
-.sections {
-  display: grid;
-  gap: var(--s-10);
-  padding: 0 var(--gutter-page) var(--s-10);
+/* Latar naik halus dari teal dalam ke teal lebih terang; kedua ujung lolos kontras 4,5:1 (pages.test). */
+.page {
+  position: relative;
+  overflow-x: clip;
+  background: linear-gradient(to bottom, var(--page-bg), var(--page-bg-end));
   color: var(--page-ink);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--s-9);
+  padding: 0 var(--gutter-page) var(--s-9);
+}
+
+/* Desktop: ruang untuk indeks samping (kiri) dan botol (kanan). */
+@media (min-width: 1100px) {
+  .content {
+    padding-left: calc(var(--gutter-page) + var(--s-11) + var(--s-9) + var(--s-8));
+    padding-right: calc(var(--gutter-page) + var(--s-11) + var(--s-8));
+  }
+}
+
+.hero {
+  display: grid;
+  gap: var(--s-5);
+  /* Ruang untuk navbar menempel di atas. */
+  padding-top: calc(var(--s-11) + var(--s-5));
+}
+
+.eyebrow {
+  margin: 0;
+}
+
+.title {
+  margin: 0;
+  outline: none;
+}
+
+.line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  white-space: nowrap;
+}
+
+.lineInner {
+  display: inline-block;
+  animation: lineIn var(--dur-reveal) var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 0.12s);
+}
+
+@keyframes lineIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.lede {
+  max-width: var(--read-body-chars);
+  margin: 0;
 }
 
 .section {
   display: grid;
-  gap: var(--s-6);
+  gap: var(--s-7);
   align-content: start;
+  scroll-margin-top: var(--s-10);
 }
 
-.section h2 {
-  margin: 0;
-}
-
+.section h2,
 .section p {
   margin: 0;
+}
+
+.split {
+  display: grid;
+  gap: var(--s-7);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    gap: var(--s-9);
+  }
 }
 
 .text {
@@ -27,14 +96,36 @@
 
 .facts {
   display: grid;
-  gap: var(--s-3);
-  align-content: start;
+  gap: var(--s-5);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-/* Latar isu: dua kolom (teks | fakta) mulai tablet; HP satu kolom. */
-@media (min-width: 768px) {
-  .split {
-    grid-template-columns: 7fr 5fr;
-    gap: var(--s-9);
+@media (max-width: 767px) {
+  .facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dev {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dev li {
+  padding: var(--s-1) var(--s-3);
+  border: var(--line-thin) dashed color-mix(in srgb, var(--page-ink) 40%, transparent);
+  border-radius: var(--r-full);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lineInner {
+    animation: none;
   }
 }

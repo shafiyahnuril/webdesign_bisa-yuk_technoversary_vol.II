@@ -1,0 +1,21 @@
+.appear {
+  opacity: 0;
+  translate: 0 var(--s-6);
+  transition:
+    opacity var(--dur-reveal) var(--ease-out-expo),
+    translate var(--dur-reveal) var(--ease-out-expo);
+  transition-delay: calc(var(--i, 0) * var(--stagger-card));
+}
+
+.in {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appear {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}

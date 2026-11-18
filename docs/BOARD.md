@@ -157,3 +157,10 @@
 - Performa HP fisik, browser selain Chromium, serta data kontak/endpoint rilis asli masih memerlukan validasi atau konfigurasi tim.
 
 Pemeriksaan akhir integrasi: TypeScript, ESLint, build, 193 tes unit, dan 12 skenario E2E Chromium lulus. Semua perbaikan kode prioritas sudah dipush main melalui commit terpisah. Tenggat awal 18 November pukul 23.30 terlewati; verifikasi akhir selesai 19 November.
+## REVISI-ABOUT · 19 November 2026
+- **Selesai:** halaman About dirombak total (9 bagian: hero, latar belakang, dua skenario, angka, suhu dan target 1,5°C, sumber data, lisensi dan kredit, tim, penutup). Botol 2D dengan air naik mengikuti gulir, gelombang pemisah, `ParticleField` dengan prop `colors`, indeks samping hanya-baca, kartu fakta dari `facts.ts` (hanya `verified: true`), `<details>` untuk sumber, chip kredit, avatar tutup botol, "Re:" menyala di penutup.
+- **Tinggi halaman (Playwright, sebelum → sesudah):** desktop 1440 px: 5.804 → 5.668 px; HP 390 px: 9.111 → 7.177 px. Tanpa scroll horizontal, tanpa galat konsol, reduced-motion diuji.
+- **Kursor:** `CursorRing` aktif di `#/about` (satu baris di `AppShell.tsx`, disetujui; lihat `CATATAN_UNTUK_A.md`).
+- **Dihapus:** `FactBlock`, `LicenseTable`, `SourceList` (tidak lagi dipakai). `TempDiagram` kini HTML/CSS agar teks tetap terbaca di HP.
+- **Catatan:** `copy.test.ts` punya 2 kegagalan lama (`hero.tagline`, `ch7.letter`) yang sudah ada sebelum revisi ini dan tidak disentuh.
+- Bukti lokal: `docs/bukti/REVISI-ABOUT/`.
