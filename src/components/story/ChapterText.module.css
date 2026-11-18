@@ -43,11 +43,7 @@
       rgba(6, 13, 24, 0.54) 34%,
       rgba(6, 13, 24, 0) 58%
     ),
-    linear-gradient(
-      0deg,
-      rgba(6, 13, 24, 0.64) 0%,
-      rgba(6, 13, 24, 0) 48%
-    );
+    linear-gradient(0deg, rgba(6, 13, 24, 0.64) 0%, rgba(6, 13, 24, 0) 48%);
 }
 
 /* Bab 9: 4 label stasiun berada di paruh atas/tengah panggung; letakkan teks di kiri-bawah */
@@ -150,9 +146,10 @@
     padding: var(--s-8) var(--s-5) 84px calc(var(--s-5) + 18px);
     background: linear-gradient(
       0deg,
-      rgba(4, 11, 24, 0.84) 0%,
-      rgba(4, 11, 24, 0.56) 44%,
-      rgba(4, 11, 24, 0) 68%
+      rgba(4, 11, 24, 0.94) 0%,
+      rgba(4, 11, 24, 0.88) 46%,
+      rgba(4, 11, 24, 0.62) 66%,
+      rgba(4, 11, 24, 0) 92%
     );
   }
 

@@ -18,6 +18,15 @@
   background-color: color-mix(in oklch, var(--bg-now) 82%, transparent);
 }
 
+.navbar[data-variant="home"] {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--bg-now) 94%, transparent),
+    color-mix(in oklch, var(--bg-now) 72%, transparent) 62%,
+    transparent
+  );
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
