@@ -37,7 +37,8 @@ export default function AboutPage() {
         <Reveal as="section" className={`${styles.section} ${styles.split}`}>
           <div className={styles.text}>
             <h2 className="t-h2">{COPY["about.scenario.title"]}</h2>
-            {/* TODO(T8.2): dua paragraf latar isu menunggu naskah final (docs/11). */}
+            <p className="t-body">{COPY["about.background.1"]}</p>
+            <p className="t-body">{COPY["about.background.2"]}</p>
             <p className="t-body">{COPY["about.scenario.body"]}</p>
           </div>
           <div className={styles.facts}>

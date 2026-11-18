@@ -129,7 +129,7 @@ describe("AboutPage", () => {
     );
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(COPY["about.hero.title"]);
     expect(screen.getByText("Kampanye Peduli Lingkungan")).toBeTruthy();
-    expect(container.querySelectorAll("section").length).toBe(6);
+    expect(container.querySelectorAll("section").length).toBe(7);
     expect(screen.getByText(COPY["about.closing"])).toBeTruthy();
     expect(container.textContent).not.toContain("TODO");
     expect(document.documentElement.dataset.page).toBe("about");

@@ -10,48 +10,53 @@ export const COPY = {
   "hero.scenario": "Skenario jika pola konsumsi plastik terus berlanjut.",
   "ch1.title": "Lahir",
   "ch1.line": "Dibuat dari fosil, usia 0 hari.",
-  "ch1.sub": "Bening, baru, siap dipakai.",
+  "ch1.sub": "Bening, baru, siap dipakai.", // USULAN
   // Bab 2
   "ch2.title": "Sekali Pakai",
   "ch2.line": "Dipakai 10 menit.",
-  "ch2.sub": "Setelah itu, tidak ada yang bertanya ke mana ia pergi.",
+  "ch2.sub": "Setelah itu, tidak ada yang bertanya ke mana ia pergi.", // USULAN
   // Bab 3 (angka counter berasal dari facts.ts `lama-terurai`)
   "ch3.title": "Tersesat",
-  "ch3.counter.label": "tahun lagi",
-  "ch3.counter.value": "TODO: ambil dari facts.ts (lama-terurai)",
-  "ch3.sub": "Sungai membawanya melewati kota yang tidak menoleh.",
+  "ch3.counter.label": "tahun lagi", // USULAN
+  // Angka counter hanya tampil bila fakta `lama-terurai` verified:true; selama false, pakai `ch3.fallback`.
+  "ch3.counter.value": "{X}",
+  "ch3.fallback": "Plastik bisa bertahan sangat lama sebelum terurai.", // USULAN
+  "ch3.sub": "Sungai membawanya melewati kota yang tidak menoleh.", // USULAN
   // Bab 4
   "ch4.title": "Lautan",
   "ch4.line": "Air naik. Karang memutih.",
-  "ch4.sub": "Ia terapung di bawah matahari yang makin terik.",
+  "ch4.sub": "Ia terapung di bawah matahari yang makin terik.", // USULAN
+  // Opsional; tampil bersama angka dari fakta `terumbu-pemutihan` (verified).
   "ch4.fact": "Sekian persen terumbu karang pernah mengalami pemutihan.",
   // Bab 5
   "ch5.title": "Terurai",
-  "ch5.line": "Ia tidak hilang. Ia hanya menjadi lebih kecil.",
-  "ch5.counter.label": "partikel",
+  "ch5.line": "Ia tidak hilang. Ia hanya menjadi lebih kecil.", // USULAN
+  "ch5.counter.label": "partikel", // USULAN
   // Bab 6
   "ch6.title": "Kembali ke Kita",
   "ch6.line": "Kamu makan sekitar {X} mikroplastik per minggu.",
-  "ch6.sub": "Dari ikan, garam, dan air yang kita anggap bersih.",
-  "ch6.footnote": "Perkiraan rata-rata dari kajian; hasil tiap orang berbeda.",
-  "ch6.fallback": "Mikroplastik kini ditemukan di makanan dan minuman kita.",
+  "ch6.sub": "Dari ikan, garam, dan air yang kita anggap bersih.", // USULAN
+  "ch6.footnote": "Perkiraan rata-rata dari kajian; hasil tiap orang berbeda.", // USULAN
+  // Dipakai selama fakta `mikroplastik-mingguan` belum verified:true (dok 11 §2.6).
+  "ch6.fallback": "Mikroplastik kini ditemukan di makanan dan minuman kita.", // USULAN
   // Punchline
-  "punch.line": "Bagaimana jika semua ini tidak terjadi?",
+  "punch.line": "Bagaimana jika semua ini tidak terjadi?", // DISEPAKATI D12: tanpa subteks
   // Bab 7
   "ch7.title": "Di Tempat yang Benar",
   "ch7.line": "Satu keputusan, 10 detik.",
   "ch7.letter": "Kamu tidak membuangku ke sungai. Terima kasih.",
-  "ch7.bins": "Plastik · Kertas · Organik",
+  "ch7.bins": "Plastik · Kertas · Organik", // USULAN
   // Bab 8
   "ch8.title": "Perjalanan Kedua",
   "ch8.letter": "Aku beruntung. Tidak semua temanku sampai di sini.",
+  // Hanya tampil bila fakta `botol-terkumpul` verified:true (saat ini false: sembunyikan).
   "ch8.fact": "Sekian persen botol plastik berhasil terkumpul.",
-  "ch8.sub": "Dipilah, dikelompokkan, lalu dibersihkan.",
+  "ch8.sub": "Dipilah, dikelompokkan, lalu dibersihkan.", // USULAN
   // Bab 9
   "ch9.title": "Hidup Baru, Tapi...",
   "ch9.letter": "Aku jadi sesuatu yang baru, tapi prosesnya butuh energi dan air.",
-  "ch9.stations": "Cacah · Cuci · Lebur · Cetak",
-  "ch9.note": "Hasilnya biasanya serat atau benda lain, bukan botol lagi.",
+  "ch9.stations": "Cacah · Cuci · Lebur · Cetak", // USULAN
+  "ch9.note": "Hasilnya biasanya serat atau benda lain, bukan botol lagi.", // USULAN
   // Bab 10
   "ch10a.letter": "Aku jadi sesuatu yang berguna.",
   "ch10b.letter": "Ternyata aku tidak sendirian.",
@@ -73,6 +78,11 @@ export const COPY = {
   "about.licenses.title": "Lisensi dan kredit",
   "about.team.title": "Tim",
   "about.closing": "Bawa botolmu besok.",
+  // Paragraf latar isu About [USULAN T8.2]: tanpa angka dan tanpa klaim sebab-akibat langsung.
+  "about.background.1":
+    "Plastik sekali pakai murah dan praktis, jadi mudah dipakai tanpa dipikirkan. Setelah dibuang, sebagian sampah terbawa air hujan dan sungai menuju laut.", // USULAN
+  "about.background.2":
+    "Di darat maupun di laut, plastik perlahan terpecah menjadi serpihan kecil yang sulit dikumpulkan lagi. Cerita ini mengikuti satu botol untuk memperlihatkan jalan itu, dan jalan lain yang bisa kita pilih.", // USULAN
   // Tambahan About [USULAN]: label UI; isi naskah tetap menunggu T8.2.
   "about.hero.title": "Kenapa Re:bottle?",
   "about.fact.dev": "[DATA]",
