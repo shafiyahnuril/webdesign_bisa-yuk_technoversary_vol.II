@@ -33,3 +33,4 @@
 
 | 2026-11-18 | Apung dan bahan produk | Fase ombak tidak lagi mengikuti localT gulir; buoyancy teredam dan pakaian memakai geometri drape serta flutter kecil | Permintaan pengguna untuk menghilangkan jitter dan kesan pakaian kardus; bukan simulasi fisika penuh | Revisi pengguna terbaru | diterapkan |
 | 2026-11-18 | Jeda gestur loop | REST_DELAY 350 ms; commit penuh diproses sebelum decay | Browser software memperlihatkan tarikan penuh bisa hilang saat frame terlambat | Regresi loop dan E2E | diterapkan |
+| 2026-11-18 | Kursor cincin di halaman About | `AppShell` mengaktifkan `CursorRing` juga di `/about` (satu baris); sebelumnya hanya Home dan Galeri | Revisi tampilan About meminta kursor yang sama dengan Konten; persetujuan pengguna | 04 §10, REVISI-ABOUT | disepakati |

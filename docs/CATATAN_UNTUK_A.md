@@ -34,3 +34,8 @@ Usul: tambahkan `rebottle_assets/**` ke `ignores` di `eslint.config.js`.
 ## Dari G7 (T9.4)
 - `index.html`: ditambah 7 baris meta OG/Twitter card di bawah `theme-color` (commit `chore(kontrak): tambah meta Open Graph dasar di index.html`, disetujui tim). `og:image` memakai `./og/og-image.png` (relatif); ganti ke URL absolut bila nanti ada hosting (`VITE_SITE_URL`).
 - `public/robots.txt` ditambah agar Lighthouse SEO tidak gagal pada audit `robots-txt`.
+
+## Dari REVISI-ABOUT (kursor)
+- Kursor cincin kini diminta juga di `#/about` (sebelumnya hanya Home dan Galeri). Perubahan keputusan, disetujui pengguna. Perubahan di berkas A hanya satu baris: `AppShell.tsx`, kondisi `enabled` ditambah `|| pathname === "/about"`. Tidak ada perubahan lain di `shell/`.
+- Alasan: halaman About dirombak dengan kartu dan tautan interaktif; gaya kursor dibuat sama dengan halaman Konten. Kartu dan tautan di About diberi `data-cursor`.
+- Catatan: entri "CursorRing belum ada di main" di bagian G4 di atas sudah usang; komponen sudah ada dan mendukung per-rute lewat prop `enabled`.
