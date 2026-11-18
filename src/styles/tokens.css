@@ -18,12 +18,5 @@
   --focus: var(--accent-now);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --dur-fast: 0s;
-    --dur-base: 0s;
-    --dur-slow: 0s;
-    --dur-menu: 0s;
-    --dur-nav-collapse: 0s;
-  }
-}
+/* Seluruh --dur-* / --stagger-* direset ke 0 oleh blok prefers-reduced-motion
+   di tokens.generated.css (dihasilkan dari src/lib/tokens.ts). */

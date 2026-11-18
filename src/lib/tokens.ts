@@ -262,6 +262,90 @@ export const Z = {
 
 export const BREAKPOINTS = { sm: 480, md: 768, lg: 1024, xl: 1440 } as const;
 
+/** Dimensi komponen umum (docs/02 bagian 6). */
+export const SIZE = {
+  menuButton: "56px",
+  menuButtonMobile: "48px",
+  menuDot: "6px",
+  menuDotGap: "8px",
+  inputHeight: "56px",
+  buttonHeight: "52px",
+  pillHeight: "48px",
+  touchTarget: "56px",
+  icon: "24px",
+  iconArrow: "28px",
+  focusRing: "2px",
+  cardRadius: "12px",
+} as const;
+
+/** Panel menu (docs/02 bagian 6.3). */
+export const MENU = {
+  width: "clamp(320px, 25vw, 520px)",
+  widthMobile: "min(88vw, 380px)",
+  linkSize: "clamp(2rem, 3.2vw, 3.25rem)",
+  linkLineHeight: 1.05,
+  numberSize: "12px",
+  identitySize: "28px",
+  taglineSize: "15px",
+  subtemaSize: "13px",
+  contactSize: "14px",
+  activeDot: "8px",
+  hoverOpacity: 0.35,
+  dividerOpacity: 0.15,
+} as const;
+
+/** Kursor cincin (docs/02 bagian 6.5). */
+export const RING = {
+  radius: "21px",
+  stroke: "1.5px",
+  scaleHover: 1.7,
+  labelSize: "11px",
+} as const;
+
+/** Penanda bab (docs/02 bagian 6.4). */
+export const MARKER = {
+  box: "8px",
+  boxMobile: "5px",
+  gap: "12px",
+  left: "40px",
+  leftMobile: "14px",
+  labelSize: "13px",
+  numberSize: "12px",
+  tempSize: "12px",
+  lineOpacity: 0.2,
+  activeOpacity: 1,
+  idleOpacity: 0.35,
+  tempOpacity: 0.8,
+} as const;
+
+/** Gaya "Re:" pudar/menyala (docs/02 bagian 2.5). */
+export const RE = {
+  dim: 0.45,
+  on: 1,
+} as const;
+
+/** Ketebalan garis dan opasitas pemisah (docs/02 bagian 3 dan 6). */
+export const LINE = {
+  thin: "1px",
+  firm: "1.5px",
+  focus: "2px",
+  focusOffset: "3px",
+  navUnderline: "1.5px",
+  inputUnderline: "1.5px",
+  hintUnderline: "1px",
+  panelBorderOpacity: 0.14,
+  cardDividerOpacity: 0.25,
+  menuDivider: "rgba(11, 26, 51, 0.15)",
+} as const;
+
+/** Panjang baca dan batas ukuran teks (docs/02 bagian 2.3). */
+export const READ = {
+  bodyChars: "62ch",
+  scenarioChars: "38ch",
+  minBody: "16px",
+  minLabel: "12px",
+} as const;
+
 export const EASE = {
   outExpo: "cubic-bezier(0.16, 1, 0.3, 1)",
   gate: "cubic-bezier(0.2, 0.8, 0.2, 1)",
@@ -280,6 +364,22 @@ export const DUR = {
   navStagger: 0.05,
   marker: 0.45,
   chaptersSwap: 0.4,
+  // Durasi penting lain (docs/02 bagian 2.5 dan 6)
+  reGlow: 0.9,
+  scrollHint: 2.4,
+  reveal: 0.7,
+  chipFlip: 0.35,
+  hover: 0.3,
+  bandFill: 0.9,
+  letterStagger: 0.04,
+} as const;
+
+/** Alias stagger lintas komponen; nilainya diambil dari DUR agar tetap satu sumber. */
+export const STAGGER = {
+  nav: DUR.navStagger,
+  menu: DUR.menuStagger,
+  card: DUR.menuStagger,
+  letter: DUR.letterStagger,
 } as const;
 
 /** Panjang tiap segmen cerita dalam vh. Ubah panjang bab HANYA di sini. */

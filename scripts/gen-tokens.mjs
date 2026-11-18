@@ -26,13 +26,31 @@ for (const [id, c] of Object.entries(t.PALETTE)) {
 }
 for (const [id, v] of Object.entries(t.TEMP)) add(`${id}-temp`, v);
 for (const [k, v] of Object.entries(t.COLORS)) add(kebab(k), v);
-add("hero-bg", t.COLORS.heroBg);
 for (const [k, v] of Object.entries(t.SPACE)) add(`s-${k}`, v);
 for (const [k, v] of Object.entries(t.RADIUS)) add(`r-${k}`, v);
 for (const [k, v] of Object.entries(t.Z)) add(`z-${kebab(k)}`, v);
 for (const [k, v] of Object.entries(t.BREAKPOINTS)) add(`bp-${k}`, `${v}px`);
 for (const [k, v] of Object.entries(t.EASE)) add(`ease-${kebab(k)}`, v);
-for (const [k, v] of Object.entries(t.DUR)) add(`dur-${kebab(k)}`, `${v}s`);
+for (const [k, v] of Object.entries(t.SIZE)) add(`size-${kebab(k)}`, v);
+for (const [k, v] of Object.entries(t.MENU)) add(`menu-${kebab(k)}`, v);
+for (const [k, v] of Object.entries(t.RING)) add(`ring-${kebab(k)}`, v);
+for (const [k, v] of Object.entries(t.MARKER)) add(`marker-${kebab(k)}`, v);
+for (const [k, v] of Object.entries(t.RE)) add(`re-${kebab(k)}`, v);
+for (const [k, v] of Object.entries(t.LINE)) add(`line-${kebab(k)}`, v);
+for (const [k, v] of Object.entries(t.READ)) add(`read-${kebab(k)}`, v);
+
+// Token durasi: dipakai di transisi/animasi DAN direset oleh prefers-reduced-motion.
+const durationVars = [];
+for (const [k, v] of Object.entries(t.DUR)) {
+  const name = `dur-${kebab(k)}`;
+  add(name, `${v}s`);
+  durationVars.push(name);
+}
+for (const [k, v] of Object.entries(t.STAGGER)) {
+  const name = `stagger-${kebab(k)}`;
+  add(name, `${v}s`);
+  durationVars.push(name);
+}
 
 // hero-bg sudah ditulis dari COLORS.heroBg; buang duplikat bila ada
 const seen = new Set();
@@ -43,7 +61,23 @@ const unique = lines.filter((l) => {
   return true;
 });
 
-const css = `/* Dihasilkan otomatis oleh scripts/gen-tokens.mjs dari src/lib/tokens.ts. Jangan diedit tangan. */\n:root {\n${unique.join("\n")}\n}\n`;
+const dupes = lines.length - unique.length;
+if (dupes > 0) throw new Error(`gen-tokens: ${dupes} nama variabel duplikat`);
+
+// Seluruh durasi ikut nol saat pengguna meminta gerak berkurang.
+const reduced = durationVars.map((name) => `    --${name}: 0s;`).join("\n");
+
+const css = `/* Dihasilkan otomatis oleh scripts/gen-tokens.mjs dari src/lib/tokens.ts. Jangan diedit tangan. */
+:root {
+${unique.join("\n")}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+${reduced}
+  }
+}
+`;
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, css);
-console.log(`gen-tokens: ${unique.length} variabel -> ${out.replace(root, ".")}`);
+console.log(`gen-tokens: ${unique.length} variabel, ${durationVars.length} durasi -> ${out.replace(root, ".")}`);
