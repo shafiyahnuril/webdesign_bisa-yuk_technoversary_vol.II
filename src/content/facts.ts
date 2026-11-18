@@ -94,20 +94,30 @@ export const FACTS = {
     note:
       "Estimasi model; total kebocoran ke laut sekitar 346,5 kiloton per tahun (rentang 201,1–552,3). Sisa 17% berasal dari pembuangan langsung atau limpasan pesisir. Rentang ketidakpastian tidak diberikan untuk pembagian 83/17.",
   },
-  "produksi-plastik": pending(
-    "produksi-plastik",
-    "Produksi plastik global mencapai {X}.",
-    "BELUM TERVERIFIKASI. Sumber primer OECD Global Plastics Outlook tidak bisa dibuka (403). Our World in Data (sekunder) menyebut 460 juta ton pada 2019 dengan rujukan OECD; belum cukup untuk status terverifikasi. Porsi bahan fosil belum ditemukan.",
-  ),
+  "produksi-plastik": {
+    key: "produksi-plastik",
+    statement: "Produksi plastik global mencapai {X}.",
+    value: 460,
+    unit: "juta ton",
+    scope: "Global, produksi plastik tahunan",
+    year: 2019,
+    sourceTitle: "Plastic Pollution (Our World in Data)",
+    sourceUrl: "https://ourworldindata.org/plastic-pollution",
+    publisher: "Our World in Data",
+    accessed: "2026-11-18",
+    verified: true,
+    note:
+      "Sumber sekunder (OWID): angka terbaca di halaman ('460 million tonnes in 2019'). Halaman tidak menyebut sumber asli untuk angka produksi ini; OWID merujuk OECD Global Plastics Outlook (2022) untuk angka sampah plastik di halaman yang sama, dan OECD tidak bisa dibuka (403) untuk dicek langsung. Porsi bahan fosil tidak ditemukan; jangan ditampilkan.",
+  },
   "emisi-plastik": pending(
     "emisi-plastik",
     "Plastik menyumbang emisi {X}.",
-    "BELUM TERVERIFIKASI. OECD tidak bisa dibuka (403). Angka sekunder sekitar 3% emisi global (produksi dan pembuangan; lihat OWID) belum dicek ke OECD/CIEL.",
+    "BELUM TERVERIFIKASI. OWID ('How much of global greenhouse gas emissions come from plastics?', 5 Okt 2023) menyebut sekitar 3,3% emisi global (ringkasan: sekitar 3%) untuk siklus hidup plastik (produksi dan pembuangan; sekitar 90% dari tahap produksi), berdasarkan estimasi OECD 1,8 miliar ton CO2eq. Halaman tidak menyebut tahun angka itu, jadi tidak memenuhi syarat tahun. Tetap tersembunyi sampai tahun dikonfirmasi dari OECD.",
   ),
   "daur-ulang-global": pending(
     "daur-ulang-global",
     "{X} plastik global didaur ulang.",
-    "BELUM TERVERIFIKASI. Persentase plastik global yang didaur ulang belum terbaca dari OECD (403). Angka sekunder 9% belum dicek ke sumber primer.",
+    "BELUM TERVERIFIKASI. Halaman OWID 'Plastic Pollution' tidak memuat persentase plastik yang didaur ulang (hanya sekitar seperempat sampah plastik 'mismanaged', tanpa tahun dan sumber). OECD tidak bisa dibuka (403). Jangan memakai angka sekunder dari ingatan.",
   ),
   "deposit-hasil": {
     key: "deposit-hasil",
