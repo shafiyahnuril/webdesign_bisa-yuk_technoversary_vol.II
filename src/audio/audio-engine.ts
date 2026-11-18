@@ -42,7 +42,10 @@ type AudioContextConstructor = new () => AudioContext;
 
 function getAudioContextConstructor(): AudioContextConstructor | null {
   if (typeof window === "undefined") return null;
-  const win = window as Window & { webkitAudioContext?: AudioContextConstructor };
+  const win = window as Window & {
+    AudioContext?: AudioContextConstructor;
+    webkitAudioContext?: AudioContextConstructor;
+  };
   return win.AudioContext ?? win.webkitAudioContext ?? null;
 }
 
@@ -401,6 +404,9 @@ export function createAudioEngine(): AudioController {
       if (updateAccumSec < UPDATE_INTERVAL_SEC) return;
       updateAccumSec %= UPDATE_INTERVAL_SEC;
 
+      if (lastShown > 0.9 && currShown < 0.1) {
+        lastFiredAtMs.clear();
+      }
       applyProfileAt(lastShown, currShown);
       lastShown = currShown;
     },
