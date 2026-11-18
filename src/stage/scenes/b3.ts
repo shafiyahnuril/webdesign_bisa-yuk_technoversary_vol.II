@@ -4,7 +4,8 @@ import type { Scene } from "../director";
 import { CityEnvironment } from "../objects/city";
 import { ensureWaterSystem, type WaterSystem } from "../objects/water";
 import type { StageContext } from "../stage";
-import { clamp01, easeHeavyIn, lerp, smoothstep } from "../util/math";
+import { BuoyancyController } from "../util/buoyancy";
+import { clamp01, degToRad, easeHeavyIn, lerp, smoothstep } from "../util/math";
 
 const C3_BG = new THREE.Color(PALETTE.c3.bg);
 const C4_BG = new THREE.Color(PALETTE.c4.bg);
@@ -26,10 +27,11 @@ export function createB3Scene(): Scene {
   const fog = new THREE.FogExp2(PALETTE.c3.bg, CUES.c3.fog);
   const lookAt = new THREE.Vector3();
   const waveNormal = new THREE.Vector3();
-  const upVec = new THREE.Vector3(0, 1, 0);
-  const tiltQuat = new THREE.Quaternion();
-  const tumbleQuat = new THREE.Quaternion();
-  const tumbleEuler = new THREE.Euler();
+  const keyframeEuler = new THREE.Euler();
+  const baseEuler = new THREE.Euler();
+  const keyframeQuat = new THREE.Quaternion();
+  const baseQuat = new THREE.Quaternion();
+  const buoyancy = new BuoyancyController();
 
   return {
     id: "b3",
@@ -43,6 +45,7 @@ export function createB3Scene(): Scene {
 
     enter() {
       if (!ctx || !water || !city) return;
+      buoyancy.reset();
       const hand = ctx.shared.get("hand");
       if (hand) hand.group.visible = false;
       const particles = ctx.shared.get("particles");
@@ -67,9 +70,10 @@ export function createB3Scene(): Scene {
       ctx.scene.fog = fog;
     },
 
-    update(t: number) {
+    update(t: number, _p?: number, dt = 0) {
       if (!ctx || !water || !city) return;
       const uTime = ctx.reducedMotion ? 0 : ctx.uniforms.uTime.value;
+      const waveTime = ctx.reducedMotion ? 0 : uTime * 0.65;
       const { bottle, contactShadow } = ctx.shared;
       const hand = ctx.shared.get("hand");
       if (hand) hand.group.visible = false;
@@ -100,7 +104,7 @@ export function createB3Scene(): Scene {
       ctx.scene.fog = fog;
 
       water.setParams({
-        time: uTime + t * 4.5,
+        time: waveTime,
         amplitude: waveAmp,
         speed: 1.0,
         turbid: riverTurbid,
@@ -124,28 +128,38 @@ export function createB3Scene(): Scene {
       ctx.lights.spot.intensity = 0;
       ctx.scene.environmentIntensity = lerp(CUES.c3.env, CUES.c4.env, cueMix) * lightScale;
 
-      // Botol: jatuh t 0..0.10, lalu hanyut sedikit lebih lambat dari kamera (bergeser pelan ke kiri tanpa terpotong)
+      // Botol: jatuh t 0..0.10, transisi mulus ke apung teredam (normal disampling sekali sesudah setParams)
       const bottleX = -4.92 + 10.9 * t;
       const bottleZ = lerp(0.45, 0.15, estuaryMix);
       const waveSample = water.sampleHeightAndNormal(bottleX, bottleZ, waveNormal);
 
-      let bottleY: number;
-      let rotZ: number;
-      if (t < 0.1) {
-        const dropK = easeHeavyIn(clamp01(t / 0.1));
-        bottleY = lerp(2.8, waveSample.y - 0.12, dropK);
-        rotZ = lerp(0.45, 1.32, dropK);
-      } else {
-        bottleY = waveSample.y - 0.12;
-        rotZ = 1.32 + Math.sin(t * 9.0 + uTime * 0.9) * 0.08;
-      }
+      const dropK = easeHeavyIn(clamp01(t / 0.1));
+      const keyframeY = lerp(2.8, waveSample.y - 0.12, dropK);
+      keyframeEuler.set(0, t * 1.4, lerp(0.45, 1.32, dropK));
+      keyframeQuat.setFromEuler(keyframeEuler);
+
+      baseEuler.set(0, t * 1.4, 1.32);
+      baseQuat.setFromEuler(baseEuler);
+
+      const pose = buoyancy.step({
+        t,
+        dt,
+        x: bottleX,
+        z: bottleZ,
+        waterY: waveSample.y,
+        waterNormal: waveNormal,
+        baseQuat,
+        draft: 0.12,
+        maxSubmerge: 0.16,
+        maxTiltRad: degToRad(5.0),
+        keyframeBlend: smoothstep(0.06, 0.14, t),
+        keyframeY,
+        keyframeQuat,
+      });
 
       bottle.group.visible = true;
-      bottle.group.position.set(bottleX, bottleY, bottleZ);
-      tiltQuat.setFromUnitVectors(upVec, waveNormal);
-      tumbleEuler.set(0.22 * Math.cos(t * 7.0 + uTime * 0.7), t * 1.4, rotZ);
-      tumbleQuat.setFromEuler(tumbleEuler).premultiply(tiltQuat);
-      bottle.group.quaternion.copy(tumbleQuat);
+      bottle.group.position.set(bottleX, pose.y, bottleZ);
+      bottle.group.quaternion.copy(pose.quat);
 
       const bottleTurbid =
         t <= 0.72
@@ -161,10 +175,11 @@ export function createB3Scene(): Scene {
       });
 
       city.setCompactMode(ctx.size.isPortrait || ctx.quality === "low");
-      city.update(t, camX, estuaryMix, water, uTime + t * 4.5);
+      city.update(t, camX, estuaryMix, water, waveTime);
     },
 
     exit() {
+      buoyancy.reset();
       if (city) city.group.visible = false;
       if (water) water.group.visible = false;
       if (ctx) {

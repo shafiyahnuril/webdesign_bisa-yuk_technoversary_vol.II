@@ -227,4 +227,49 @@ describe("Scene B5 (Terurai) & Punchline (Layar Hening)", () => {
     ctx.shared.bottle.dispose();
     ctx.shared.contactShadow.dispose();
   });
+
+  it("B5: menghapus vibrasi frekuensi tinggi & advance fase t pada air/partikel saat scrub 120Hz/60Hz", () => {
+    for (const hz of [120, 60] as const) {
+      const dt = 1 / hz;
+      const ctx = makeTestContext("high", 16 / 9);
+      ctx.uniforms.uTime.value = 40.0;
+      const b5 = createB5Scene();
+      b5.build(ctx);
+      const water = ensureWaterSystem(ctx);
+      const particles = ensureParticles(ctx);
+      b5.enter();
+
+      const prevQuat = new THREE.Quaternion();
+      let maxDeltaQuat = 0;
+
+      for (let i = 0; i < hz; i++) {
+        ctx.uniforms.uTime.value += dt;
+        const t = 0.05 + i * (0.005 * (60 / hz));
+        b5.update(t, 0.32 + t * 0.08, dt);
+
+        // Tidak ada getaran posisi frekuensi tinggi di fase retak maupun pecah
+        expect(ctx.shared.bottle.group.position.x).toBe(0);
+        expect(ctx.shared.bottle.group.position.y).toBeCloseTo(0.05, 6);
+        expect(ctx.shared.bottle.group.position.z).toBe(0);
+
+        // Clock air & partikel hanya memakai uTime tenang (tanpa + t * 3.5 / t * 5.0)
+        expect(water.getParams().time).toBeCloseTo(ctx.uniforms.uTime.value * 0.55, 6);
+        expect(particles.getState().time).toBeCloseTo(ctx.uniforms.uTime.value * 0.75, 6);
+
+        if (i > 0) {
+          maxDeltaQuat = Math.max(maxDeltaQuat, ctx.shared.bottle.group.quaternion.angleTo(prevQuat));
+        }
+        prevQuat.copy(ctx.shared.bottle.group.quaternion);
+      }
+
+      expect(maxDeltaQuat).toBeLessThan((0.5 * Math.PI) / 180);
+
+      b5.exit();
+      b5.dispose();
+      water.dispose();
+      particles.dispose();
+      ctx.shared.bottle.dispose();
+      ctx.shared.contactShadow.dispose();
+    }
+  });
 });

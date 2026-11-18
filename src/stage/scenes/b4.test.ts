@@ -170,10 +170,10 @@ describe("Scene B4 (Lautan)", () => {
     const initialPierY = pier.position.y;
     const healthyBlue = coralMat.color.b;
 
-    // Puncak gelombang sebelum menyelam (t = 0.48)
+    // Puncak gelombang sebelum menyelam (t = 0.48) — amplitude naik ke 0.50 dengan speed konstan tenang
     b4.update(0.48, 0.275, 0);
     expect(water.getParams().amplitude).toBeCloseTo(0.5, 2);
-    expect(water.getParams().speed).toBeCloseTo(2.2, 2);
+    expect(water.getParams().speed).toBeCloseTo(1.05, 2);
     expect(initialPierY - pier.position.y).toBeCloseTo(0.3, 2);
 
     // Menyelam ke bawah permukaan (t = 0.78) -> kamera y = -1.4, underwater = 1, karang memutih #E6EAF2
@@ -204,5 +204,64 @@ describe("Scene B4 (Lautan)", () => {
     water.dispose();
     ctx.shared.bottle.dispose();
     ctx.shared.contactShadow.dispose();
+  });
+
+  it("scrub wheel kecil 120Hz/60Hz di B4 (dengan uTime besar) tidak memajukan fase air dari t, menjaga sway lambat, dan membatasi delta botol", () => {
+    for (const hz of [120, 60] as const) {
+      const dt = 1 / hz;
+      const ctx = makeTestContext("high", 16 / 9);
+      ctx.uniforms.uTime.value = 45.0; // pastikan perubahan t tidak menggeser fase c * uTime
+      const b4 = createB4Scene();
+      b4.build(ctx);
+      const water = ensureWaterSystem(ctx);
+      b4.enter();
+
+      const prevPos = new THREE.Vector3();
+      const prevQuat = new THREE.Quaternion();
+      let maxDeltaPos = 0;
+      let maxDeltaQuat = 0;
+
+      // Scrub melintasi fase stormUp (t = 0.15..0.48) lalu mundur sedikit
+      const steps = hz * 2;
+      for (let i = 0; i < steps; i++) {
+        ctx.uniforms.uTime.value += dt;
+        const t = i < hz ? 0.15 + i * (0.002 * (60 / hz)) : 0.15 + hz * (0.002 * (60 / hz)) - (i - hz) * (0.0018 * (60 / hz));
+        b4.update(t, 0.24 + t * 0.08, dt);
+
+        expect(water.getParams().time).toBeCloseTo(ctx.uniforms.uTime.value * 0.65, 6);
+        expect(water.getParams().speed).toBeCloseTo(1.05, 5);
+
+        const bx = ctx.shared.bottle.group.position.x;
+        const bz = ctx.shared.bottle.group.position.z;
+        const surfaceY = water.sampleHeightAndNormal(bx, bz).y;
+        expect(ctx.shared.bottle.group.position.y).toBeGreaterThanOrEqual(surfaceY - 0.14 - 1e-5);
+
+        const baseQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, t * 1.1, 1.38));
+        expect(ctx.shared.bottle.group.quaternion.angleTo(baseQ)).toBeLessThanOrEqual((5.5 * Math.PI) / 180);
+
+        if (i > 0) {
+          maxDeltaPos = Math.max(maxDeltaPos, ctx.shared.bottle.group.position.distanceTo(prevPos));
+          maxDeltaQuat = Math.max(maxDeltaQuat, ctx.shared.bottle.group.quaternion.angleTo(prevQuat));
+        }
+        prevPos.copy(ctx.shared.bottle.group.position);
+        prevQuat.copy(ctx.shared.bottle.group.quaternion);
+      }
+
+      expect(maxDeltaPos).toBeLessThan(0.02);
+      expect(maxDeltaQuat).toBeLessThan((1.5 * Math.PI) / 180);
+
+      // Ambient camera sway berhenti saat reducedMotion dan tidak bergantung pada t*12
+      ctx.reducedMotion = true;
+      b4.update(0.2, 0.25, dt);
+      const camXReduced1 = ctx.camera.position.x;
+      b4.update(0.25, 0.255, dt);
+      expect(ctx.camera.position.x).toBeCloseTo(camXReduced1, 6);
+
+      b4.exit();
+      b4.dispose();
+      water.dispose();
+      ctx.shared.bottle.dispose();
+      ctx.shared.contactShadow.dispose();
+    }
   });
 });

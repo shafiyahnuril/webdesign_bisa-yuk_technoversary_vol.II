@@ -5,7 +5,8 @@ import { createClayMaterial } from "../materials/clay";
 import { ensureWaterSystem, type WaterSystem } from "../objects/water";
 import type { StageContext } from "../stage";
 import { disposeObject } from "../util/dispose";
-import { clamp01, easeInOutQuad, lerp, smoothstep } from "../util/math";
+import { BuoyancyController } from "../util/buoyancy";
+import { clamp01, degToRad, easeInOutQuad, lerp, smoothstep } from "../util/math";
 import { createRng, rngRange } from "../util/rng";
 
 const C4_BG = new THREE.Color(PALETTE.c4.bg);
@@ -249,11 +250,10 @@ export function createB4Scene(): Scene {
   const fog = new THREE.FogExp2(PALETTE.c4.bg, CUES.c4.fog);
   const lookAt = new THREE.Vector3();
   const waveNormal = new THREE.Vector3();
-  const upVec = new THREE.Vector3(0, 1, 0);
-  const tiltQuat = new THREE.Quaternion();
-  const swayEuler = new THREE.Euler();
-  const swayQuat = new THREE.Quaternion();
+  const baseEuler = new THREE.Euler();
+  const baseQuat = new THREE.Quaternion();
   const sunDir = new THREE.Vector3(8, 6, -30).normalize();
+  const buoyancy = new BuoyancyController();
 
   return {
     id: "b4",
@@ -275,6 +275,7 @@ export function createB4Scene(): Scene {
 
     enter() {
       if (!ctx || !water || !localGroup) return;
+      buoyancy.reset();
       const hand = ctx.shared.get("hand");
       if (hand) hand.group.visible = false;
       const particles = ctx.shared.get("particles");
@@ -299,9 +300,10 @@ export function createB4Scene(): Scene {
       ctx.scene.fog = fog;
     },
 
-    update(t: number) {
+    update(t: number, _p?: number, dt = 0) {
       if (!ctx || !water || !localGroup || !sun || !pier || !coral) return;
       const uTime = ctx.reducedMotion ? 0 : ctx.uniforms.uTime.value;
+      const waveTime = ctx.reducedMotion ? 0 : uTime * 0.65;
       const { bottle, contactShadow } = ctx.shared;
       const hand = ctx.shared.get("hand");
       if (hand) hand.group.visible = false;
@@ -314,17 +316,16 @@ export function createB4Scene(): Scene {
       coral.branches.count = compact ? coral.compactBranches : coral.maxBranches;
       coral.spheres.count = compact ? coral.compactSpheres : coral.maxSpheres;
 
-      // Gelombang laut: amplitudo 0.12 -> 0.50 dan kecepatan 1x -> 2.2x pada t 0.12..0.48
+      // Gelombang laut: amplitudo 0.12 -> 0.50 pada t 0.12..0.48, kecepatan konstan tenang agar fase tidak meloncat saat gulir
       const stormUp = smoothstep(0.12, 0.48, t);
       const calmDive = smoothstep(0.65, 1.0, t);
       const amplitude = lerp(lerp(0.12, 0.5, stormUp), 0.24, calmDive * 0.5);
-      const speed = lerp(1.0, 2.2, stormUp);
-      const waveTime = uTime + t * 8.0;
+      const speed = 1.05;
 
-      // Kamera menyelam: y 1.2 -> -1.4 pada t 0.48..0.78
+      // Kamera menyelam: y 1.2 -> -1.4 pada t 0.48..0.78; ambient sway hanya berbasis waktu lambat
       const diveK = easeInOutQuad(clamp01((t - 0.48) / 0.3));
       const deepK = smoothstep(0.78, 1.0, t);
-      const sway = ctx.reducedMotion ? 0 : Math.sin(uTime * 1.9 + t * 12) * 0.01;
+      const sway = ctx.reducedMotion ? 0 : Math.sin(uTime * 0.45) * 0.008;
       const camX = sway + lerp(0, -0.15, deepK);
       const camY = lerp(1.2, -1.4, diveK) - deepK * 0.2;
       const camZ = lerp(6.0, 5.2, diveK) - deepK * 0.6;
@@ -346,10 +347,19 @@ export function createB4Scene(): Scene {
       lookAt.set(0, lookY, 0);
       ctx.camera.lookAt(lookAt);
 
-      // Permukaan air di posisi kamera untuk transisi mulus tanpa lompatan
+      // Perbarui uniform gelombang terlebih dahulu sebelum sampling ketinggian & normal di CPU
       water.group.visible = true;
       water.group.position.set(0, 0, 0);
       water.setMode("sea");
+      water.setParams({
+        time: waveTime,
+        amplitude,
+        speed,
+        turbid: 0.45,
+        opacity: 1,
+        sunDir,
+      });
+
       const surfaceAtCam = water.sampleHeightAndNormal(camX, camZ).y;
       const underwater = smoothstep(surfaceAtCam + 0.18, surfaceAtCam - 0.18, camY);
 
@@ -364,13 +374,7 @@ export function createB4Scene(): Scene {
       ctx.scene.fog = fog;
 
       water.setParams({
-        time: waveTime,
-        amplitude,
-        speed,
-        turbid: 0.45,
         underwater,
-        opacity: 1,
-        sunDir,
         sunIntensity: lerp(0.45, 0.9, stormUp) * (1 - underwater * 0.75),
         fogColor: fog.color,
         fogDensity: fog.density,
@@ -404,17 +408,29 @@ export function createB4Scene(): Scene {
       coral.branchMat.roughness = lerp(0.74, 0.88, bleach);
       coral.sphereMat.roughness = lerp(0.74, 0.88, bleach);
 
-      // Botol mengapung mengikuti ketinggian + normal ombak Gerstner
+      // Botol mengapung dengan buoyancy teredam mengikuti ketinggian + normal ombak (±5° dari base)
       const bottleX = -0.35 + Math.sin(t * Math.PI) * 0.25;
       const bottleZ = 0.15;
       const waveSample = water.sampleHeightAndNormal(bottleX, bottleZ, waveNormal);
 
+      baseEuler.set(0, t * 1.1, 1.38);
+      baseQuat.setFromEuler(baseEuler);
+      const pose = buoyancy.step({
+        t,
+        dt,
+        x: bottleX,
+        z: bottleZ,
+        waterY: waveSample.y,
+        waterNormal: waveNormal,
+        baseQuat,
+        draft: 0.1,
+        maxSubmerge: 0.14,
+        maxTiltRad: degToRad(5.0),
+      });
+
       bottle.group.visible = true;
-      bottle.group.position.set(bottleX, waveSample.y - 0.1, bottleZ);
-      tiltQuat.setFromUnitVectors(upVec, waveNormal);
-      swayEuler.set(0.18 * Math.sin(waveTime * 0.6), t * 1.1, 1.38);
-      swayQuat.setFromEuler(swayEuler).premultiply(tiltQuat);
-      bottle.group.quaternion.copy(swayQuat);
+      bottle.group.position.set(bottleX, pose.y, bottleZ);
+      bottle.group.quaternion.copy(pose.quat);
 
       bottle.setParams({
         turbid: lerp(CUES.c4.turbid, CUES.c5.turbid, cueMix),
@@ -427,6 +443,7 @@ export function createB4Scene(): Scene {
     },
 
     exit() {
+      buoyancy.reset();
       if (localGroup) localGroup.visible = false;
       if (water) {
         water.setParams({ underwater: 0 });

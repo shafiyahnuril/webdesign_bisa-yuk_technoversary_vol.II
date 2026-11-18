@@ -275,4 +275,74 @@ describe("CityEnvironment & Scene B3 (Tersesat)", () => {
     cityMed.dispose();
     cityHigh.dispose();
   });
+
+  it("scrub wheel kecil 120Hz/60Hz maju-mundur tetap halus, selaras CPU water plane, dan memakai clock tenang bersama City", () => {
+    for (const hz of [120, 60] as const) {
+      const dt = 1 / hz;
+      const ctx = makeTestContext("high", 16 / 9);
+      ctx.uniforms.uTime.value = 35.0; // simulasi sesi sudah berjalan 35 detik
+      const b3 = createB3Scene();
+      b3.build(ctx);
+      const water = ensureWaterSystem(ctx);
+      b3.enter();
+
+      const prevPos = new THREE.Vector3();
+      const prevQuat = new THREE.Quaternion();
+      let maxDeltaPos = 0;
+      let maxDeltaQuat = 0;
+
+      // Maju dari fase apung (t = 0.15 -> 0.55) dengan step wheel kecil, lalu mundur (0.55 -> 0.35)
+      const totalSteps = hz * 2;
+      for (let i = 0; i < totalSteps; i++) {
+        ctx.uniforms.uTime.value += dt;
+        const dir = i < hz ? 1 : -1;
+        const t = i < hz ? 0.15 + i * (0.0025 * (60 / hz)) : 0.15 + hz * (0.0025 * (60 / hz)) - (i - hz) * (0.002 * (60 / hz));
+        b3.update(t, 0.1429 + t * 0.089, dt);
+
+        // Pastikan clock air tidak didorong oleh localT (selalu uTime * 0.65)
+        expect(water.getParams().time).toBeCloseTo(ctx.uniforms.uTime.value * 0.65, 6);
+
+        // Konsistensi ketinggian botol vs permukaan CPU air (tidak menembus ombak)
+        const bx = ctx.shared.bottle.group.position.x;
+        const bz = ctx.shared.bottle.group.position.z;
+        const surfaceY = water.sampleHeightAndNormal(bx, bz).y;
+        expect(ctx.shared.bottle.group.position.y).toBeGreaterThanOrEqual(surfaceY - 0.16 - 1e-5);
+
+        // Kemiringan tetap dalam batas ±5.5° dari base apung horizontal
+        const baseQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, t * 1.4, 1.32));
+        expect(ctx.shared.bottle.group.quaternion.angleTo(baseQ)).toBeLessThanOrEqual((5.5 * Math.PI) / 180);
+
+        if (i > 0 && !(dir < 0 && i === hz)) {
+          maxDeltaPos = Math.max(maxDeltaPos, ctx.shared.bottle.group.position.distanceTo(prevPos));
+          maxDeltaQuat = Math.max(maxDeltaQuat, ctx.shared.bottle.group.quaternion.angleTo(prevQuat));
+        }
+        prevPos.copy(ctx.shared.bottle.group.position);
+        prevQuat.copy(ctx.shared.bottle.group.quaternion);
+      }
+
+      expect(maxDeltaPos).toBeLessThan(0.04);
+      expect(maxDeltaQuat).toBeLessThan((1.5 * Math.PI) / 180);
+
+      // Loop reset (t=0.98 -> t=0.0) & exit/enter reset harus snap deterministik ke pose awal jatuh
+      b3.update(0.98, 0.23, dt);
+      b3.update(0.0, 0.1429, dt);
+      expect(ctx.shared.bottle.group.position.y).toBeCloseTo(2.8, 4);
+
+      b3.exit();
+      b3.enter();
+      b3.update(0.25, 0.165, 0);
+      const snapPos = ctx.shared.bottle.group.position.clone();
+      const snapQuat = ctx.shared.bottle.group.quaternion.clone();
+      b3.update(0.75, 0.21, dt);
+      b3.update(0.25, 0.165, 0);
+      expect(ctx.shared.bottle.group.position.distanceTo(snapPos)).toBeLessThan(1e-5);
+      expect(ctx.shared.bottle.group.quaternion.angleTo(snapQuat)).toBeLessThan(1e-5);
+
+      b3.exit();
+      b3.dispose();
+      water.dispose();
+      ctx.shared.bottle.dispose();
+      ctx.shared.contactShadow.dispose();
+    }
+  });
 });
