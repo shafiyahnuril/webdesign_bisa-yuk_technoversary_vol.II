@@ -2,7 +2,7 @@ import type { ArticleBody } from "../articles";
 
 export const B6: ArticleBody = {
   summary:
-    "Ekonomi sirkular menempatkan pengurangan dan guna ulang di depan daur ulang, karena daur ulang saja tidak cukup untuk menutup masalah plastik.",
+    "Ekonomi sirkular mendahulukan pengurangan dan guna ulang, karena daur ulang saja tidak cukup untuk mengatasi masalah plastik.",
   readingMinutes: 3,
   lede: "Slogan reduce, reuse, recycle sudah akrab. Pertanyaannya: mana yang lebih dulu? Ellen MacArthur Foundation, lembaga yang banyak merumuskan ekonomi sirkular untuk plastik, memberi jawaban yang cukup jelas: daur ulang penting, tetapi bukan jalan keluar tunggal, dan guna ulang layak dicoba lebih dulu.",
   sections: [

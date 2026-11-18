@@ -2,7 +2,7 @@ import type { ArticleBody } from "../articles";
 
 export const A6: ArticleBody = {
   summary:
-    "Plastik lahir dari bahan baku fosil, dan menurut perkiraan OECD siklus hidupnya menyumbang sekitar 3% emisi global, sebagian besar dari produksi.",
+    "Plastik berasal dari bahan baku fosil; siklus hidupnya menyumbang sekitar 3% emisi global (perkiraan OECD), terutama dari produksi.",
   readingMinutes: 3,
   lede: "Plastik sering dibicarakan sebagai soal sampah, padahal ceritanya dimulai jauh sebelum dibuang. Bahan bakunya berasal dari minyak dan gas, dan mengolahnya melepaskan gas rumah kaca. Dampak ini tidak kasatmata, sehingga jarang ikut dihitung ketika kita memikirkan botol di tangan.",
   sections: [
