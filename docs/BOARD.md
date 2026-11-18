@@ -164,3 +164,10 @@ Pemeriksaan akhir integrasi: TypeScript, ESLint, build, 193 tes unit, dan 12 ske
 - **Dihapus:** `FactBlock`, `LicenseTable`, `SourceList` (tidak lagi dipakai). `TempDiagram` kini HTML/CSS agar teks tetap terbaca di HP.
 - **Catatan:** `copy.test.ts` punya 2 kegagalan lama (`hero.tagline`, `ch7.letter`) yang sudah ada sebelum revisi ini dan tidak disentuh.
 - Bukti lokal: `docs/bukti/REVISI-ABOUT/`.
+
+## REVISI-ABOUT-2 · 19 November 2026
+- **Selesai:** About diringkas menjadi enam bagian (hero, latar belakang, dua skenario, angka, suhu dan target 1,5°C, penutup). Sumber data, Lisensi dan kredit, dan Tim dihapus dari halaman beserta `SourceAccordion`, `sourceGroups`, `CreditChips`, `TeamGrid`, `CapAvatar` dan tesnya. Kredit pindah ke README. Tidak ada placeholder terlihat (tanpa "[DATA]" dan "menyusul").
+- **Proporsi:** satu grid 12 kolom (7:5, 6:6, 5:7, daftar Angka 7:5 / 5:7 dengan kartu ganjil terakhir selebar penuh), jarak antar-bagian dan di dalam bagian memakai token yang sama, dua kartu skenario sama tinggi.
+- **Tinggi halaman (sebelum → sesudah):** desktop 5.668 → 3.423 px; HP 7.177 → 4.054 px. Tanpa scroll horizontal dan tanpa galat konsol; reduced-motion diuji.
+- **Menunggu konfirmasi tim:** dokumen konsep (§15, §22 aturan aset, §23 poin 4, §25) masih menyebut sumber, atribusi aset, dan tim di halaman About.
+- Bukti lokal: `docs/bukti/REVISI-ABOUT-2/`.
