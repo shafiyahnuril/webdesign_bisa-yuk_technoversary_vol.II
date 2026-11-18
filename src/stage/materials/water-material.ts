@@ -110,13 +110,17 @@ export interface WaterMaterialHandle {
   dispose(): void;
 }
 
-export function createWaterMaterial(causticsEnabled: boolean): WaterMaterialHandle {
+export function createWaterMaterial(
+  causticsEnabled: boolean,
+  lowQuality = false,
+): WaterMaterialHandle {
   const causticsTexture = makeCaustics();
   const initial = WATER_MODE_PRESETS.river;
 
   const material = new THREE.ShaderMaterial({
     vertexShader: WATER_VERTEX_SHADER,
     fragmentShader: WATER_FRAGMENT_SHADER,
+    defines: lowQuality ? { LOW_QUALITY: 1 } : {},
     transparent: true,
     depthWrite: true,
     side: THREE.DoubleSide,

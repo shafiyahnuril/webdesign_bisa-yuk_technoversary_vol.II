@@ -174,4 +174,26 @@ describe("WaterSystem", () => {
 
     first.dispose();
   });
+
+  it("mengaktifkan define LOW_QUALITY saat tier low dan memulihkan tier tinggi tanpa mengubah mode air", () => {
+    const scene = new THREE.Scene();
+    const waterLow = new WaterSystem(scene, QUALITY_PRESETS.low);
+
+    expect(waterLow.material.defines.LOW_QUALITY).toBe(1);
+    expect(waterLow.material.fragmentShader).toContain("#ifdef LOW_QUALITY");
+    expect(waterLow.material.fragmentShader).toContain("#ifndef LOW_QUALITY");
+
+    waterLow.setMode("night");
+    waterLow.setQuality(QUALITY_PRESETS.high);
+    expect(waterLow.material.defines.LOW_QUALITY).toBeUndefined();
+    expect(waterLow.material.uniforms.uCausticsEnabled!.value).toBe(1);
+    expect(waterLow.getMode()).toBe("night");
+
+    waterLow.setQuality(QUALITY_PRESETS.low);
+    expect(waterLow.material.defines.LOW_QUALITY).toBe(1);
+    expect(waterLow.material.uniforms.uCausticsEnabled!.value).toBe(0);
+    expect(waterLow.getMode()).toBe("night");
+
+    waterLow.dispose();
+  });
 });

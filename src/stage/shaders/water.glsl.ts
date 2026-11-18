@@ -79,7 +79,11 @@ void main() {
 `;
 
 export const WATER_FRAGMENT_SHADER = /* glsl */ `
+#ifdef LOW_QUALITY
+precision mediump float;
+#else
 precision highp float;
+#endif
 
 uniform float uTime;
 uniform float uMode;
@@ -104,6 +108,7 @@ varying vec3 vWorldNormal;
 varying vec2 vUv;
 varying float vHeightNorm;
 
+#ifndef LOW_QUALITY
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -120,6 +125,7 @@ float valueNoise(vec2 p) {
   float d = hash21(i + vec2(1.0, 1.0));
   return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
+#endif
 
 void main() {
   vec3 viewVec = cameraPosition - vWorldPos;
@@ -132,24 +138,42 @@ void main() {
   }
 
   float NdotV = clamp(dot(N, V), 0.0, 1.0);
-  float fresnel = 0.04 + 0.96 * pow(1.0 - NdotV, 5.0);
+  float f1 = 1.0 - NdotV;
+  float f2 = f1 * f1;
+  float fresnel = 0.04 + 0.96 * (f2 * f2 * f1);
 
   // Gradien warna dalam vs dangkal + kekeruhan
-  float shallowMix = clamp(vHeightNorm * 0.65 + (1.0 - NdotV) * 0.35, 0.0, 1.0);
+  float shallowMix = clamp(vHeightNorm * 0.65 + f1 * 0.35, 0.0, 1.0);
   vec3 baseWater = mix(uDeepColor, uShallowColor, shallowMix);
   baseWater = mix(baseWater, uTurbidColor, clamp(uTurbid, 0.0, 1.0) * (1.0 - uClean));
 
-  // Garis busa tipis dari noise + puncak gelombang
+  // Garis busa tipis dari puncak gelombang (noise 2-oktaf pada HIGH/MEDIUM, crest-only pada LOW)
+  float crestFactor = smoothstep(0.64, 0.94, vHeightNorm);
+#ifdef LOW_QUALITY
+  float foamMask = crestFactor * 0.45;
+#else
   float n1 = valueNoise(vWorldPos.xz * 1.45 + vec2(uTime * 0.35, -uTime * 0.22));
   float n2 = valueNoise(vWorldPos.xz * 3.8 - vec2(uTime * 0.45, uTime * 0.31));
-  float crestFactor = smoothstep(0.64, 0.94, vHeightNorm);
   float foamMask = smoothstep(0.68, 0.86, n1 * 0.65 + n2 * 0.35 + crestFactor * 0.32);
+#endif
   float foamStrength = foamMask * mix(0.28, 0.08, uClean) * (1.0 - 0.65 * uUnderwater);
 
   // Kilau matahari dingin (tanpa warna hangat)
+#ifdef LOW_QUALITY
+  float spec = 0.0;
+  if (uSunIntensity > 0.001) {
+    vec3 H = normalize(normalize(uSunDir) + V);
+    float nh = max(dot(N, H), 0.0);
+    float nh2 = nh * nh;
+    float nh4 = nh2 * nh2;
+    float nh16 = nh4 * nh4 * nh4 * nh4;
+    spec = nh16 * nh16 * uSunIntensity;
+  }
+#else
   vec3 L = normalize(uSunDir);
   vec3 H = normalize(L + V);
   float spec = pow(max(dot(N, H), 0.0), mix(96.0, 140.0, uClean)) * uSunIntensity;
+#endif
 
   vec3 aboveColor = mix(baseWater, uSkyColor, fresnel * 0.72);
   aboveColor += vec3(0.95, 0.98, 1.0) * spec * 0.65;
@@ -158,6 +182,7 @@ void main() {
   // Langit-langit bawah air (Snell window + kaustik opsional pada HIGH)
   float snellWindow = smoothstep(0.22, 0.75, NdotV);
   vec3 ceilingBase = mix(uDeepColor * 0.7, uSkyColor * 0.78, snellWindow);
+#ifndef LOW_QUALITY
   if (uCausticsEnabled > 0.5) {
     vec2 cUv1 = vWorldPos.xz * 0.14 + vec2(uTime * 0.035, uTime * 0.02);
     vec2 cUv2 = vWorldPos.xz * 0.19 - vec2(uTime * 0.025, -uTime * 0.03);
@@ -167,6 +192,7 @@ void main() {
     aboveColor += vec3(0.55, 0.78, 0.95) * caustic * mix(0.08, 0.25, uClean);
     ceilingBase += vec3(0.62, 0.84, 0.98) * caustic * 0.55;
   }
+#endif
 
   float underMix = gl_FrontFacing ? clamp(uUnderwater * 0.45, 0.0, 1.0) : max(0.85, uUnderwater);
   vec3 color = mix(aboveColor, ceilingBase, underMix);

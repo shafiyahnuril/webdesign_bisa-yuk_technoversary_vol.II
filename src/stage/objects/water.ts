@@ -91,7 +91,7 @@ export class WaterSystem implements SharedObjectHandle {
     this.group.name = "O-WATER";
     parent.add(this.group);
 
-    this.matHandle = createWaterMaterial(quality.caustics);
+    this.matHandle = createWaterMaterial(quality.caustics, quality.tier === "low");
     this.material = this.matHandle.material;
 
     const geom = buildWaterGeometry(this.segments);
@@ -418,6 +418,16 @@ export class WaterSystem implements SharedObjectHandle {
 
   setQuality(config: QualityConfig): void {
     this.material.uniforms.uCausticsEnabled!.value = config.caustics ? 1 : 0;
+    const nextLow = config.tier === "low";
+    const prevLow = this.material.defines.LOW_QUALITY === 1;
+    if (nextLow !== prevLow) {
+      if (nextLow) {
+        this.material.defines.LOW_QUALITY = 1;
+      } else {
+        delete this.material.defines.LOW_QUALITY;
+      }
+      this.material.needsUpdate = true;
+    }
     if (this.segments !== config.waterSegments) {
       this.segments = config.waterSegments;
       this.mesh.geometry.dispose();
