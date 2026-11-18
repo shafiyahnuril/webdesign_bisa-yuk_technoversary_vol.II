@@ -5,3 +5,14 @@
   background-color: var(--bg-now);
   color: var(--ink-now);
 }
+
+:global(html[data-story-mode="3d"]) {
+  scrollbar-width: none;
+  overscroll-behavior-y: none;
+}
+
+:global(html[data-story-mode="3d"]::-webkit-scrollbar) {
+  display: none;
+  width: 0;
+  height: 0;
+}

@@ -103,6 +103,7 @@ export function StageCanvas({
           onQualityChange: (tier) => callbacksRef.current.onQualityChange?.(tier),
         });
         director = new SceneDirector(stage.ctx, createScenes());
+        callbacksRef.current.onQualityChange?.(stage.ctx.quality);
         stage.ctx.renderer.info.autoReset = false;
         const renderFrame = (shown: number, dt: number) => {
           if (cancelled || failed || document.visibilityState === "hidden") return;

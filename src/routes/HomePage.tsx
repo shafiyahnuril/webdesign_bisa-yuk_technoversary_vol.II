@@ -1,10 +1,11 @@
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { COPY } from "@/content/copy";
 import { storyEngine, type StoryEngine } from "@/engine/story-engine";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { useStoryMode } from "@/hooks/useStoryMode";
 import { StaticStory } from "@/components/story/StaticStory";
 import { StoryStage } from "@/components/story/StoryStage";
+import { StageCanvas } from "@/components/story/StageCanvas";
 import styles from "./HomePage.module.css";
 
 export type StoryQualityTier = "high" | "medium" | "low";
@@ -55,6 +56,37 @@ export default function HomePage({
   const [canvasReady, setCanvasReady] = useState(false);
   const [quality, setQuality] = useState<StoryQualityTier>("high");
 
+  useEffect(() => {
+    document.documentElement.dataset.storyMode = mode;
+  }, [mode]);
+
+  useEffect(
+    () => () => {
+      const root = document.documentElement;
+      delete root.dataset.storyMode;
+      // Lepaskan warna imperatif agar tema halaman non-Home kembali mengendalikan shell.
+      [
+        "--bg-a",
+        "--bg-b",
+        "--ink-a",
+        "--ink-b",
+        "--accent-a",
+        "--accent-b",
+        "--mix",
+        "--ink-mix",
+        "--bg-now",
+        "--ink-now",
+        "--accent-now",
+        "--grain",
+        "--vignette",
+        "--melt",
+        "--crack",
+        "--shimmer",
+      ].forEach((name) => root.style.removeProperty(name));
+    },
+    [],
+  );
+
   const handleReady = useCallback(() => {
     setCanvasReady(true);
   }, []);
@@ -63,26 +95,23 @@ export default function HomePage({
     setQuality(tier);
   }, []);
 
+  const slotProps = {
+    engine,
+    reducedMotion,
+    onReady: handleReady,
+    onFailure,
+    onQualityChange: handleQualityChange,
+  };
   const stageNode = renderStageCanvas
-    ? renderStageCanvas({
-        engine,
-        reducedMotion,
-        onReady: handleReady,
-        onFailure,
-        onQualityChange: handleQualityChange,
-      })
-    : children;
+    ? renderStageCanvas(slotProps)
+    : (children ?? <StageCanvas {...slotProps} />);
 
   return (
     <div className={styles.homeRoot} data-home-page data-story-mode={mode}>
       {mode === "static" ? (
         <StaticStory />
       ) : (
-        <StoryStage
-          engine={engine}
-          quality={quality}
-          canvasReady={canvasReady}
-        >
+        <StoryStage engine={engine} quality={quality} canvasReady={canvasReady}>
           {stageNode}
         </StoryStage>
       )}
