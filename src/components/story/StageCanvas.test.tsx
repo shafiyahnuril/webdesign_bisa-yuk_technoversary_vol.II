@@ -11,6 +11,9 @@ const backend = vi.hoisted(() => ({
   create: vi.fn(),
   fail: false,
   lost: undefined as undefined | (() => void),
+  flashActive: false,
+  setRect: vi.fn(),
+  renderFlash: vi.fn(),
 }));
 
 vi.mock("@/stage/stage", () => ({
@@ -24,8 +27,24 @@ vi.mock("@/stage/stage", () => ({
         quality: "low",
         lights: { rim: { intensity: 1 } },
         scene: { environmentIntensity: 1 },
+        shared: {
+          get: (key: string) =>
+            key === "flash"
+              ? {
+                  isActive: () => backend.flashActive,
+                  setRect: backend.setRect,
+                  renderPass: backend.renderFlash,
+                }
+              : undefined,
+        },
+        size: { w: 1000, h: 800 },
         renderer: {
-          info: { render: { calls: 1, triangles: 12 }, memory: { geometries: 1, textures: 1 } },
+          info: {
+            autoReset: true,
+            reset: vi.fn(),
+            render: { calls: 1, triangles: 12 },
+            memory: { geometries: 1, textures: 1 },
+          },
         },
       },
       render: backend.render,
@@ -45,11 +64,43 @@ beforeEach(() => {
   vi.clearAllMocks();
   backend.fail = false;
   backend.lost = undefined;
+  backend.flashActive = false;
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
     callback(performance.now());
     return 1;
   });
   vi.stubGlobal("cancelAnimationFrame", vi.fn());
+});
+
+it("menggambar kilas sesudah panggung utama dengan rect yang disimpan", async () => {
+  backend.flashActive = true;
+  const el = document.createElement("div");
+  el.dataset.flashWindow = "";
+  document.body.append(el);
+  const rect = vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+    x: 40,
+    y: 20,
+    top: 20,
+    left: 40,
+    width: 320,
+    height: 200,
+    right: 360,
+    bottom: 220,
+    toJSON() {},
+  });
+  const engine = createStoryEngine();
+  const ready = vi.fn();
+  const view = render(<StageCanvas engine={engine} onReady={ready} />);
+  await waitFor(() => expect(ready).toHaveBeenCalledOnce());
+  expect(backend.setRect).toHaveBeenCalledWith({ x: 40, y: 20, width: 320, height: 200 });
+  expect(backend.renderFlash).toHaveBeenCalled();
+  expect(backend.render.mock.invocationCallOrder[0]).toBeLessThan(
+    backend.renderFlash.mock.invocationCallOrder[0]!,
+  );
+  engine.reset();
+  expect(rect).toHaveBeenCalledOnce();
+  view.unmount();
+  el.remove();
 });
 afterEach(() => {
   cleanup();

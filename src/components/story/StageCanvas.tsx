@@ -7,6 +7,9 @@ import type { DebugOverlay } from "@/lib/debug";
 import type { Stage } from "@/stage/stage";
 import type { SceneDirector } from "@/stage/director";
 import type { QualityTier } from "@/stage/quality";
+import type { FlashPass } from "@/stage/scenes/flash";
+import type { ProcessStationsHandle } from "@/stage/scenes/b9";
+import type { Vector3 } from "three";
 import styles from "./StageCanvas.module.css";
 
 export interface StageCanvasProps {
@@ -44,11 +47,24 @@ export function StageCanvas({
     let overlay: DebugOverlay | undefined;
     let inspectFrame: ((shown: number, dt: number) => void) | undefined;
     let captureProgress: number | null = null;
+    let flashElement: HTMLElement | null = null;
+    let flashWasActive = false;
+    let rectDirty = true;
+    let previousSegment = "";
+    let stationLabels: HTMLElement[] = [];
+    let projected: Vector3 | undefined;
+    let rectObserver: ResizeObserver | undefined;
+    const invalidateRect = () => {
+      rectDirty = true;
+    };
+    window.addEventListener("resize", invalidateRect, { passive: true });
     const teardown = () => {
       if (cleaned) return;
       cleaned = true;
       stopFrame?.();
       stopIdle?.();
+      window.removeEventListener("resize", invalidateRect);
+      rectObserver?.disconnect();
       cancelAnimationFrame(readyFrame);
       director?.dispose();
       stage?.dispose();
@@ -85,16 +101,65 @@ export function StageCanvas({
           onQualityChange: (tier) => callbacksRef.current.onQualityChange?.(tier),
         });
         director = new SceneDirector(stage.ctx, createScenes());
+        stage.ctx.renderer.info.autoReset = false;
         const renderFrame = (shown: number, dt: number) => {
           if (cancelled || failed || document.visibilityState === "hidden") return;
           try {
             const progress = captureProgress ?? shown;
             const delta = captureProgress === null ? dt : 0;
+            const segment = segmentAt(progress).id;
+            if (segment !== previousSegment) {
+              previousSegment = segment;
+              stationLabels = [...document.querySelectorAll<HTMLElement>("[data-station-index]")];
+              flashElement = document.querySelector<HTMLElement>("[data-flash-window]");
+              rectDirty = true;
+            }
             const cues = computeCues(progress);
             stage!.ctx.lights.rim.intensity = cues.rim;
             stage!.ctx.scene.environmentIntensity = cues.env;
             director!.update(progress, delta);
+            stage!.ctx.renderer.info.reset();
             stage!.render(delta);
+            const flash = stage!.ctx.shared.get<FlashPass>("flash");
+            const flashActive = flash?.isActive() ?? false;
+            if (flash && flashActive && flashElement) {
+              if (!flashWasActive) rectDirty = true;
+              if (rectDirty) {
+                const rect = flashElement.getBoundingClientRect();
+                const canvasRect = canvas.getBoundingClientRect();
+                flash.setRect({
+                  x: rect.left - canvasRect.left,
+                  y: rect.top - canvasRect.top,
+                  width: rect.width,
+                  height: rect.height,
+                });
+                rectDirty = false;
+                if (!rectObserver && typeof ResizeObserver !== "undefined") {
+                  rectObserver = new ResizeObserver(invalidateRect);
+                  rectObserver.observe(flashElement);
+                }
+              }
+              flash.renderPass();
+            }
+            flashWasActive = flashActive;
+            if (segment === "b9" && stationLabels.length > 0) {
+              const stations = stage!.ctx.shared.get<ProcessStationsHandle>("stations");
+              if (stations) {
+                const { camera, size } = stage!.ctx;
+                camera.updateMatrixWorld();
+                projected ??= camera.position.clone();
+                stations.getStationPositions().forEach((position, index) => {
+                  const label = stationLabels.find(
+                    (el) => Number(el.dataset.stationIndex) === index,
+                  );
+                  if (!label) return;
+                  projected!.set(position.x, position.y, position.z).project(camera);
+                  const { x, y, z } = projected!;
+                  label.style.visibility = z >= -1 && z <= 1 && Math.abs(x) <= 1.2 ? "" : "hidden";
+                  label.style.transform = `translate3d(${(((x + 1) * size.w) / 2).toFixed(2)}px,${(((1 - y) * size.h) / 2).toFixed(2)}px,0) translate(-50%,-100%)`;
+                });
+              }
+            }
             inspectFrame?.(progress, delta);
           } catch (error) {
             fail(error);
@@ -162,5 +227,7 @@ export function StageCanvas({
     };
   }, [engine, reducedMotion]);
 
-  return <canvas ref={canvasRef} className={styles.canvas} data-capture-stage="" aria-hidden="true" />;
+  return (
+    <canvas ref={canvasRef} className={styles.canvas} data-capture-stage="" aria-hidden="true" />
+  );
 }
