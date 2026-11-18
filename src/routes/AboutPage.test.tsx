@@ -2,15 +2,10 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { CountUp } from "@/components/content/CountUp";
-import { CreditChips } from "@/components/content/CreditChips";
 import { FactCard } from "@/components/content/FactCard";
 import { factParts, formatFactValue } from "@/components/content/factUtils";
-import { SourceAccordion } from "@/components/content/SourceAccordion";
-import { buildSourceGroups } from "@/components/content/sourceGroups";
 import { TempDiagram } from "@/components/content/TempDiagram";
-import type { Article } from "@/content/articles";
 import { COPY } from "@/content/copy";
-import { CREDITS } from "@/content/credits";
 import { FACTS, type Fact } from "@/content/facts";
 import AboutPage from "./AboutPage";
 
@@ -26,21 +21,6 @@ const baseFact: Fact = {
   publisher: "Lembaga A",
   accessed: "2026-11-18",
   verified: true,
-};
-
-const baseArticle: Article = {
-  code: "A1",
-  slug: "a1",
-  title: "Artikel Satu",
-  kind: "negatif",
-  level: "global",
-  readingMinutes: 5,
-  summary: "s",
-  cover: "img/articles/cover-A1.svg",
-  lede: "",
-  sections: [],
-  relation: "",
-  sources: [],
 };
 
 function renderPage() {
@@ -103,104 +83,86 @@ describe("angka dan kartu fakta", () => {
   });
 });
 
-describe("SourceAccordion", () => {
-  const groups = buildSourceGroups(
-    { ok: baseFact, belum: { ...baseFact, verified: false, sourceUrl: "https://example.org/belum" } },
-    [
-      baseArticle,
-      {
-        ...baseArticle,
-        code: "A2",
-        title: "Artikel Dua",
-        sources: [{ title: "S", url: "https://example.org/s", publisher: "B", year: 2022 }],
-      },
-    ],
-  );
-
-  it("hanya memuat sumber terverifikasi; kelompok pertama terbuka, sisanya tertutup", () => {
-    expect(groups.map((g) => g.title)).toEqual([COPY["about.sources.facts"], "Artikel Dua"]);
-    const { container } = render(<SourceAccordion groups={groups} />);
-    const details = container.querySelectorAll("details");
-    expect(details).toHaveLength(2);
-    expect(details[0]?.open).toBe(true);
-    expect(details[1]?.open).toBe(false);
-    expect(screen.getAllByText("1 sumber")).toHaveLength(2);
-    for (const a of container.querySelectorAll("ol a")) {
-      expect(a.getAttribute("target")).toBe("_blank");
-      expect(a.getAttribute("rel")).toBe("noopener noreferrer");
-    }
-  });
-
-  it("menampilkan catatan bila belum ada sumber", () => {
-    render(<SourceAccordion groups={[]} />);
-    expect(screen.getByText(COPY["about.sources.empty"])).toBeTruthy();
-  });
-});
-
-describe("CreditChips", () => {
-  it("menampilkan seluruh isi credits.ts dalam tiga kelompok dan menyembunyikan metode TODO", () => {
-    const { container } = render(<CreditChips credits={CREDITS} />);
-    for (const c of CREDITS) expect(container.textContent).toContain(c.name);
-    expect(screen.getByRole("heading", { name: COPY["about.licenses.type.font"] })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: COPY["about.licenses.type.lib"] })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: COPY["about.licenses.group.asset"] })).toBeTruthy();
-    expect(container.textContent).not.toContain("TODO");
-  });
-
-  it("menulis nama font dengan font itu sendiri", () => {
-    render(<CreditChips credits={CREDITS} />);
-    const caveat = screen.getByText(/^Caveat/);
-    expect((caveat as HTMLElement).style.fontFamily).toBe("var(--font-hand)");
-  });
-});
-
 describe("AboutPage", () => {
-  it("menampilkan H1, subtema, bagian bertajuk, dan penutup tanpa teks TODO", () => {
+  it("memuat enam bagian berurutan dengan judul yang sama ukurannya", () => {
     const { container } = renderPage();
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(COPY["about.hero.title"]);
     expect(screen.getByText("Kampanye Peduli Lingkungan")).toBeTruthy();
     const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
-    expect(titles).toEqual(
-      expect.arrayContaining([
-        COPY["about.background.title"],
-        COPY["about.scenarios.title"],
-        COPY["about.temp.section"],
-        COPY["about.sources.title"],
-        COPY["about.licenses.title"],
-        COPY["about.team.title"],
-      ]),
-    );
-    expect(screen.getByText(COPY["about.closing"])).toBeTruthy();
-    expect(container.textContent).not.toContain("TODO");
+    expect(titles).toEqual([
+      COPY["about.background.title"],
+      COPY["about.scenarios.title"],
+      COPY["about.facts.title"],
+      COPY["about.temp.section"],
+    ]);
+    for (const h of screen.getAllByRole("heading", { level: 2 })) {
+      expect(h.className).toContain("t-h2");
+    }
+    // Hero, empat bagian bertajuk, dan penutup.
+    expect(container.querySelectorAll("header, section").length).toBe(6);
+    const closing = document.getElementById("penutup") as HTMLElement;
+    expect(within(closing).getByText(COPY["about.closing"])).toBeTruthy();
     expect(document.documentElement.dataset.page).toBe("about");
   });
 
-  it("memakai ulang teks copy.ts untuk latar belakang dan skenario", () => {
+  it("tidak memuat bagian Sumber data, Lisensi dan kredit, atau Tim", () => {
+    renderPage();
+    for (const key of ["about.sources.title", "about.licenses.title", "about.team.title"] as const) {
+      expect(screen.queryByRole("heading", { name: COPY[key] })).toBeNull();
+    }
+    expect(document.querySelector("details")).toBeNull();
+  });
+
+  it("tidak menampilkan placeholder, penanda DEV, atau teks TODO", () => {
+    const { container } = renderPage();
+    const text = container.textContent ?? "";
+    for (const bad of ["[DATA]", "menyusul", "TODO", "{X}"]) expect(text).not.toContain(bad);
+    expect(container.querySelector("[data-fact-pending]")).toBeNull();
+  });
+
+  it("dua skenario: teks baru, sama tinggi, tanpa angka atau kata suhu", () => {
+    renderPage();
+    const section = document.getElementById("dua-skenario") as HTMLElement;
+    const text = within(section).getByRole("list").textContent ?? "";
+    expect(text).toContain(COPY["about.scenario.a.title"]);
+    expect(text).toContain(COPY["about.scenario.a.body"]);
+    expect(text).toContain(COPY["about.scenario.b.title"]);
+    expect(text).toContain(COPY["about.scenario.b.body"]);
+    expect(within(section).getAllByRole("article")).toHaveLength(2);
+    expect(within(section).getByText("Skenario ilustrasi, bukan prediksi.")).toBeTruthy();
+    expect(section.textContent ?? "").not.toMatch(/\d|°|suhu|derajat|pemanasan/i);
+  });
+
+  it("memakai ulang teks latar belakang dari copy.ts", () => {
     renderPage();
     expect(screen.getByText(COPY["about.background.1"])).toBeTruthy();
     expect(screen.getByText(COPY["about.background.2"])).toBeTruthy();
-    expect(screen.getByText(COPY["about.scenario.body"])).toBeTruthy();
-    expect(screen.getByText(COPY["about.temp.band1.desc"])).toBeTruthy();
-    expect(screen.getByText(COPY["about.temp.band2.desc"])).toBeTruthy();
   });
 
-  it("hanya menampilkan fakta terverifikasi sebagai kartu (selebihnya penanda DEV)", () => {
+  it("angka suhu hanya ada di bagian Suhu dan target 1,5°C", () => {
+    renderPage();
+    const temp = document.getElementById("suhu") as HTMLElement;
+    expect(temp.textContent).toContain("1,5°C");
+    for (const id of ["latar-belakang", "dua-skenario", "angka"]) {
+      expect(document.getElementById(id)?.textContent ?? "").not.toContain("°C");
+    }
+  });
+
+  it("hanya menampilkan fakta terverifikasi sebagai kartu, masing-masing dengan chip sumber", () => {
     const { container } = renderPage();
     const cards = container.querySelectorAll("figure[data-cursor='info']");
     const verified = Object.values(FACTS as Record<string, Fact>).filter(
       (f) => f.verified && f.value !== null,
     );
-    // Satu kartu per fakta terverifikasi (di Latar belakang atau Angka); diagram suhu bukan kartu.
     expect(cards.length).toBe(verified.length);
-    for (const el of container.querySelectorAll("[data-fact-pending]")) {
-      expect(el.textContent).toContain(COPY["about.fact.dev"]);
-    }
+    for (const card of cards) expect(card.querySelector("a[rel='noopener noreferrer']")).toBeTruthy();
   });
 
-  it("menjadikan indeks samping hanya-baca (tanpa tombol atau tautan)", () => {
+  it("indeks samping enam entri, hanya-baca (tanpa tombol atau tautan)", () => {
     const { container } = renderPage();
     const aside = container.querySelector("aside");
     expect(aside?.getAttribute("aria-hidden")).toBe("true");
+    expect(aside?.querySelectorAll("li").length).toBe(6);
     expect(aside?.querySelector("a, button")).toBeNull();
   });
 

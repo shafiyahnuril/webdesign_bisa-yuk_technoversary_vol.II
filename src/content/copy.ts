@@ -89,8 +89,8 @@ export const COPY = {
   "about.why.body":
     "Re:bottle adalah cerita satu botol plastik. Dua kemungkinan perjalanannya: jika kita abai, dan jika kita peduli. Selebihnya, pilihan ada di tanganmu.",
   "about.scenario.title": "Cara membaca cerita ini",
-  "about.scenario.body":
-    "Babak I adalah skenario ilustratif, bukan ramalan. Angka suhu di penanda bab menggambarkan arah, bukan prediksi ilmiah per tahun.",
+  // Diganti 19 Nov 2026 atas permintaan Sophie (REVISI-ABOUT-2): label kecil di bawah dua kartu skenario.
+  "about.scenario.body": "Skenario ilustrasi, bukan prediksi.", // USULAN
   "about.temp.title": "Soal suhu",
   "about.temp.body":
     "Kenaikan suhu global disebabkan banyak hal, terutama emisi gas rumah kaca. Plastik berperan lewat emisi produksi dan pembakarannya, bukan satu-satunya penyebab.",
@@ -105,7 +105,6 @@ export const COPY = {
     "Di darat maupun di laut, plastik perlahan terpecah menjadi serpihan kecil yang sulit dikumpulkan lagi. Cerita ini mengikuti satu botol untuk memperlihatkan jalan itu, dan jalan lain yang bisa kita pilih.", // USULAN
   // Tambahan About [USULAN]: label UI; isi naskah tetap menunggu T8.2.
   "about.hero.title": "Kenapa Re:bottle?",
-  "about.fact.dev": "[DATA]",
   "about.temp.diagram.title": "Dua skenario suhu dalam cerita Re:bottle",
   "about.temp.diagram.note": "Ilustrasi alur cerita, bukan prediksi.",
   "about.temp.band1": "Babak I: skenario abai",
@@ -116,28 +115,20 @@ export const COPY = {
   "about.temp.table.scenario": "Skenario",
   "about.temp.table.from": "Awal",
   "about.temp.table.to": "Akhir",
-  "about.sources.facts": "Angka dalam cerita",
-  "about.sources.empty":
-    "Daftar sumber muncul di sini setelah setiap angka dan artikel selesai diverifikasi.",
-  "about.licenses.col.type": "Jenis",
-  "about.licenses.col.name": "Nama",
-  "about.licenses.col.author": "Pembuat",
-  "about.licenses.col.license": "Lisensi",
-  "about.licenses.type.font": "Font",
-  "about.licenses.type.lib": "Pustaka",
-  "about.licenses.type.illustration": "Ilustrasi",
-  "about.licenses.type.audio": "Audio",
-  "about.team.placeholder.name": "Nama anggota menyusul",
-  "about.team.placeholder.role": "Peran menyusul",
   "about.closing.contact": "Hubungi kami",
   // Revisi About [USULAN]: judul bagian dan label pendek; tidak ada klaim baru.
   "about.background.title": "Latar belakang", // USULAN
   "about.scenarios.title": "Dua skenario", // USULAN
   "about.facts.title": "Angka", // USULAN
   "about.temp.section": "Suhu dan target 1,5°C", // USULAN
-  "about.sources.count": "{n} sumber", // USULAN
-  "about.licenses.group.asset": "Aset", // USULAN
   "about.closing.home": "Ke beranda", // USULAN
+  // Dua skenario [USULAN] (REVISI-ABOUT-2): tanpa angka dan tanpa kata suhu.
+  "about.scenario.a.title": "Kebiasaan sekali pakai berlanjut", // USULAN
+  "about.scenario.a.body":
+    "Botol dipakai sekali lalu dibuang. Sampah plastik terus bertambah, dan sebagian berakhir di sungai dan laut.", // USULAN
+  "about.scenario.b.title": "Botol dibawa kembali", // USULAN
+  "about.scenario.b.body":
+    "Botol dipakai berulang kali dan dikembalikan untuk didaur ulang. Lebih sedikit botol yang dibuang.", // USULAN
 
   // Contact
   "contact.title": "Hubungi Kami",

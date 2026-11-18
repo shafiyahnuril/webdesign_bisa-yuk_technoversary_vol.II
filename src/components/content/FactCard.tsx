@@ -6,7 +6,7 @@ import { factParts, fillStatement } from "./factUtils";
 import { useInView } from "@/hooks/useInView";
 import styles from "./FactCard.module.css";
 
-export type FactCardSize = "wide" | "narrow";
+export type FactCardSize = "wide" | "narrow" | "full";
 
 interface FactCardProps {
   fact: Fact;
@@ -28,9 +28,9 @@ export function FactCard({ fact, size = "narrow", index = 0, as = "div", inline 
     <Appear
       as={as}
       index={index}
-      className={inline ? undefined : size === "wide" ? styles.wide : styles.narrow}
+      className={inline ? undefined : styles[`span-${size}`]}
     >
-      <figure ref={ref} className={`${styles.card} ${styles[size]}`} data-cursor="info" data-hover>
+      <figure ref={ref} className={`${styles.card} ${styles[size] ?? ""}`} data-cursor="info" data-hover>
         <p className={`t-mono ${styles.value}`} aria-hidden="true">
           {parts.prefix ? <span className={styles.prefix}>{parts.prefix}</span> : null}
           {parts.number === null ? (

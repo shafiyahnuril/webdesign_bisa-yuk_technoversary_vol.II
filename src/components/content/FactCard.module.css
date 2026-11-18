@@ -1,9 +1,14 @@
-.wide {
+/* Lebar kolom pada grid 12 kolom halaman: 7, 5, atau penuh (kartu ganjil terakhir). */
+.span-wide {
   grid-column: span 7;
 }
 
-.narrow {
+.span-narrow {
   grid-column: span 5;
+}
+
+.span-full {
+  grid-column: 1 / -1;
 }
 
 .card {
@@ -39,7 +44,8 @@
   font-size: calc(var(--t-data) * 0.8);
 }
 
-.wide .value {
+.wide .value,
+.full .value {
   font-size: var(--t-data);
 }
 
@@ -76,9 +82,10 @@ a.chip:hover {
   color: var(--page-accent);
 }
 
-@media (max-width: 767px) {
-  .wide,
-  .narrow {
+@media (max-width: 899px) {
+  .span-wide,
+  .span-narrow,
+  .span-full {
     grid-column: 1 / -1;
   }
 

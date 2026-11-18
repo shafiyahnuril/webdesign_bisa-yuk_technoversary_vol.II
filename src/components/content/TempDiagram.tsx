@@ -11,8 +11,22 @@ const TICKS = [
   { t: 1.5, label: "1,5°C", kind: "target" },
   { t: 2, label: "2,0°C", kind: "minor" },
   { t: 4, label: "4,0°C", kind: "plain" },
-  { t: 4.5, label: "4,5°C", kind: "last" },
 ] as const;
+
+/** Garis panduan sumbu di dalam satu lajur (tidak melewati teks nama skenario). */
+function Guides() {
+  return (
+    <>
+      {TICKS.map((m) => (
+        <span
+          key={m.t}
+          className={m.kind === "target" ? styles.targetLine : styles.guide}
+          style={{ left: `${pct(m.t)}%` }}
+        />
+      ))}
+    </>
+  );
+}
 
 /** Diagram statis dua skenario suhu. Pita terisi dari kiri (transform: scaleX) saat masuk layar. */
 export function TempDiagram() {
@@ -23,17 +37,10 @@ export function TempDiagram() {
     <figure className={styles.figure} ref={ref} aria-label={COPY["about.temp.diagram.title"]}>
       <div className={styles.chart} aria-hidden="true">
         <div className={styles.track}>
-          {TICKS.map((m) => (
-            <span
-              key={m.t}
-              className={m.kind === "target" ? styles.targetLine : styles.guide}
-              style={{ left: `${pct(m.t)}%` }}
-            />
-          ))}
-
           <div className={styles.row}>
             <p className={`t-ui-sm ${styles.name}`}>{COPY["about.temp.band1"]}</p>
             <div className={styles.lane}>
+              <Guides />
               <span
                 className={`${styles.bar} ${styles.bar1}`}
                 style={{ left: `${pct(1.2)}%`, width: `${pct(4) - pct(1.2)}%` }}
@@ -47,6 +54,7 @@ export function TempDiagram() {
           <div className={styles.row}>
             <p className={`t-ui-sm ${styles.name}`}>{COPY["about.temp.band2"]}</p>
             <div className={styles.lane}>
+              <Guides />
               <span
                 className={`${styles.bar} ${styles.bar2}`}
                 style={{ left: `${pct(1.2)}%`, width: `${pct(1.5) - pct(1.2)}%` }}

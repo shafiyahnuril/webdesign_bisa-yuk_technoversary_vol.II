@@ -75,16 +75,25 @@
   margin: 0;
 }
 
-.split {
+/* Satu grid 12 kolom untuk semua bagian: 7 + 5 (Latar belakang), 5 + 7 (Suhu), daftar Angka. */
+.grid {
   display: grid;
-  gap: var(--s-7);
+  gap: var(--s-5);
+  grid-template-columns: 1fr;
   align-items: start;
 }
 
 @media (min-width: 900px) {
-  .split {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
-    gap: var(--s-9);
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .colWide {
+    grid-column: span 7;
+  }
+
+  .colNarrow {
+    grid-column: span 5;
   }
 }
 
@@ -95,33 +104,16 @@
 }
 
 .facts {
-  display: grid;
-  gap: var(--s-5);
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: stretch;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 899px) {
   .facts {
     grid-template-columns: 1fr;
   }
-}
-
-.dev {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.dev li {
-  padding: var(--s-1) var(--s-3);
-  border: var(--line-thin) dashed color-mix(in srgb, var(--page-ink) 40%, transparent);
-  border-radius: var(--r-full);
 }
 
 @media (prefers-reduced-motion: reduce) {

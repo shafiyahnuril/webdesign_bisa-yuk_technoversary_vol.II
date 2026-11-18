@@ -118,10 +118,6 @@
   translate: 0 0;
 }
 
-.last {
-  translate: -100% 0;
-}
-
 .target {
   color: var(--page-accent);
   font-weight: 700;
