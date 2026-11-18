@@ -24,7 +24,7 @@
 | T1.13 | Overlay `Overlays`: butiran, vignette (CSS), retak latar (placeholder) | Pihak A | siap |  |
 | T2.1 | `AppShell`, `SkipLink`, `RouteTransition`, `RouteAnnouncer`, `Seo`, tema per halaman (`data-page`) | Pihak B | selesai (bagian B: tema, PageHero, Reveal, RouteFade, fokus H1; `RouteTransition` menunggu A memasang) |  |
 | T2.2 | Navbar statis (menempel, latar muncul saat gulir > 8 px) di non-Home | Pihak A | siap |  |
-| T2.3 | `AboutPage` (7 bagian), `FactBlock`, `TempDiagram`, `SourceList`, `LicenseTable`, `TeamGrid`, `ClosingStrip` | Pihak B | siap |  |
+| T2.3 | `AboutPage` (7 bagian), `FactBlock`, `TempDiagram`, `SourceList`, `LicenseTable`, `TeamGrid`, `ClosingStrip` | Pihak B | selesai (data fakta, tim, dan keterangan alat ilustrasi masih menunggu isian) |  |
 | T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Pihak B | siap |  |
 | T2.5 | `ParticleField` (kanvas 2D) | Pihak B | siap |  |
 | T2.6 | `CursorRing` aktif di `#/konten` + label "Baca" | Pihak B | siap |  |
@@ -95,6 +95,10 @@
 | T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Pihak B | siap |  |
 
 ## Catatan untuk sesi berikutnya
+- **Selesai (T2.3):** `AboutPage` 7 bagian + `FactBlock`, `TempDiagram` (SVG inline, `scaleX` 0,9 dtk, tabel ringkasan `sr-only`), `SourceList` (+ `sourceGroups.ts`), `LicenseTable` (kartu di HP), `TeamGrid`, `ClosingStrip` di `src/components/content/`. Tes: `AboutPage.test.tsx`. Bukti lokal: `docs/bukti/T2.3/`.
+- **Perilaku data:** semua fakta masih `verified: false`, jadi `FactBlock` tersembunyi di produksi (DEV: penanda `[DATA]`); daftar sumber menampilkan catatan kosong sampai T8.1/T8.3 terisi. Tim tampil placeholder (`site.ts` masih `TODO`); metode ilustrasi `TODO` tidak ditampilkan; keterangan alat bantu ilustrasi belum ditulis (menunggu info Pihak A).
+- **Keputusan [USULAN]:** kunci `about.*` tambahan di `copy.ts` (H1 "Kenapa Re:bottle?", label diagram, kepala tabel, placeholder tim). Lede hero memakai `about.why.body`; bagian Latar isu memakai `about.scenario.*`. Dua paragraf latar isu menunggu naskah T8.2 (`TODO(T8.2)` di kode).
+- **Menunggu Pihak A:** "Re:" pada Navbar statis belum menyala penuh di About (brand tampil "bottle"); komponen milik A.
 - **Selesai (T2.1, bagian Pihak B):** `src/styles/pages.css` (lima tema `[data-page]`, nilai dok 05 §1.1, kontras ink/bg ≥ 4,5:1 diuji di `pages.test.tsx`), `ui/usePageTheme`, `ui/PageHero` (H1 menerima fokus setelah pindah rute lewat klik tautan; dilewati pada muat pertama), `ui/Reveal`, `ui/RouteFade` (belum dipasang), kelima halaman memakai tema.
 - **Selesai (T2.9):** `NotFoundPage` memakai `PageHero` + tema `notfound`, teks dari `COPY["404.*"]`, aset A `public/img/s-404.svg` (dekoratif, melayang CSS transform, mati saat reduced-motion; tanpa `BottleMini` karena aset sudah ada), tombol "Kembali ke awal" ke `#/`. Tes: `NotFoundPage.test.tsx`. G2 tuntas. Catatan: `usePageFocus` melewati fokus pada muat pertama (key "default"), sehingga membuka URL 404 langsung tidak memindah fokus ke H1; ini perilaku T2.1 yang disengaja (agar tautan lompat tetap jalan).
 - **Keputusan:** `pages.css` diimpor dari `usePageTheme.ts` (tanpa menyentuh `main.tsx`). Aksen konten/artikel (3,51 dan 3,84 : 1) hanya untuk elemen besar/dekoratif.
