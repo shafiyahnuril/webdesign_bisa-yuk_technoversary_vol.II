@@ -80,15 +80,9 @@ describe("Navbar & MenuPanel", () => {
 
   it("menerapkan histeresis shown 0.003 / 0.01 pada Navbar varian home", () => {
     window.scrollTo = () => {};
-    let tickFn: ((dt: number) => void) | null = null;
     const engine = createStoryEngine({
       scheduler: {
-        add(fn) {
-          tickFn = fn;
-          return () => {
-            tickFn = null;
-          };
-        },
+        add() { return () => {}; },
       },
     });
 
@@ -114,7 +108,7 @@ describe("Navbar & MenuPanel", () => {
     Object.defineProperty(window, "scrollY", { value: 500, configurable: true });
     window.dispatchEvent(new Event("scroll"));
     act(() => {
-      for (let i = 0; i < 30; i++) tickFn?.(1 / 60);
+      engine.preview?.(0.012);
     });
     expect(engine.state.shown).toBeGreaterThan(0.01);
     expect(header.getAttribute("data-nav")).toBe("collapsed");
@@ -123,7 +117,7 @@ describe("Navbar & MenuPanel", () => {
     Object.defineProperty(window, "scrollY", { value: 54, configurable: true });
     window.dispatchEvent(new Event("scroll"));
     act(() => {
-      for (let i = 0; i < 40; i++) tickFn?.(1 / 60);
+      engine.preview?.(0.006);
     });
     expect(engine.state.shown).toBeGreaterThan(0.003);
     expect(engine.state.shown).toBeLessThan(0.01);
@@ -133,7 +127,7 @@ describe("Navbar & MenuPanel", () => {
     Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
     window.dispatchEvent(new Event("scroll"));
     act(() => {
-      for (let i = 0; i < 40; i++) tickFn?.(1 / 60);
+      engine.preview?.(0.002);
     });
     expect(engine.state.shown).toBeLessThan(0.003);
     expect(header.getAttribute("data-nav")).toBe("open");
