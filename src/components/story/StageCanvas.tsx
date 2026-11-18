@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { computeCues } from "@/engine/cues";
 import { storyEngine, type StoryEngine } from "@/engine/story-engine";
 import { onTick } from "@/engine/ticker";
+import { LENGTHS_VH, ORDER, chapterAt, segmentAt } from "@/engine/timeline";
+import type { DebugOverlay } from "@/lib/debug";
 import type { Stage } from "@/stage/stage";
 import type { SceneDirector } from "@/stage/director";
 import type { QualityTier } from "@/stage/quality";
@@ -39,6 +41,9 @@ export function StageCanvas({
     let stopIdle: (() => void) | undefined;
     let readyFrame = 0;
     let pausedTime = 0;
+    let overlay: DebugOverlay | undefined;
+    let inspectFrame: ((shown: number, dt: number) => void) | undefined;
+    let captureProgress: number | null = null;
     const teardown = () => {
       if (cleaned) return;
       cleaned = true;
@@ -47,6 +52,13 @@ export function StageCanvas({
       cancelAnimationFrame(readyFrame);
       director?.dispose();
       stage?.dispose();
+      overlay?.dispose();
+      if (import.meta.env.DEV) {
+        delete document.documentElement.dataset.capture;
+        delete document.documentElement.dataset.captureReady;
+        delete document.documentElement.dataset.captureProgress;
+        delete window.__REBOTTLE_CAPTURE_SEGMENTS__;
+      }
     };
     const fail = (reason: unknown) => {
       if (cancelled || failed) return;
@@ -64,7 +76,7 @@ export function StageCanvas({
       import("@/stage/director"),
       import("@/stage/scenes"),
     ])
-      .then(([{ createStage }, { SceneDirector }, { createScenes }]) => {
+      .then(async ([{ createStage }, { SceneDirector }, { createScenes }]) => {
         if (cancelled || failed) return;
         stage = createStage(canvas, undefined, {
           container: canvas.parentElement ?? undefined,
@@ -76,11 +88,14 @@ export function StageCanvas({
         const renderFrame = (shown: number, dt: number) => {
           if (cancelled || failed || document.visibilityState === "hidden") return;
           try {
-            const cues = computeCues(shown);
+            const progress = captureProgress ?? shown;
+            const delta = captureProgress === null ? dt : 0;
+            const cues = computeCues(progress);
             stage!.ctx.lights.rim.intensity = cues.rim;
             stage!.ctx.scene.environmentIntensity = cues.env;
-            director!.update(shown, dt);
-            stage!.render(dt);
+            director!.update(progress, delta);
+            stage!.render(delta);
+            inspectFrame?.(progress, delta);
           } catch (error) {
             fail(error);
           }
@@ -94,6 +109,39 @@ export function StageCanvas({
           renderFrame(engine.state.shown, Math.min(pausedTime, 1 / 15));
           pausedTime = 0;
         });
+        if (import.meta.env.DEV) {
+          const debug = await import("@/lib/debug");
+          if (cancelled || failed) return;
+          const flags = debug.getDevFlags();
+          overlay = debug.createDebugOverlay(flags.debug);
+          captureProgress = flags.freeze;
+          if (flags.capture) document.documentElement.dataset.capture = flags.capture;
+          inspectFrame = (shown, dt) => {
+            const info = stage!.ctx.renderer.info;
+            overlay!.update({
+              shown,
+              target: engine.state.target,
+              chapter: chapterAt(shown),
+              t: segmentAt(shown).t,
+              fps: dt > 0 ? 1 / dt : 0,
+              tier: stage!.ctx.quality,
+              calls: info.render.calls,
+              triangles: info.render.triangles,
+              geometries: info.memory.geometries,
+              textures: info.memory.textures,
+            });
+            if (flags.capture) {
+              debug.publishCaptureState(
+                shown,
+                ORDER.map((id) => ({ id, length: LENGTHS_VH[id] })),
+              );
+            }
+          };
+          if (captureProgress !== null) {
+            engine.preview?.(captureProgress);
+            engine.pause();
+          }
+        }
         renderFrame(engine.state.shown, 0);
         // ResizeObserver boleh mengosongkan buffer pertama sebelum paint.
         readyFrame = requestAnimationFrame(() => {
@@ -114,5 +162,5 @@ export function StageCanvas({
     };
   }, [engine, reducedMotion]);
 
-  return <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />;
+  return <canvas ref={canvasRef} className={styles.canvas} data-capture-stage="" aria-hidden="true" />;
 }

@@ -92,6 +92,25 @@ describe("story-engine & input", () => {
     expect(typeof storyEngine.setViewportCache).toBe("function");
   });
 
+  it("pratinjau DEV menyamakan target, shown, palet, dan pelanggan untuk capture deterministik", () => {
+    mockScrollEnv();
+    const { scheduler } = createManualScheduler();
+    const root = document.createElement("div");
+    const domRoot = document.createElement("div");
+    const engine = createStoryEngine({ scheduler, domRoot });
+    engine.mount(root);
+    activeCleanups.push(() => engine.unmount());
+    const frame = vi.fn();
+    engine.onFrame(frame);
+    engine.preview?.(STARTS.b7);
+    expect(engine.state.shown).toBe(STARTS.b7);
+    expect(engine.state.target).toBe(STARTS.b7);
+    expect(engine.state.view).toBe("2");
+    expect(domRoot.dataset.re).toBe("on");
+    expect(frame).toHaveBeenLastCalledWith(STARTS.b7, 0);
+    engine.unmount();
+  });
+
   it("mount menyiapkan tinggi scroller dvh, history manual, dan init render 0", () => {
     mockScrollEnv(23400, 1000);
     const { scheduler } = createManualScheduler();

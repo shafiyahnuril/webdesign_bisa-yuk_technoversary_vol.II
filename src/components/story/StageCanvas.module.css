@@ -6,3 +6,8 @@
   display: block;
   pointer-events: none;
 }
+
+:global(html[data-capture="poster"] [data-story-ui]),
+:global(html[data-capture="poster"] [data-story-poster]) {
+  visibility: hidden !important;
+}

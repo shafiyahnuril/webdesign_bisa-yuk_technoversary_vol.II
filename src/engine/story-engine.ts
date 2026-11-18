@@ -44,6 +44,8 @@ export interface StoryEngine {
   onFrame(fn: (shown: number, dt: number) => void): () => void;
   onChapter(fn: (chapter: number, view: StoryState["view"]) => void): () => void;
   setViewportCache(): void;
+  /** Pratinjau deterministik hanya tersedia pada build pengembangan. */
+  preview?(progress: number): void;
 }
 
 const DEFAULT_SCHEDULER: StoryScheduler = {
@@ -319,6 +321,17 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
     onFrame,
     onChapter,
     setViewportCache,
+    ...(import.meta.env.DEV
+      ? {
+          preview(progress: number) {
+            const p = Number.isFinite(progress) ? clamp01(progress) : 0;
+            state.target = p;
+            state.shown = p;
+            safeScrollToTop(p * maxScroll);
+            renderFrame(p, 0, true);
+          },
+        }
+      : {}),
   };
 }
 
