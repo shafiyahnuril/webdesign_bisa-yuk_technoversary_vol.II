@@ -73,6 +73,7 @@ export function StageCanvas({
       engine.setReady?.(true);
       overlay?.dispose();
       if (import.meta.env.DEV) {
+        if (window.__REBOTTLE_RUNTIME__?.stage === stage) delete window.__REBOTTLE_RUNTIME__;
         delete document.documentElement.dataset.capture;
         delete document.documentElement.dataset.captureReady;
         delete document.documentElement.dataset.captureProgress;
@@ -196,6 +197,7 @@ export function StageCanvas({
           const debug = await import("@/lib/debug");
           if (cancelled || failed) return;
           const flags = debug.getDevFlags();
+          if (flags.debug) window.__REBOTTLE_RUNTIME__ = { engine, stage, director };
           overlay = debug.createDebugOverlay(flags.debug);
           captureProgress = flags.freeze;
           if (flags.capture) document.documentElement.dataset.capture = flags.capture;

@@ -1,3 +1,7 @@
+import type { StoryEngine } from "@/engine/story-engine";
+import type { Stage } from "@/stage/stage";
+import type { SceneDirector } from "@/stage/director";
+
 // Alat diagnostik DEV (?debug, ?freeze, ?noaudio, ?capture).
 // Seluruh parsing dan literal dev dibungkus import.meta.env.DEV agar hilang total di dist/.
 
@@ -34,6 +38,7 @@ export interface CaptureSegmentInfo {
 declare global {
   interface Window {
     __REBOTTLE_CAPTURE_SEGMENTS__?: readonly CaptureSegmentInfo[];
+    __REBOTTLE_RUNTIME__?: { engine: StoryEngine; stage: Stage; director: SceneDirector };
   }
 }
 
@@ -72,6 +77,7 @@ export function createDebugOverlay(enabled = getDevFlags().debug): DebugOverlay 
   }
 
   const el = document.createElement("aside");
+  el.dataset.debugOverlay = "";
   el.setAttribute("aria-hidden", "true");
   el.style.cssText = [
     "position:fixed",
