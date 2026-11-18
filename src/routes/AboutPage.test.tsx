@@ -6,7 +6,7 @@ import { LicenseTable } from "@/components/content/LicenseTable";
 import { SourceList } from "@/components/content/SourceList";
 import { buildSourceGroups } from "@/components/content/sourceGroups";
 import { TempDiagram } from "@/components/content/TempDiagram";
-import type { Article } from "@/content/articles";
+import { ARTICLES, type Article } from "@/content/articles";
 import { COPY } from "@/content/copy";
 import type { Fact } from "@/content/facts";
 import AboutPage from "./AboutPage";
@@ -129,7 +129,9 @@ describe("AboutPage", () => {
     );
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(COPY["about.hero.title"]);
     expect(screen.getByText("Kampanye Peduli Lingkungan")).toBeTruthy();
-    expect(container.querySelectorAll("section").length).toBe(7);
+    // 7 bagian halaman + satu grup sumber per artikel yang sudah punya sumber.
+    const articleGroups = ARTICLES.filter((a) => a.sources.length > 0).length;
+    expect(container.querySelectorAll("section").length).toBe(7 + articleGroups);
     expect(screen.getByText(COPY["about.closing"])).toBeTruthy();
     expect(container.textContent).not.toContain("TODO");
     expect(document.documentElement.dataset.page).toBe("about");

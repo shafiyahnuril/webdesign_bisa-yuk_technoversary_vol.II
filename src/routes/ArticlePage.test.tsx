@@ -37,12 +37,18 @@ describe("nextInOrder", () => {
 describe("ArticlePage", () => {
   const first = sortDefault(ARTICLES)[0]!;
 
-  it("menampilkan H1, label ganda, gambar judul, keadaan kosong, dan artikel berikutnya", () => {
+  it("menampilkan H1, label ganda, gambar judul, isi atau keadaan kosong, dan artikel berikutnya", () => {
     renderAt(`/konten/${first.slug}`);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(first.title);
-    expect(screen.getByText("Negatif · Sehari-hari")).toBeTruthy();
-    expect(screen.queryByText(/menit baca/)).toBeNull();
-    expect(screen.getByText(COPY["article.empty"])).toBeTruthy();
+    expect(screen.getByText(/^Negatif · Sehari-hari/)).toBeTruthy();
+    if (first.lede) {
+      expect(screen.getByText(first.lede)).toBeTruthy();
+      expect(screen.queryByText(COPY["article.empty"])).toBeNull();
+      expect(screen.getAllByRole("link", { name: /.+/ }).length).toBeGreaterThan(0);
+    } else {
+      expect(screen.queryByText(/menit baca/)).toBeNull();
+      expect(screen.getByText(COPY["article.empty"])).toBeTruthy();
+    }
     expect(screen.getByRole("img", { name: /Gambar judul artikel/ })).toBeTruthy();
     expect(screen.getByRole("heading", { name: COPY["article.next"] })).toBeTruthy();
   });
