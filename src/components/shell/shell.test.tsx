@@ -82,7 +82,9 @@ describe("Navbar & MenuPanel", () => {
     window.scrollTo = () => {};
     const engine = createStoryEngine({
       scheduler: {
-        add() { return () => {}; },
+        add() {
+          return () => {};
+        },
       },
     });
 
