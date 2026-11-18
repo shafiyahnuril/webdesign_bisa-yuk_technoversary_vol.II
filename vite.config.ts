@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig(({ mode }) => ({
-  // base relatif: aman di GitHub Pages (sub-path) maupun dibuka lokal
+  // base relatif: aman di sub-path mana pun maupun dibuka lokal
   base: "./",
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
