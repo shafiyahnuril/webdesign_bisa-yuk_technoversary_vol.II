@@ -1,0 +1,49 @@
+.staticStory {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background-color: var(--c1-bg);
+  color: var(--c1-ink);
+}
+
+.progressAside {
+  position: fixed;
+  right: var(--gutter-page);
+  bottom: var(--s-5);
+  z-index: var(--z-marker);
+  pointer-events: none;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-pill);
+  background: rgba(18, 17, 16, 0.78);
+  border: var(--line-hair) solid rgba(242, 236, 225, 0.16);
+}
+
+.progressLabel {
+  font-family: var(--font-mono);
+  font-size: var(--t-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c1-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.panelList {
+  display: flex;
+  flex-direction: column;
+}
+
+.lockedFooter {
+  padding: var(--s-7) var(--gutter-page);
+  text-align: center;
+  background: var(--c1-bg);
+  color: var(--c1-muted);
+  border-top: var(--line-hair) solid var(--c1-rule);
+}
+
+.lockedText {
+  margin: 0 auto;
+  max-width: 54ch;
+  font-family: var(--font-mono);
+  font-size: var(--t-ui);
+  line-height: 1.5;
+}

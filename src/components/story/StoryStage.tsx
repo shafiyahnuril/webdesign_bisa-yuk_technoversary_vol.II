@@ -77,20 +77,26 @@ export function StoryStage({
 
         {/* z20: Slot StageCanvas 3D + poster awal */}
         <div className={styles.canvasSlot} data-stage-canvas-slot>
-          {!canvasReady ? (
-            <picture
-              className={`${styles.poster} ${chapter > 1 ? styles.posterHidden : ""}`}
-              data-story-poster
-            >
-              <source media="(max-width: 768px)" srcSet={posterMobile} />
-              <img
-                src={posterDesktop}
-                alt=""
-                className={styles.posterImg}
-                decoding="async"
-              />
-            </picture>
-          ) : null}
+          <picture
+            className={`${styles.poster} ${canvasReady || chapter > 1 ? styles.posterHidden : ""}`}
+            data-story-poster
+          >
+            <source
+              media="(max-width: 768px)"
+              srcSet={posterMobile}
+              width={800}
+              height={1200}
+            />
+            <img
+              src={posterDesktop}
+              alt=""
+              width={1600}
+              height={900}
+              fetchPriority="high"
+              className={styles.posterImg}
+              decoding="async"
+            />
+          </picture>
           {children}
         </div>
 

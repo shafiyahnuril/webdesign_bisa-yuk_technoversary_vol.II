@@ -1,17 +1,7 @@
-.home {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--s-5);
+.homeRoot {
+  position: relative;
+  width: 100%;
   min-height: 100dvh;
-  padding: var(--s-10) var(--gutter-page);
-  background: var(--hero-bg);
-  color: var(--c1-ink);
-  text-align: center;
-}
-
-.hint {
-  font: 500 var(--t-ui) / 1.2 var(--font-ui);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  background-color: var(--bg-now);
+  color: var(--ink-now);
 }

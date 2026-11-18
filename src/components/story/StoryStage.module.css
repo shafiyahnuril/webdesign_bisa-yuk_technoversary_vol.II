@@ -27,7 +27,8 @@
   display: grid;
   place-items: center;
   pointer-events: none;
-  transition: opacity var(--dur-base) var(--ease-gate);
+  opacity: 1;
+  transition: opacity 0.3s var(--ease-gate);
 }
 
 .posterHidden {

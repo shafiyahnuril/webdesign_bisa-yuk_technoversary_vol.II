@@ -1,0 +1,315 @@
+.panel {
+  min-height: 85dvh;
+  padding: var(--s-10) var(--gutter-page);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: var(--line-hair) solid var(--rule-now);
+  transition:
+    background-color var(--dur-slow) var(--ease-out-expo),
+    color var(--dur-slow) var(--ease-out-expo);
+}
+
+.theme_dark {
+  background-color: var(--c1-bg);
+  color: var(--c1-ink);
+  --ink-now: var(--c1-ink);
+  --muted-now: var(--c1-muted);
+  --rule-now: var(--c1-rule);
+  --accent-now: var(--c1-accent);
+}
+
+.theme_punch {
+  background-color: #0b0e13;
+  color: #f4efe6;
+  --ink-now: #f4efe6;
+  --muted-now: #b4aca0;
+  --rule-now: rgba(244, 239, 230, 0.14);
+  --accent-now: #d4893b;
+}
+
+.theme_act2 {
+  background-color: #161816;
+  color: #ece8de;
+  --ink-now: #ece8de;
+  --muted-now: #a8b0a3;
+  --rule-now: rgba(236, 232, 222, 0.14);
+  --accent-now: #8fb886;
+}
+
+.theme_light {
+  background-color: var(--c10-bg);
+  color: var(--c10-ink);
+  --ink-now: var(--c10-ink);
+  --muted-now: var(--c10-muted);
+  --rule-now: var(--c10-rule);
+  --accent-now: var(--c10-accent);
+}
+
+.inner {
+  width: min(880px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.heroBanner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.heroBrand {
+  color: var(--ink-now);
+}
+
+.scenarioNotice {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-ui);
+  line-height: 1.5;
+  color: var(--muted-now);
+  max-width: 60ch;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-now);
+}
+
+.chapterBadge {
+  font-weight: 600;
+}
+
+.tempBadge {
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  border: var(--line-hair) solid var(--rule-now);
+  color: var(--muted-now);
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-ch);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  outline: none;
+}
+
+.punchHeading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-punch);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  outline: none;
+}
+
+.figure {
+  margin: 0;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--r-card);
+  overflow: hidden;
+  border: var(--line-hair) solid var(--rule-now);
+  background: rgba(11, 14, 19, 0.35);
+}
+
+.illustration {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+.lead {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-display);
+  font-size: var(--t-lead);
+  font-weight: 500;
+  line-height: 1.38;
+  color: var(--ink-now);
+}
+
+.body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: 1.68;
+  color: var(--muted-now);
+}
+
+.whisper {
+  margin: var(--s-3) 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--t-body);
+  color: var(--accent-now);
+}
+
+.metricBadge {
+  display: inline-block;
+  margin-bottom: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-num);
+  font-weight: 500;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-now);
+}
+
+.flashNote,
+.factLine {
+  margin: var(--s-3) 0 0;
+  padding-top: var(--s-3);
+  border-top: var(--line-hair) solid var(--rule-now);
+  font-family: var(--font-mono);
+  font-size: var(--t-ui);
+  line-height: 1.5;
+  color: var(--accent-now);
+}
+
+.stationList {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-ui);
+}
+
+.stationList li {
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  border: var(--line-hair) solid var(--rule-now);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.stationList strong {
+  color: var(--accent-now);
+}
+
+.letterStatic {
+  margin: 0;
+  max-width: 28ch;
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-card);
+  background: var(--letter-card-bg);
+  border: var(--line-hair) solid var(--letter-card-border);
+  font-family: var(--font-hand);
+  font-size: var(--t-hand);
+  font-weight: 600;
+  line-height: 1.38;
+  color: var(--ink-now);
+  transform: rotate(-1.2deg);
+}
+
+.letterLight {
+  background: rgba(244, 239, 230, 0.88);
+  border-color: var(--c10-rule);
+  color: var(--c10-ink);
+}
+
+.punchSub {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: 1.65;
+  color: var(--muted-now);
+  max-width: 56ch;
+}
+
+.closingBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+}
+
+.ctaHeadline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-ch);
+  font-weight: 600;
+  line-height: 1.08;
+  color: var(--c10-ink);
+}
+
+.restartBtn {
+  appearance: none;
+  padding: var(--s-3) var(--s-6);
+  border-radius: var(--r-pill);
+  border: var(--line-thin) solid var(--c10-accent);
+  background: var(--c10-accent);
+  color: var(--c10-bg);
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.restartBtn:focus-visible,
+.unlockBtn:focus-visible {
+  outline: 2px solid var(--accent-now);
+  outline-offset: 4px;
+}
+
+.unlockRow {
+  margin-top: var(--s-2);
+}
+
+.unlockBtn {
+  appearance: none;
+  padding: var(--s-2) var(--s-4);
+  border-radius: var(--r-pill);
+  border: var(--line-hair) solid var(--rule-now);
+  background: transparent;
+  color: var(--muted-now);
+  font-family: var(--font-mono);
+  font-size: var(--t-ui);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: none;
+  }
+
+  .letterStatic {
+    transform: none;
+  }
+}
