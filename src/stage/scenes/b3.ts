@@ -124,9 +124,9 @@ export function createB3Scene(): Scene {
       ctx.lights.spot.intensity = 0;
       ctx.scene.environmentIntensity = lerp(CUES.c3.env, CUES.c4.env, cueMix) * lightScale;
 
-      // Botol: jatuh t 0..0.10, lalu hanyut sedikit lebih lambat dari kamera (bergeser ke kiri bingkai)
-      const bottleX = -5.1 + 9.4 * t;
-      const bottleZ = lerp(0.85, 0.15, estuaryMix);
+      // Botol: jatuh t 0..0.10, lalu hanyut sedikit lebih lambat dari kamera (bergeser pelan ke kiri tanpa terpotong)
+      const bottleX = -4.92 + 10.9 * t;
+      const bottleZ = lerp(0.45, 0.15, estuaryMix);
       const waveSample = water.sampleHeightAndNormal(bottleX, bottleZ, waveNormal);
 
       let bottleY: number;

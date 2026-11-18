@@ -202,4 +202,49 @@ describe("CityEnvironment & Scene B3 (Tersesat)", () => {
     ctx.shared.bottle.dispose();
     ctx.shared.contactShadow.dispose();
   });
+
+  it("menjaga siluet botol B3 utuh di kolom kiri pada layar 1600x900 tanpa terpotong tepi kiri atau menabrak teks kanan", () => {
+    const ctx = makeTestContext("high", 1600 / 900);
+    ctx.size.w = 1600;
+    ctx.size.h = 900;
+    const b3 = createB3Scene();
+    b3.build(ctx);
+    b3.enter();
+
+    const bottlePts = [
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, 2.1, 0),
+      new THREE.Vector3(-0.325, 1.05, 0),
+      new THREE.Vector3(0.325, 1.05, 0),
+    ];
+
+    for (const t of [0.1, 0.25, 0.4, 0.55, 0.72, 0.9]) {
+      b3.update(t, 0.1429 + t * 0.089, 0);
+      ctx.camera.updateMatrixWorld(true);
+      ctx.shared.bottle.group.updateMatrixWorld(true);
+
+      let minNdcX = Infinity;
+      let maxNdcX = -Infinity;
+      for (const localPt of bottlePts) {
+        const projected = localPt
+          .clone()
+          .applyMatrix4(ctx.shared.bottle.group.matrixWorld)
+          .project(ctx.camera);
+        minNdcX = Math.min(minNdcX, projected.x);
+        maxNdcX = Math.max(maxNdcX, projected.x);
+      }
+
+      // Tidak terpotong tepi kiri (minNdcX > -0.92) dan tetap berada di kolom kiri saat teks kanan aktif
+      expect(minNdcX).toBeGreaterThan(-0.92);
+      if (t >= 0.25) {
+        expect(maxNdcX).toBeLessThan(0.14);
+      }
+    }
+
+    b3.exit();
+    b3.dispose();
+    ctx.shared.water?.dispose?.();
+    ctx.shared.bottle.dispose();
+    ctx.shared.contactShadow.dispose();
+  });
 });
