@@ -1,5 +1,5 @@
 // Naskah situs berdasarkan kunci final (docs/11 bagian 2 dan 5).
-// Teks bertanda [DISEPAKATI] di dokumen tidak boleh diubah tanpa persetujuan tim.
+// Revisi narasi Home disetujui pemilik proyek; identitas, konteks skenario, dan CTA dipertahankan.
 // Angka tidak ditulis di sini: gunakan kunci di facts.ts.
 
 export const COPY = {

@@ -21,3 +21,5 @@ Tidak memakai ScrollTrigger kedua: engine dan seluruh tampilan tetap berbagi sat
 B3–B5 menggunakan fase gelombang berbasis waktu, terpisah dari progres gulir. B3/B4 memakai redaman kritis posisi dan slerp dengan batas kemiringan ±5°; B5 menghapus getaran berfrekuensi tinggi. Pengujian mencakup scrub maju-mundur, reset, dt=0, serta sampling CPU dan shader air.
 
 Pakaian memakai shell kain bervolume dengan bahu/lengan jatuh, lipatan gravitasi, kelim melengkung, dan flutter maksimum 0,004 unit. Tas memakai sag; kayu, keramik, dan metal tetap rigid. Normal kain diperkecil menjadi 0,14–0,20 dan anyaman diperkecil skalanya agar tidak tampak seperti permukaan plastik timbul.
+
+Reset loop juga menahan sisa momentum pointer sampai tidak ada masukan selama 350 ms, sehingga akhir satu gestur tidak langsung menggerakkan hero kembali. Keyboard dan gestur baru setelah jeda tetap diterima. Bab 7 memakai offset proyeksi kamera desktop untuk memisahkan tiga tempat sampah dari kolom narasi tanpa mengubah koordinat aksi tangan dan botol.

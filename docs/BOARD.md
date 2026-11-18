@@ -146,3 +146,14 @@
 - Pengguna meminta revisi visual besar: material PBR dan warna komponen, layout editorial tanpa kotak besar, narasi lebih emosional, audio dinamis, serta motion lebih lambat. Revisi ini menggantikan batas visual prototipe yang lebih ketat; konsep utama tetap.
 - T6.1/T6.2 mempunyai baseline baru dan regresi, tetapi tuning perangkat fisik belum disahkan. T10.1 mempunyai ukuran serta pengecualian tercatat. T10.2 mempunyai profil software dan lifecycle, bukan klaim target FPS perangkat nyata. T11.4 mempunyai panduan demo; latihan/video opsional belum dilakukan.
 - Data tim, kontak produksi, endpoint dan artikel/README final tetap mengikuti pekerjaan dan konfigurasi B. QA lintas perangkat/browser serta Lighthouse tetap opsional sesuai12§8 dan belum diklaim selesai.
+
+## Integrasi lanjutan 19 November 2026
+
+- Perbaikan B3–B5: fase air terpisah dari gulir, redaman posisi dan orientasi, serta penghapusan getaran cepat.
+- Perbaikan B10: geometri kain bervolume, lipatan gravitasi, sag tas, penyangga/hanger, dan flutter kain kecil; material rigid tetap rigid. Anyaman mikro dan pantulan diperhalus setelah inspeksi gambar.
+- Perbaikan komposisi B7: kamera mengosongkan kolom narasi kiri tanpa mengubah koordinat aksi tangan/botol.
+- Poster Home/OG dan sebelas bukti scene diperbarui; judul aksesibel sampul A2 kini sesuai judul artikel tanpa angka 450 tahun.
+- Kontrak tes naskah mengikuti revisi editorial yang disetujui pengguna; brand, skenario, judul, placeholder fakta, dan CTA tetap dijaga.
+- Performa HP fisik, browser selain Chromium, serta data kontak/endpoint rilis asli masih memerlukan validasi atau konfigurasi tim.
+
+Pemeriksaan akhir integrasi: TypeScript, ESLint, build, 193 tes unit, dan 12 skenario E2E Chromium lulus. Semua perbaikan kode prioritas sudah dipush main melalui commit terpisah. Tenggat awal 18 November pukul 23.30 terlewati; verifikasi akhir selesai 19 November.
