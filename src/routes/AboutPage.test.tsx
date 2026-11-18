@@ -6,7 +6,7 @@ import { LicenseTable } from "@/components/content/LicenseTable";
 import { SourceList } from "@/components/content/SourceList";
 import { buildSourceGroups } from "@/components/content/sourceGroups";
 import { TempDiagram } from "@/components/content/TempDiagram";
-import { ARTICLES, type Article } from "@/content/articles";
+import type { Article } from "@/content/articles";
 import { COPY } from "@/content/copy";
 import type { Fact } from "@/content/facts";
 import AboutPage from "./AboutPage";
