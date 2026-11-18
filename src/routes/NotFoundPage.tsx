@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
+import { usePageTheme } from "@/components/ui/usePageTheme";
 import { COPY } from "@/content/copy";
 import styles from "./PageStub.module.css";
 
 export default function NotFoundPage() {
+  usePageTheme("notfound");
   return (
     <section className={styles.page}>
       <h1 className="t-chapter">{COPY["404.title"]}</h1>

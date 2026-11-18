@@ -1,6 +1,16 @@
+import { PageHero } from "@/components/ui/PageHero";
+import { usePageTheme } from "@/components/ui/usePageTheme";
 import { COPY } from "@/content/copy";
-import { PageStub } from "./PageStub";
+import { SITE } from "@/content/site";
 
 export default function AboutPage() {
-  return <PageStub title={COPY["page.about.title"]} />;
+  usePageTheme("about");
+  return (
+    <>
+      <PageHero title={COPY["page.about.title"]} eyebrow={SITE.subtheme} />
+      <p className="t-body" style={{ padding: "0 var(--gutter-page)" }}>
+        {COPY["page.wip"]}
+      </p>
+    </>
+  );
 }

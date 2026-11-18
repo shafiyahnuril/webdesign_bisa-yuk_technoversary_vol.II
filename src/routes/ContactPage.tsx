@@ -1,6 +1,15 @@
+import { PageHero } from "@/components/ui/PageHero";
+import { usePageTheme } from "@/components/ui/usePageTheme";
 import { COPY } from "@/content/copy";
-import { PageStub } from "./PageStub";
 
 export default function ContactPage() {
-  return <PageStub title={COPY["contact.title"]} />;
+  usePageTheme("contact");
+  return (
+    <>
+      <PageHero title={COPY["page.contact.title"]} />
+      <p className="t-body" style={{ padding: "0 var(--gutter-page)" }}>
+        {COPY["page.wip"]}
+      </p>
+    </>
+  );
 }
