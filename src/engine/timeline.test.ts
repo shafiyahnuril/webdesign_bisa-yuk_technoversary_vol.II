@@ -92,4 +92,3 @@ describe("timeline", () => {
     expect(temperatureAt(1.5)).toBe(TEMP.c10);
   });
 });
-

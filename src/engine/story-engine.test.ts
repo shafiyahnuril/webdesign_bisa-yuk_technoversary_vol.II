@@ -34,7 +34,11 @@ function mockScrollEnv(scrollHeight = 23400, innerHeight = 1000) {
     },
     configurable: true,
   });
-  Object.defineProperty(window, "innerHeight", { value: innerHeight, configurable: true, writable: true });
+  Object.defineProperty(window, "innerHeight", {
+    value: innerHeight,
+    configurable: true,
+    writable: true,
+  });
   Object.defineProperty(document.documentElement, "scrollHeight", {
     value: scrollHeight,
     configurable: true,
@@ -230,7 +234,11 @@ describe("story-engine & input", () => {
     input.dispatchEvent(inputEnd);
     expect(inputEnd.defaultPrevented).toBe(false);
 
-    const editableSpace = new KeyboardEvent("keydown", { key: " ", cancelable: true, bubbles: true });
+    const editableSpace = new KeyboardEvent("keydown", {
+      key: " ",
+      cancelable: true,
+      bubbles: true,
+    });
     editable.dispatchEvent(editableSpace);
     expect(editableSpace.defaultPrevented).toBe(false);
 
@@ -295,7 +303,10 @@ describe("story-engine & input", () => {
 
     // Resize: scrollHeight berubah (mis. viewport berubah dari 1000 ke 500 -> scrollHeight 11700)
     Object.defineProperty(window, "innerHeight", { value: 500, configurable: true });
-    Object.defineProperty(document.documentElement, "scrollHeight", { value: 11700, configurable: true });
+    Object.defineProperty(document.documentElement, "scrollHeight", {
+      value: 11700,
+      configurable: true,
+    });
     window.dispatchEvent(new Event("resize"));
     expect(engine.state.shown).toBe(afterResume);
     expect(engine.state.target).toBeCloseTo(0.5, 4);

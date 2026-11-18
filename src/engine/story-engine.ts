@@ -209,7 +209,11 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
       createdScroller = null;
     }
 
-    if (prevScrollRestoration !== null && typeof history !== "undefined" && "scrollRestoration" in history) {
+    if (
+      prevScrollRestoration !== null &&
+      typeof history !== "undefined" &&
+      "scrollRestoration" in history
+    ) {
       history.scrollRestoration = prevScrollRestoration;
       prevScrollRestoration = null;
     }
@@ -255,7 +259,8 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
     stopInput = attachStoryInput({
       onScroll: readScrollTarget,
       onScrollBy(deltaPx) {
-        if (state.paused || typeof window === "undefined" || typeof window.scrollBy !== "function") return;
+        if (state.paused || typeof window === "undefined" || typeof window.scrollBy !== "function")
+          return;
         window.scrollBy({ top: deltaPx, behavior: "auto" });
       },
       onResize: handleResize,

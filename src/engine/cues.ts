@@ -56,8 +56,10 @@ export function computeCues(p: number): ChapterCues {
       vignette = lerp(0.7, 0, smoothstep(0.48, 0.9, t));
     }
 
-    const rim = t < 0.9 ? lerp(CUES.cp0.rim, CUES.cp1.rim, rewindT) : lerp(CUES.cp1.rim, CUES.c7.rim, toC7);
-    const env = t < 0.9 ? lerp(CUES.cp0.env, CUES.cp1.env, rewindT) : lerp(CUES.cp1.env, CUES.c7.env, toC7);
+    const rim =
+      t < 0.9 ? lerp(CUES.cp0.rim, CUES.cp1.rim, rewindT) : lerp(CUES.cp1.rim, CUES.c7.rim, toC7);
+    const env =
+      t < 0.9 ? lerp(CUES.cp0.env, CUES.cp1.env, rewindT) : lerp(CUES.cp1.env, CUES.c7.env, toC7);
 
     return {
       grain: lerp(CUES.cp0.grain, CUES.cp1.grain, rewindT),
@@ -85,7 +87,8 @@ export function computeCues(p: number): ChapterCues {
 
   if (id === "b3") {
     // Kabut B3 menebal 0.02 -> 0.06 saat menyusuri kota, lalu menipis di muara ke c4 (0.01)
-    cues.fog = t <= 0.72 ? lerp(from.fog, 0.06, t / 0.72) : lerp(0.06, to.fog, smoothstep(0.72, 1, t));
+    cues.fog =
+      t <= 0.72 ? lerp(from.fog, 0.06, t / 0.72) : lerp(0.06, to.fog, smoothstep(0.72, 1, t));
   } else if (id === "b5") {
     // B5: melt 0.25 -> 0.6, retak latar 0.55 -> 0.8 (dataran) -> 1.0, partikel mulai di t=0.50 -> 0.7 -> 1.0
     cues.crack = t <= 0.7 ? lerp(from.crack, 0.8, t / 0.7) : lerp(0.8, to.crack, (t - 0.7) / 0.3);

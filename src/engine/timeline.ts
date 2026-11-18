@@ -126,4 +126,3 @@ export function temperatureAt(p: number): number {
   }
   return lerp(from, to, smoothstep(0.7, 1, t));
 }
-
