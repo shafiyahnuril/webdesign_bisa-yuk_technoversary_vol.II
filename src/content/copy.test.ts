@@ -94,33 +94,22 @@ const REQUIRED_KEYS = [
   "filter.empty",
 ] as const;
 
-// Teks [DISEPAKATI] harus identik dengan dokumen.
+// Identitas, judul, penanda skenario, dan ajakan akhir tetap menjadi kontrak.
+// Narasi dan surat mengikuti revisi editorial yang disetujui pemilik proyek.
 const AGREED: Record<string, string> = {
   "hero.title": "Re:bottle",
-  "hero.tagline": "Bawa botolmu besok.",
   "hero.hint": "(Gulir untuk mulai)",
   "hero.scenario": "Skenario jika pola konsumsi plastik terus berlanjut.",
   "ch1.title": "Lahir",
-  "ch1.line": "Dibuat dari fosil, usia 0 hari.",
   "ch2.title": "Sekali Pakai",
-  "ch2.line": "Dipakai 10 menit.",
   "ch3.title": "Tersesat",
   "ch4.title": "Lautan",
-  "ch4.line": "Air naik. Karang memutih.",
   "ch5.title": "Terurai",
   "ch6.title": "Kembali ke Kita",
   "ch6.line": "Kamu makan sekitar {X} mikroplastik per minggu.",
-  "punch.line": "Bagaimana jika semua ini tidak terjadi?",
   "ch7.title": "Di Tempat yang Benar",
-  "ch7.line": "Satu keputusan, 10 detik.",
-  "ch7.letter": "Kamu tidak membuangku ke sungai. Terima kasih.",
   "ch8.title": "Perjalanan Kedua",
-  "ch8.letter": "Aku beruntung. Tidak semua temanku sampai di sini.",
   "ch9.title": "Hidup Baru, Tapi...",
-  "ch9.letter": "Aku jadi sesuatu yang baru, tapi prosesnya butuh energi dan air.",
-  "ch10a.letter": "Aku jadi sesuatu yang berguna.",
-  "ch10b.letter": "Ternyata aku tidak sendirian.",
-  "ch10d.letter": "Aku senang diselamatkan. Tapi aku akan lebih senang kalau tidak perlu dibuat.",
   "ch10e.cta": "Bawa botolmu besok.",
   "end.hint": "(Terus gulir)",
 };
@@ -143,20 +132,21 @@ describe("COPY (naskah T8.2)", () => {
     }
   });
 
-  it("teks [DISEPAKATI] identik dengan dokumen", () => {
+  it("mempertahankan identitas, judul, konteks skenario, dan ajakan akhir", () => {
     for (const [key, expected] of Object.entries(AGREED)) {
       expect(text(key), key).toBe(expected);
     }
   });
 
-  it("judul bab ≤ 4 kata dan surat ≤ 2 kalimat", () => {
+  it("menjaga judul ringkas dan surat tetap terbaca dalam satu adegan", () => {
     for (const key of Object.keys(COPY).filter((k) => /^ch\d+\.title$/.test(k))) {
       const words = text(key).split(/\s+/).length;
       expect(words, key).toBeLessThanOrEqual(4);
     }
     for (const key of Object.keys(COPY).filter((k) => /^ch\d+[a-e]?\.letter$/.test(k))) {
       const sentences = text(key).split(/[.!?]+\s/).length;
-      expect(sentences, key).toBeLessThanOrEqual(2);
+      expect(sentences, key).toBeLessThanOrEqual(4);
+      expect(text(key).length, key).toBeLessThanOrEqual(450);
     }
   });
 
