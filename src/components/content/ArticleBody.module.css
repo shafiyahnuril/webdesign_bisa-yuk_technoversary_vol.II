@@ -1,0 +1,50 @@
+.body {
+  display: grid;
+  gap: var(--s-8);
+  max-width: var(--read-body-chars);
+}
+
+.lede {
+  margin: 0;
+}
+
+.section {
+  display: grid;
+  gap: 1.1em;
+}
+
+.section p {
+  margin: 0;
+}
+
+.h2 {
+  margin: 0;
+}
+
+.empty {
+  max-width: var(--read-body-chars);
+  margin: 0;
+  padding: var(--s-6);
+  border: 1px dashed currentColor;
+  border-radius: var(--r-md);
+}
+
+.relation {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-6);
+  border-radius: var(--r-lg);
+  background: var(--card-pos-bg);
+  color: var(--card-pos-ink);
+}
+
+.relation p {
+  margin: 0;
+}
+
+.relationTitle {
+  margin: 0;
+  color: var(--card-pos-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,16 @@
+.next {
+  display: grid;
+  gap: var(--s-5);
+  padding-top: var(--s-7);
+  border-top: 1px solid color-mix(in srgb, var(--page-ink) 25%, transparent);
+}
+
+.title {
+  margin: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card {
+  max-width: 420px;
+}
