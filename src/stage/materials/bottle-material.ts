@@ -31,7 +31,7 @@ export interface BottleUniforms {
 }
 
 export interface BottleMaterialSet {
-  body: THREE.MeshPhysicalMaterial;
+  body: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial;
   cap: THREE.MeshStandardMaterial;
   liquid: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial;
   label: THREE.MeshStandardMaterial;
@@ -48,29 +48,12 @@ const CLEAN_BODY_TINT = new THREE.Color("#F1F8FF");
 const LOW_CLEAN_TINT = new THREE.Color("#CFE9FF");
 const LOW_TURBID_TINT = new THREE.Color("#6B7F8F");
 
-function createBodyMaterial(
-  transmission: boolean,
+function attachBodyShaderHooks(
+  mat: THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial,
+  cacheKey: string,
   uniforms: BottleUniforms,
-): THREE.MeshPhysicalMaterial {
-  const mat = new THREE.MeshPhysicalMaterial({
-    color: transmission ? CLEAN_BODY_TINT : LOW_CLEAN_TINT,
-    roughness: 0.06,
-    metalness: 0,
-    ior: 1.45,
-    reflectivity: 0.9,
-    clearcoat: 0.6,
-    clearcoatRoughness: 0.08,
-    transmission: transmission ? 1 : 0,
-    thickness: 0.45,
-    attenuationColor: CLEAN_ATTENUATION.clone(),
-    attenuationDistance: 3,
-    transparent: !transmission,
-    opacity: transmission ? 1 : 0.36,
-    depthWrite: transmission,
-    envMapIntensity: 1,
-  });
-
-  mat.customProgramCacheKey = () => "rebottle-pet-v1";
+): void {
+  mat.customProgramCacheKey = () => cacheKey;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uBreak = uniforms.uBreak;
     shader.uniforms.uCrack = uniforms.uCrack;
@@ -157,7 +140,45 @@ function createBodyMaterial(
         }`,
       );
   };
+}
 
+function createBodyMaterial(
+  transmission: boolean,
+  uniforms: BottleUniforms,
+): THREE.MeshPhysicalMaterial | THREE.MeshStandardMaterial {
+  if (!transmission) {
+    const mat = new THREE.MeshStandardMaterial({
+      color: LOW_CLEAN_TINT,
+      roughness: 0.14,
+      metalness: 0,
+      transparent: true,
+      opacity: 0.36,
+      depthWrite: false,
+      envMapIntensity: 0.45,
+    });
+    attachBodyShaderHooks(mat, "rebottle-pet-low-v1", uniforms);
+    return mat;
+  }
+
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: CLEAN_BODY_TINT,
+    roughness: 0.06,
+    metalness: 0,
+    ior: 1.45,
+    reflectivity: 0.9,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.08,
+    transmission: 1,
+    thickness: 0.45,
+    attenuationColor: CLEAN_ATTENUATION.clone(),
+    attenuationDistance: 3,
+    transparent: false,
+    opacity: 1,
+    depthWrite: true,
+    envMapIntensity: 1,
+  });
+
+  attachBodyShaderHooks(mat, "rebottle-pet-v1", uniforms);
   return mat;
 }
 
@@ -239,10 +260,7 @@ export function createBottleMaterials(opts: {
   };
 }
 
-export function updateBottleMaterials(
-  mats: BottleMaterialSet,
-  params: BottleParams,
-): void {
+export function updateBottleMaterials(mats: BottleMaterialSet, params: BottleParams): void {
   const { turbid, crack, breakAmt, dirt, opacity } = params;
   mats.uniforms.uBreak.value = breakAmt;
   mats.uniforms.uCrack.value = crack;
@@ -250,18 +268,17 @@ export function updateBottleMaterials(
   mats.uniforms.uOpacity.value = opacity;
 
   const body = mats.body;
-  body.roughness = 0.06 + 0.44 * turbid;
-  body.clearcoat = 0.6 - 0.45 * dirt;
-  body.attenuationColor.lerpColors(CLEAN_ATTENUATION, TURBID_ATTENUATION, turbid);
+  body.roughness = (body instanceof THREE.MeshPhysicalMaterial ? 0.06 : 0.14) + 0.44 * turbid;
 
-  if (mats.transmission) {
+  if (body instanceof THREE.MeshPhysicalMaterial) {
+    body.clearcoat = 0.6 - 0.45 * dirt;
+    body.attenuationColor.lerpColors(CLEAN_ATTENUATION, TURBID_ATTENUATION, turbid);
     body.transmission = 1 - 0.45 * turbid;
     const isFading = opacity < 0.999 || breakAmt > 0.001 || crack > 0.001 || dirt > 0.001;
     body.transparent = isFading;
     body.opacity = opacity;
     body.depthWrite = opacity >= 0.999 && breakAmt <= 0.001;
   } else {
-    body.transmission = 0;
     body.color.lerpColors(LOW_CLEAN_TINT, LOW_TURBID_TINT, turbid);
     body.transparent = true;
     body.opacity = (0.36 + 0.32 * turbid) * opacity;

@@ -184,4 +184,47 @@ describe("Bottle & ContactShadow", () => {
     shadow.dispose();
     bottle.dispose();
   });
+
+  it("memakai MeshStandardMaterial transparan pada badan & cairan LOW, menjaga parameter shader, dan aman saat high -> low -> high", () => {
+    const scene = new THREE.Scene();
+    const bottle = new Bottle(scene, HIGH_SPEC);
+
+    expect(bottle.bodyMesh.material).toBeInstanceOf(THREE.MeshPhysicalMaterial);
+    expect(bottle.liquidMesh.material).toBeInstanceOf(THREE.MeshPhysicalMaterial);
+
+    bottle.setQuality(LOW_SPEC);
+    expect(bottle.shardCount).toBe(24);
+    expect(bottle.bodyMesh.material).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(bottle.bodyMesh.material).not.toBeInstanceOf(THREE.MeshPhysicalMaterial);
+    expect(bottle.liquidMesh.material).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(bottle.liquidMesh.material).not.toBeInstanceOf(THREE.MeshPhysicalMaterial);
+
+    bottle.setParams({ turbid: 0.5, crack: 0.7, breakAmt: 0.3, dirt: 0.4, opacity: 0.8 });
+    const lowBody = bottle.bodyMesh.material as THREE.MeshStandardMaterial;
+    expect(lowBody.transparent).toBe(true);
+    expect(lowBody.depthWrite).toBe(false);
+    expect(lowBody.opacity).toBeCloseTo((0.36 + 0.32 * 0.5) * 0.8, 3);
+    expect(lowBody.roughness).toBeCloseTo(0.14 + 0.44 * 0.5, 3);
+    expect(lowBody.customProgramCacheKey()).toBe("rebottle-pet-low-v1");
+    expect(bottle.getParams()).toMatchObject({
+      turbid: 0.5,
+      crack: 0.7,
+      breakAmt: 0.3,
+      dirt: 0.4,
+      opacity: 0.8,
+    });
+
+    bottle.setQuality(HIGH_SPEC);
+    expect(bottle.shardCount).toBe(48);
+    expect(bottle.bodyMesh.material).toBeInstanceOf(THREE.MeshPhysicalMaterial);
+    expect(bottle.liquidMesh.material).toBeInstanceOf(THREE.MeshPhysicalMaterial);
+    const highBody = bottle.bodyMesh.material as THREE.MeshPhysicalMaterial;
+    expect(highBody.customProgramCacheKey()).toBe("rebottle-pet-v1");
+    expect(highBody.transmission).toBeCloseTo(1 - 0.45 * 0.5, 3);
+    expect(highBody.clearcoat).toBeCloseTo(0.6 - 0.45 * 0.4, 3);
+    const highLiquid = bottle.liquidMesh.material as THREE.MeshPhysicalMaterial;
+    expect(highLiquid.transmission).toBeCloseTo(0.9, 3);
+
+    bottle.dispose();
+  });
 });
