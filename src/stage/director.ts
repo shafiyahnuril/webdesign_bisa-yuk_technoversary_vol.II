@@ -1,4 +1,4 @@
-import { ORDER, STARTS, type SegId } from "@/engine/timeline";
+import { ORDER, STARTS, segmentAt, type SegId } from "@/engine/timeline";
 import type { StageContext } from "./stage";
 import { clamp01 } from "./util/math";
 
@@ -41,7 +41,7 @@ function isPromiseLike(value: unknown): value is Promise<unknown> {
 }
 
 /**
- * Mengelola siklus hidup scene (lazy build ±0.06, exit, dispose > 0.12, rebuild saat mundur).
+ * Pramuat ±0.06, render segmen saat ini, dispose > 0.12, rebuild saat mundur.
  * Objek bersama di StageContext tidak dimiliki scene dan tidak pernah di-dispose oleh director.
  */
 export class SceneDirector {
@@ -77,11 +77,11 @@ export class SceneDirector {
   update(shown: number, dt: number): void {
     if (this.disposed) return;
     const p = clamp01(shown);
+    const currentId = segmentAt(p).id;
 
     // Langkah 1: keluar dan bebaskan scene yang sudah di luar jendela terlebih dahulu
     for (const entry of this.entries) {
-      const inActive = p >= entry.start - ACTIVE_WINDOW && p <= entry.end + ACTIVE_WINDOW;
-      if (!inActive && entry.active) {
+      if (entry.scene.id !== currentId && entry.active) {
         entry.scene.exit();
         entry.active = false;
       }
@@ -94,7 +94,7 @@ export class SceneDirector {
       }
     }
 
-    // Langkah 2: bangun (jika belum), masuk, dan perbarui scene di dalam jendela aktif
+    // Pramuat tetangga tanpa memindahkan kamera, botol, atau lampu bersama.
     for (const entry of this.entries) {
       const inActive = p >= entry.start - ACTIVE_WINDOW && p <= entry.end + ACTIVE_WINDOW;
       if (!inActive) continue;
@@ -105,6 +105,8 @@ export class SceneDirector {
         }
         if (!entry.built) continue;
       }
+
+      if (entry.scene.id !== currentId) continue;
 
       if (!entry.active) {
         entry.scene.enter();

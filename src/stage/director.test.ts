@@ -3,7 +3,11 @@ import { SceneDirector, type Scene } from "./director";
 import { STARTS, type SegId } from "@/engine/timeline";
 import type { StageContext } from "./stage";
 
-function makeMockCtx(): { ctx: StageContext; bottleDispose: ReturnType<typeof vi.fn>; shadowDispose: ReturnType<typeof vi.fn> } {
+function makeMockCtx(): {
+  ctx: StageContext;
+  bottleDispose: ReturnType<typeof vi.fn>;
+  shadowDispose: ReturnType<typeof vi.fn>;
+} {
   const bottleDispose = vi.fn();
   const shadowDispose = vi.fn();
   const ctx = {
@@ -45,7 +49,7 @@ function makeSpyScene(id: SegId) {
 }
 
 describe("SceneDirector", () => {
-  it("membangun dan mengaktifkan scene hanya dalam jendela ±0.06 serta melepas > 0.12", () => {
+  it("pramuat ±0.06 tanpa membiarkan tetangga menimpa scene saat ini, lalu lepas > 0.12", () => {
     const { ctx } = makeMockCtx();
     const s1 = makeSpyScene("b1");
     const s2 = makeSpyScene("b2");
@@ -61,11 +65,13 @@ describe("SceneDirector", () => {
 
     // p = 0.02: b2 masuk jendela +0.06 (0.0625 - 0.06 = 0.0025)
     director.update(0.02, 0.016);
-    expect(s2.calls).toEqual(["build", "enter"]);
-    expect(s2.lastUpdate.t).toBe(0);
+    expect(s2.calls).toEqual(["build"]);
+    expect(s2.scene.update).not.toHaveBeenCalled();
+    expect(director.getActiveSceneIds()).toEqual(["b1"]);
 
-    // p = 0.15: b1 di luar +0.06 (0.0625 + 0.06 = 0.1225), belum > 0.12 (0.0625 + 0.12 = 0.1825)
-    director.update(0.15, 0.016);
+    // b2 sedang berlangsung; b1 keluar tetapi belum melewati jarak pelepasan.
+    director.update(0.13, 0.016);
+    expect(s2.calls).toEqual(["build", "enter"]);
     expect(s1.calls).toEqual(["build", "enter", "exit"]);
     expect(director.getBuiltSceneIds()).toContain("b1");
     expect(director.getActiveSceneIds()).toEqual(["b2"]);
