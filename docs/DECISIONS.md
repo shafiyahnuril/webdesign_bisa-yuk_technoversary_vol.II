@@ -13,3 +13,8 @@
 | 2026-11-18 | Placeholder sampul/panel | SVG kotak warna dengan hex yang sama dengan tokens.ts | SVG statis tidak bisa membaca variabel CSS | 07 | usulan |
 | 2026-11-18 | Impor `pages.css` | Diimpor dari `usePageTheme.ts`, bukan `main.tsx` | `main.tsx` milik Pihak A; setiap halaman non-Home memakai hook itu | 05 §1.1 | usulan |
 | 2026-11-18 | Fokus H1 setelah pindah rute | `PageHero` memfokuskan H1 hanya bila `location.key !== "default"` | Muat pertama tetap mengikuti tautan lompat; perubahan hash manual juga berkunci "default" | 05 §1, 04 §13 | usulan |
+
+| 2026-11-18 | Kontrak isyarat visual | CUES dan ChapterCues terpusat di src/lib/tokens.ts; keyframe lokal berada di engine/cues.ts | Menghindari konstanta visual tersebar dan menjaga satu sumber shown | 02 §5, 04 §4 | diterapkan |
+| 2026-11-18 | Cairan botol pada tier tinggi | Material mengikuti03 §3.1 dengan transmission0.9; LOW memakai transparent biasa | Prioritas dokumen00 menempatkan03 di atas06; evaluasi performa nyata tetap diperlukan | 00 §1.2, 03 §3.1, 06 §4.2 | diterapkan sebagai baseline |
+| 2026-11-18 | Font dan preload | Font-family beserta fallback bermetrik dipusatkan di tokens.css; dua preload dibentuk dari bundle Vite | Menindaklanjuti catatan font dan menghindari hash berkas yang ditulis manual | 02 §2.2, CATATAN_UNTUK_A | diterapkan |
+| 2026-11-18 | Sumbu font | Pakai wght/wdth yang ada pada binari Fontsource; opsz tidak dipaksakan pada subset yang tidak memuatnya | Mencegah deklarasi sumbu tidak tersedia | 02 §2.1 | diterapkan |
