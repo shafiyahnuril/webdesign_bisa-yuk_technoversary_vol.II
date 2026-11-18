@@ -335,6 +335,60 @@ export function makeWoodGrainSet(size = 256, repeatX = 1, repeatY = 1): PbrTextu
   );
 }
 
+/** Kayu pesisir: serat memanjang, retak rambut, bagian basah dan biofilm pada zona pasang. */
+export function makeMarineTimberSet(pile = false, size = 256): PbrTextureSet {
+  const grain = (u: number, v: number) =>
+    Math.sin(u * Math.PI * 96 + Math.sin(v * Math.PI * 4) * 0.75 + Math.sin(u * 19) * 2);
+  const wet = (v: number) => (pile ? 1 - THREE.MathUtils.smoothstep(v, 0.48, 0.63) : 0);
+  return buildHeightAndNormalSet(
+    `marine-timber-${pile ? "pile" : "deck"}`,
+    size,
+    pile ? 912 : 913,
+    2.1,
+    (u, v, n) => {
+      const fibers = grain(u, v);
+      const split = Math.pow(Math.max(0, Math.sin(u * 37 + Math.sin(v * 9) * 0.35)), 24);
+      return 0.5 + fibers * 0.12 - split * 0.18 + (n - 0.5) * 0.045;
+    },
+    (u, v, h, n) => {
+      const shade = grain(u, v) * 8 + (h - 0.5) * 24 + (n - 0.5) * 8;
+      const wetness = wet(v);
+      const algae = pile ? Math.exp(-Math.pow((v - 0.53) / 0.065, 2)) * (0.6 + n * 0.4) : 0;
+      return [
+        163 + shade - wetness * 75 - algae * 21,
+        145 + shade - wetness * 65 - algae * 8,
+        119 + shade - wetness * 53 - algae * 22,
+      ];
+    },
+    (_u, v, h) => 0.84 + (1 - h) * 0.12 - wet(v) * 0.36,
+  );
+}
+
+/** Kaliks dan pori kapur; detail permukaan tetap terlihat saat pigmen memudar. */
+export function makeCoralSurfaceSet(size = 256): PbrTextureSet {
+  const polyp = (u: number, v: number) => {
+    const row = Math.floor(v * 24);
+    const x = ((u * 24 + (row % 2) * 0.5) % 1) - 0.5;
+    const y = ((v * 24) % 1) - 0.5;
+    const r = Math.hypot(x, y);
+    return Math.exp(-Math.pow((r - 0.24) / 0.09, 2)) * 0.13 - Math.exp(-r * r * 35) * 0.19;
+  };
+  return buildHeightAndNormalSet(
+    "marine-coral-calices",
+    size,
+    914,
+    2.5,
+    (u, v, n) => 0.52 + polyp(u, v) + (n - 0.5) * 0.065,
+    (_u, _v, h, n) => {
+      const shade = 222 + h * 27 + (n - 0.5) * 6;
+      return [shade, shade, shade - 3];
+    },
+    (_u, _v, h) => 0.84 + (1 - h) * 0.12,
+    1,
+    2,
+  );
+}
+
 /** Tekstur kain spesifik (canvas/cotton/nylon/fleece/wool) lengkap dengan jahitan tepi & normal. */
 export function makeFabricPbrSet(
   style: "canvas" | "cotton" | "nylon" | "fleece" | "wool",
