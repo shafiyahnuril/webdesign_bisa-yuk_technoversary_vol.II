@@ -17,9 +17,22 @@ function titleFor(pathname: string): string {
   return `${COPY["page.notfound.title"]} | ${SITE.name}`;
 }
 
+function descriptionFor(pathname: string): string {
+  if (pathname === "/about") return COPY["seo.about.description"];
+  if (pathname === "/konten") return COPY["seo.content.description"];
+  if (pathname === "/contact") return COPY["seo.contact.description"];
+  if (pathname === "/") return COPY["site.description"];
+  // Detail artikel: ArticlePage menimpa dengan lede artikel (efeknya jalan setelah Seo).
+  const article = matchPath("/konten/:slug", pathname);
+  if (article && ARTICLES.some((a) => a.slug === article.params.slug)) {
+    return COPY["site.description"];
+  }
+  return COPY["seo.notfound.description"];
+}
+
 /** Mengatur judul tab dan meta description per halaman. */
 export function Seo() {
   const { pathname } = useLocation();
-  useDocumentMeta(titleFor(pathname), COPY["site.description"]);
+  useDocumentMeta(titleFor(pathname), descriptionFor(pathname));
   return null;
 }

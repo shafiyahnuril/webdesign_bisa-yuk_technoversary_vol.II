@@ -199,6 +199,15 @@ export const COPY = {
   "page.wip": "Halaman ini sedang dalam pengerjaan.",
   "page.loading": "Memuat…",
   "site.description": "Satu botol. Dua kemungkinan perjalanan. Bawa botolmu besok.",
+  // Meta description per halaman (≤ 155 karakter, unik) [USULAN]
+  "seo.about.description":
+    "Kenapa Re:bottle ada: latar isu sampah plastik, skenario di balik cerita, sumber data, dan atribusi aset kampanye ini.",
+  "seo.content.description":
+    "Dua belas artikel tentang dampak plastik sekali pakai dan kebiasaan peduli lingkungan, dari rumah sampai dunia. Saring sesuai minatmu.",
+  "seo.contact.description":
+    "Hubungi Re:bottle lewat formulir atau email untuk bertanya, memberi saran, atau mengajak bergerak bersama untuk lingkungan.",
+  "seo.notfound.description":
+    "Halaman yang kamu cari tidak ada. Kembali ke awal dan ikuti perjalanan satu botol plastik di Re:bottle.",
 } as const;
 
 export type CopyKey = keyof typeof COPY;
