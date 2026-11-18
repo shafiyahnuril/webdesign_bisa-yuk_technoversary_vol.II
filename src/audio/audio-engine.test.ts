@@ -307,4 +307,55 @@ describe("AudioEngine (T7.1-T7.3)", () => {
     expect(engineB.isEnabled()).toBe(false);
     engineB.dispose();
   });
+
+  it("menjaga anggaran <= 24 node aktif, batas gain aman, dan kontras sinematik 2 babak di seluruh 11 segmen", async () => {
+    const b4Dive = AUDIO_PROFILES.b4.evaluate(0.65);
+    expect(b4Dive.worldCutoff).toBeLessThanOrEqual(450);
+
+    const punchHold = AUDIO_PROFILES.punch.evaluate(0.28);
+    expect(punchHold.d2Gain).toBe(0);
+    expect(punchHold.padGain).toBe(0);
+
+    const punchLift = AUDIO_PROFILES.punch.evaluate(0.6);
+    expect(punchLift.padGain).toBeGreaterThan(0);
+
+    for (const profile of Object.values(AUDIO_PROFILES)) {
+      for (const sampleT of [0, 0.25, 0.5, 0.75, 1]) {
+        const target = profile.evaluate(sampleT);
+        for (const gainVal of [
+          target.d2Gain,
+          target.a2Gain,
+          target.colorGain,
+          target.padGain,
+          target.bodyGain,
+          target.airGain,
+          target.pulseGain,
+          target.tickGain,
+        ]) {
+          expect(gainVal).toBeGreaterThanOrEqual(0);
+          expect(gainVal).toBeLessThanOrEqual(0.3);
+        }
+      }
+    }
+
+    vi.useFakeTimers();
+    try {
+      const engine = createAudioEngine();
+      await engine.setEnabled(true);
+      expect(engine.getActiveNodeCount()).toBe(18);
+
+      // Sapu shown dari 0 -> 1 untuk memicu seluruh event prosedural baru tanpa melebihi 24 node
+      for (let i = 1; i <= 50; i++) {
+        vi.spyOn(performance, "now").mockReturnValue(2000 + i * 1100);
+        engine.update(i / 50, 0.12);
+        expect(engine.getActiveNodeCount()).toBeLessThanOrEqual(24);
+      }
+
+      vi.advanceTimersByTime(4000);
+      expect(engine.getActiveNodeCount()).toBe(18);
+      engine.dispose();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

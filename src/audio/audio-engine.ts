@@ -7,7 +7,9 @@ import {
   createNodeTracker,
   createNoiseBed,
   createNoiseBuffer,
+  triggerBell,
   triggerFilteredNoiseShot,
+  triggerHarmonyPad,
   triggerNote,
   triggerPulse,
   triggerSwell,
@@ -175,22 +177,31 @@ export function createAudioEngine(): AudioController {
   const fireEvent = (kind: AudioEventKind, now: number) => {
     if (!ctx || !sfxBus || !noiseBuffer) return;
     switch (kind) {
+      case "glassBell":
+        triggerBell(ctx, sfxBus, tracker, now, {
+          freq: NOTES.D5,
+          harmonicRatio: 2.0,
+          dur: 1.8,
+          attack: 0.04,
+          gain: 0.045,
+        });
+        break;
       case "glug":
         triggerFilteredNoiseShot(ctx, noiseBuffer, sfxBus, tracker, now, {
           type: "bandpass",
           freq: 500,
           q: 4,
           dur: 0.12,
-          gain: 0.14,
+          gain: 0.12,
         });
         break;
       case "whoosh":
         triggerSwell(ctx, noiseBuffer, sfxBus, tracker, now, {
           dir: "up",
           dur: 0.4,
-          fromHz: 1000,
-          toHz: 4000,
-          gain: 0.11,
+          fromHz: 950,
+          toHz: 3600,
+          gain: 0.095,
         });
         break;
       case "splash":
@@ -198,7 +209,17 @@ export function createAudioEngine(): AudioController {
           type: "highpass",
           freq: 800,
           dur: 0.25,
-          gain: 0.12,
+          gain: 0.11,
+        });
+        break;
+      case "riser":
+        triggerSwell(ctx, noiseBuffer, sfxBus, tracker, now, {
+          dir: "up",
+          dur: 1.4,
+          fromHz: 320,
+          toHz: 2400,
+          gain: 0.085,
+          q: 2.4,
         });
         break;
       case "shatter":
@@ -207,8 +228,17 @@ export function createAudioEngine(): AudioController {
           dur: 0.35,
           fromHz: 1200,
           toHz: 3200,
-          gain: 0.16,
+          gain: 0.15,
           q: 1.5,
+        });
+        break;
+      case "cutlery":
+        triggerBell(ctx, sfxBus, tracker, now, {
+          freq: NOTES.E5,
+          harmonicRatio: 2.756,
+          dur: 1.4,
+          attack: 0.01,
+          gain: 0.028,
         });
         break;
       case "reverseSwell":
@@ -217,26 +247,27 @@ export function createAudioEngine(): AudioController {
           dur: 1.2,
           fromHz: 400,
           toHz: 2200,
-          gain: 0.08,
+          gain: 0.075,
           q: 1.8,
         });
         break;
       case "punchNote":
-        triggerNote(ctx, sfxBus, tracker, now, {
-          freq: NOTES.D4,
-          dur: 2.2,
-          attack: 0.8,
-          release: 1.4,
-          gain: 0.08,
+        triggerHarmonyPad(ctx, sfxBus, tracker, now, {
+          rootHz: NOTES.D4,
+          upperHz: NOTES.A4,
+          dur: 2.6,
+          attack: 0.85,
+          release: 1.6,
+          gain: 0.072,
         });
         break;
       case "chime":
         triggerNote(ctx, sfxBus, tracker, now, {
           freq: NOTES.A4,
-          dur: 0.8,
-          attack: 0.01,
-          release: 0.75,
-          gain: 0.1,
+          dur: 0.85,
+          attack: 0.015,
+          release: 0.8,
+          gain: 0.095,
         });
         break;
       case "thunk":
@@ -247,7 +278,7 @@ export function createAudioEngine(): AudioController {
           type: "lowpass",
           freq: 900,
           dur: 0.03,
-          gain: 0.09,
+          gain: 0.085,
         });
         break;
       case "spray":
@@ -258,13 +289,33 @@ export function createAudioEngine(): AudioController {
           gain: 0.07,
         });
         break;
+      case "metalChime":
+        triggerBell(ctx, sfxBus, tracker, now, {
+          freq: NOTES.Fs5,
+          harmonicRatio: 2.0,
+          dur: 1.5,
+          attack: 0.02,
+          gain: 0.032,
+        });
+        break;
       case "warm":
-        triggerNote(ctx, sfxBus, tracker, now, {
-          freq: NOTES.A4,
-          dur: 2.0,
-          attack: 0.6,
-          release: 1.4,
-          gain: 0.08,
+        triggerHarmonyPad(ctx, sfxBus, tracker, now, {
+          rootHz: NOTES.Fs4,
+          upperHz: NOTES.A4,
+          dur: 2.2,
+          attack: 0.65,
+          release: 1.5,
+          gain: 0.072,
+        });
+        break;
+      case "resolveChord":
+        triggerHarmonyPad(ctx, sfxBus, tracker, now, {
+          rootHz: NOTES.D4,
+          upperHz: NOTES.Fs4,
+          dur: 2.8,
+          attack: 1.0,
+          release: 1.8,
+          gain: 0.068,
         });
         break;
     }
