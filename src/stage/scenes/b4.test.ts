@@ -125,6 +125,22 @@ describe("Scene B4 (Lautan)", () => {
     const ticks = pier.getObjectByName("O-PIER-TICKS") as THREE.InstancedMesh;
     expect(posts.count).toBe(4);
     expect(ticks.count).toBeGreaterThanOrEqual(20);
+    const planks = pier.getObjectByName("O-PIER-PLANKS") as THREE.InstancedMesh;
+    expect(planks?.count).toBe(9);
+    const pileMaterial = posts.material as THREE.MeshStandardMaterial;
+    expect(pileMaterial.map).toBeInstanceOf(THREE.Texture);
+    expect(pileMaterial.normalMap).toBeInstanceOf(THREE.Texture);
+    expect(pileMaterial.roughnessMap).toBeInstanceOf(THREE.Texture);
+    expect(pileMaterial.metalness).toBe(0);
+    let pierTriangles = 0;
+    pier.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        pierTriangles +=
+          ((object.geometry.index?.count ?? object.geometry.attributes.position!.count) / 3) *
+          (object instanceof THREE.InstancedMesh ? object.count : 1);
+      }
+    });
+    expect(pierTriangles).toBeLessThanOrEqual(1500);
 
     const coralHigh = ctxHigh.scene.getObjectByName("O-CORAL") as THREE.Group;
     expect(coralHigh).toBeDefined();
@@ -225,7 +241,10 @@ describe("Scene B4 (Lautan)", () => {
       const steps = hz * 2;
       for (let i = 0; i < steps; i++) {
         ctx.uniforms.uTime.value += dt;
-        const t = i < hz ? 0.15 + i * (0.002 * (60 / hz)) : 0.15 + hz * (0.002 * (60 / hz)) - (i - hz) * (0.0018 * (60 / hz));
+        const t =
+          i < hz
+            ? 0.15 + i * (0.002 * (60 / hz))
+            : 0.15 + hz * (0.002 * (60 / hz)) - (i - hz) * (0.0018 * (60 / hz));
         b4.update(t, 0.24 + t * 0.08, dt);
 
         expect(water.getParams().time).toBeCloseTo(ctx.uniforms.uTime.value * 0.65, 6);
@@ -237,11 +256,16 @@ describe("Scene B4 (Lautan)", () => {
         expect(ctx.shared.bottle.group.position.y).toBeGreaterThanOrEqual(surfaceY - 0.14 - 1e-5);
 
         const baseQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, t * 1.1, 1.38));
-        expect(ctx.shared.bottle.group.quaternion.angleTo(baseQ)).toBeLessThanOrEqual((5.5 * Math.PI) / 180);
+        expect(ctx.shared.bottle.group.quaternion.angleTo(baseQ)).toBeLessThanOrEqual(
+          (5.5 * Math.PI) / 180,
+        );
 
         if (i > 0) {
           maxDeltaPos = Math.max(maxDeltaPos, ctx.shared.bottle.group.position.distanceTo(prevPos));
-          maxDeltaQuat = Math.max(maxDeltaQuat, ctx.shared.bottle.group.quaternion.angleTo(prevQuat));
+          maxDeltaQuat = Math.max(
+            maxDeltaQuat,
+            ctx.shared.bottle.group.quaternion.angleTo(prevQuat),
+          );
         }
         prevPos.copy(ctx.shared.bottle.group.position);
         prevQuat.copy(ctx.shared.bottle.group.quaternion);

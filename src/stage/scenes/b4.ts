@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { CUES, PALETTE } from "@/lib/tokens";
 import type { Scene } from "../director";
 import { createClayMaterial } from "../materials/clay";
+import { createPier } from "../objects/pier";
 import { ensureWaterSystem, type WaterSystem } from "../objects/water";
 import type { StageContext } from "../stage";
 import { disposeObject } from "../util/dispose";
@@ -64,63 +65,6 @@ function createColdSun(parent: THREE.Object3D): {
 
   parent.add(sunMesh);
   return { sunMesh, haloMesh, haloMat, sunMat };
-}
-
-function createPier(parent: THREE.Object3D): THREE.Group {
-  const pierGroup = new THREE.Group();
-  pierGroup.name = "O-PIER";
-
-  const postPositions: readonly [number, number][] = [
-    [2.15, -1.2],
-    [3.25, -1.2],
-    [2.3, -2.5],
-    [3.4, -2.5],
-  ];
-
-  const postGeom = new THREE.CylinderGeometry(0.12, 0.12, 4.0, 12);
-  const postMat = createClayMaterial({ color: "#5C6B7D", roughness: 0.8 });
-  const posts = new THREE.InstancedMesh(postGeom, postMat, 4);
-  posts.name = "O-PIER-POSTS";
-
-  const tickHeights = [-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5];
-  const tickGeom = new THREE.CylinderGeometry(0.128, 0.128, 0.045, 10, 1, true);
-  const tickMat = createClayMaterial({ color: "#E6EAF2", roughness: 0.7 });
-  const ticks = new THREE.InstancedMesh(
-    tickGeom,
-    tickMat,
-    postPositions.length * tickHeights.length,
-  );
-  ticks.name = "O-PIER-TICKS";
-
-  const mat4 = new THREE.Matrix4();
-  const pos = new THREE.Vector3();
-  const quat = new THREE.Quaternion();
-  const scale = new THREE.Vector3(1, 1, 1);
-
-  let tickIdx = 0;
-  for (let i = 0; i < postPositions.length; i++) {
-    const [px, pz] = postPositions[i]!;
-    pos.set(px, -0.2, pz);
-    mat4.compose(pos, quat, scale);
-    posts.setMatrixAt(i, mat4);
-
-    for (const ty of tickHeights) {
-      pos.set(px, ty, pz);
-      mat4.compose(pos, quat, scale);
-      ticks.setMatrixAt(tickIdx++, mat4);
-    }
-  }
-  posts.instanceMatrix.needsUpdate = true;
-  ticks.instanceMatrix.needsUpdate = true;
-
-  const deckGeom = new THREE.BoxGeometry(1.75, 0.16, 1.85);
-  const deckMat = createClayMaterial({ color: "#4D5C6E", roughness: 0.84 });
-  const deck = new THREE.Mesh(deckGeom, deckMat);
-  deck.position.set(2.78, 1.68, -1.85);
-
-  pierGroup.add(posts, ticks, deck);
-  parent.add(pierGroup);
-  return pierGroup;
 }
 
 function createCoralReef(parent: THREE.Object3D, clusterCount: number): CoralRefs {
