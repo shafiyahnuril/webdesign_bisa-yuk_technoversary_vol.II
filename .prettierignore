@@ -6,3 +6,5 @@ test-results
 package-lock.json
 src/styles/tokens.generated.css
 *.md
+rebottle_assets/
+Rebottle_Design_System.html

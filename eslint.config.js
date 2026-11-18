@@ -10,7 +10,7 @@ const ban = (names, message) => ({
 });
 
 export default tseslint.config(
-  { ignores: ["dist", "node_modules", "coverage", "playwright-report", "test-results"] },
+  { ignores: ["rebottle_assets/**", "dist", "node_modules", "coverage", "playwright-report", "test-results"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   jsxA11y.flatConfigs.recommended,
