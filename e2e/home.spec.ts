@@ -215,9 +215,9 @@ test.describe("Home Re:bottle — 3D, Input, Keyframe, Fallback, & Rute", () => 
       (window as DevRuntimeWindow).__REBOTTLE_RUNTIME__?.engine.resume();
     });
 
-    // Kirim rentetan wheel deltaY positif (> 1400px dalam satu gestur berkelanjutan) untuk menarik kubah loop hingga penuh
+    // Satu tarikan 1500px mengisi loop; jangan kirim gestur baru sesudah kembali ke hero.
     await page.mouse.move(720, 450);
-    for (let i = 0; i < 8; i += 1) {
+    for (let i = 0; i < 5; i += 1) {
       await page.mouse.wheel(0, 300);
     }
 

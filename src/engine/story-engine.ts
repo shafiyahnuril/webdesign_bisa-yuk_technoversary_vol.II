@@ -201,12 +201,12 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
   };
 
   const reset = () => {
-    // Tunggu akhir momentum gestur lama sebelum wheel/sentuh memulai perjalanan baru.
-    pointerSettleUntil = performance.now() + ENGINE.REST_DELAY;
     state.target = 0;
     state.shown = 0;
     safeScrollToTop(0);
     renderFrame(0, 0, true);
+    // Hitung jeda sesudah render/rebuild, agar kompilasi shader tidak menghabiskannya.
+    pointerSettleUntil = performance.now() + ENGINE.REST_DELAY;
   };
 
   const unmount = () => {

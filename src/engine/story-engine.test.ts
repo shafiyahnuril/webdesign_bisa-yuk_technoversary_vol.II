@@ -100,13 +100,19 @@ describe("story-engine & input", () => {
     const engine = createStoryEngine({ scheduler });
     engine.mount(document.createElement("div"));
     activeCleanups.push(() => engine.unmount());
+    // Rebuild/shader pertama dapat memakan waktu lebih lama daripada jeda input.
+    const stopSlowFrame = engine.onFrame(() => {
+      clock += 800;
+    });
     engine.reset();
-    for (const at of [1100, 1300, 1500]) {
-      clock = at;
+    stopSlowFrame();
+    const resetAt = clock;
+    for (const elapsed of [100, 300, 500]) {
+      clock = resetAt + elapsed;
       window.dispatchEvent(new WheelEvent("wheel", { deltaY: 300, cancelable: true }));
       expect(env.getScrollY()).toBe(0);
     }
-    clock = 1900;
+    clock = resetAt + 900;
     window.dispatchEvent(new WheelEvent("wheel", { deltaY: 100, cancelable: true }));
     expect(env.getScrollY()).toBeGreaterThan(0);
   });
