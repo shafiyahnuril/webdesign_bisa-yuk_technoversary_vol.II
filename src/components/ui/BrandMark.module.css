@@ -1,0 +1,78 @@
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+  color: inherit;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  text-decoration: none;
+}
+
+.nav {
+  font-size: 1.75rem;
+}
+
+.menu {
+  font-size: var(--menu-identity-size);
+}
+
+.hero {
+  font-size: var(--t-hero);
+  line-height: 0.86;
+  font-stretch: 88%;
+  font-variation-settings: "wght" 700, "wdth" 88;
+  letter-spacing: -0.04em;
+}
+
+.re {
+  position: relative;
+  display: inline-block;
+}
+
+.reStroke {
+  color: transparent;
+  -webkit-text-stroke: var(--line-thin) currentColor;
+  opacity: var(--re-dim);
+  transition: opacity var(--dur-slow) var(--ease-out-expo);
+}
+
+.onLight .reStroke {
+  opacity: 0.52;
+}
+
+.reFill {
+  position: absolute;
+  inset: 0;
+  color: currentColor;
+  opacity: 0;
+  transition:
+    opacity var(--dur-slow) var(--ease-out-expo),
+    text-shadow var(--dur-re-glow) var(--ease-out-expo);
+}
+
+:global([data-re="on"]) .reStroke {
+  opacity: 0;
+}
+
+:global([data-re="on"]) .reFill {
+  opacity: var(--re-on);
+  animation: reGlow var(--dur-re-glow) var(--ease-out-expo) 1;
+}
+
+@keyframes reGlow {
+  0% {
+    text-shadow: 0 0 0 transparent;
+  }
+  35% {
+    text-shadow: 0 0 0.4em var(--accent-now);
+  }
+  100% {
+    text-shadow: 0 0 0 transparent;
+  }
+}
+
+.bottle {
+  display: inline-block;
+}

@@ -6,49 +6,100 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--s-7);
+  gap: var(--s-6);
   padding: var(--s-5) var(--gutter-page);
   color: var(--ui-ink);
+  transition:
+    background-color var(--dur-fast) var(--ease-gate),
+    color var(--dur-base) var(--ease-gate);
+}
+
+.scrolled {
+  background-color: color-mix(in oklch, var(--bg-now) 82%, transparent);
 }
 
 .brand {
-  font: 700 1.5rem / 1 var(--font-display);
-  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
   text-decoration: none;
 }
 
-/* "Re:" pudar (garis luar, opasitas 0,45); menyala di Babak II (T1.5). */
-.re {
-  opacity: 0.45;
-  color: transparent;
-  -webkit-text-stroke: 1px currentColor;
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-7);
+}
+
+.navWrap {
+  visibility: visible;
+  transition: visibility 0s 0s;
+}
+
+.collapsed .navWrap {
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s var(--dur-nav-collapse);
 }
 
 .links {
   display: flex;
+  align-items: center;
   gap: var(--s-7);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.item {
+  transform: translateX(0);
+  opacity: 1;
+  transition:
+    transform var(--dur-nav-collapse) var(--ease-in-out),
+    opacity var(--dur-nav-collapse) var(--ease-in-out);
+  transition-delay: calc(var(--rev-idx, 0) * var(--dur-nav-stagger));
+}
+
+.collapsed .item {
+  transform: translateX(var(--s-9));
+  opacity: 0;
+}
+
 .link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font: 500 var(--t-ui) / 1.2 var(--font-ui);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   text-decoration: none;
   padding-block: var(--s-2);
-  background: linear-gradient(currentColor, currentColor) left bottom / 0 1.5px no-repeat;
-  transition: background-size var(--dur-base) var(--ease-out-expo);
 }
 
-.link:hover,
-.active {
-  background-size: 100% 1.5px;
+.link::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 var(--s-2);
+  height: var(--line-nav-underline);
+  background: currentColor;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform var(--dur-hover) var(--ease-gate);
+}
+
+.link:hover::after,
+.active::after {
+  transform: scaleX(1);
 }
 
 @media (max-width: 768px) {
-  .links {
-    gap: var(--s-4);
+  .navbar {
+    padding: var(--s-4) var(--s-5);
+  }
+
+  .navWrap {
+    display: none;
   }
 }

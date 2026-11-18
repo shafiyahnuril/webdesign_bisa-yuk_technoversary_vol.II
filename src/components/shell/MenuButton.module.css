@@ -1,0 +1,129 @@
+.button {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 var(--size-menu-button);
+  width: var(--size-menu-button);
+  height: var(--size-menu-button);
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  border: var(--line-firm) solid currentColor;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    color var(--dur-base) var(--ease-gate),
+    border-color var(--dur-base) var(--ease-gate),
+    transform var(--dur-fast) var(--ease-gate);
+}
+
+.button::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transform: scale(0.58);
+  transition:
+    opacity var(--dur-fast) var(--ease-gate),
+    transform var(--dur-base) var(--ease-gate);
+}
+
+.button:hover::before {
+  opacity: 0.15;
+  transform: scale(1);
+}
+
+.button:active {
+  transform: scale(0.96);
+}
+
+.open {
+  color: var(--menu-ink);
+}
+
+.icon {
+  position: relative;
+  display: inline-block;
+  width: var(--size-icon);
+  height: var(--size-icon);
+}
+
+.dots,
+.cross {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity var(--dur-fast) var(--ease-gate),
+    transform var(--dur-base) var(--ease-gate);
+}
+
+.dots {
+  gap: var(--size-menu-dot-gap);
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.dotLeft,
+.dotRight {
+  display: block;
+  width: var(--size-menu-dot);
+  height: var(--size-menu-dot);
+  border-radius: 50%;
+  background: currentColor;
+  transition: transform var(--dur-fast) var(--ease-gate);
+}
+
+.button:hover .dotLeft {
+  transform: translateX(2px);
+}
+
+.button:hover .dotRight {
+  transform: translateX(-2px);
+}
+
+.open .dots {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+.cross {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+
+.open .cross {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.crossLineA,
+.crossLineB {
+  position: absolute;
+  width: 16px;
+  height: var(--line-firm);
+  background: currentColor;
+  border-radius: var(--r-full);
+}
+
+.crossLineA {
+  transform: rotate(45deg);
+}
+
+.crossLineB {
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 768px) {
+  .button {
+    flex-basis: var(--size-menu-button-mobile);
+    width: var(--size-menu-button-mobile);
+    height: var(--size-menu-button-mobile);
+  }
+}

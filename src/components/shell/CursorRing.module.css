@@ -1,0 +1,58 @@
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  pointer-events: none;
+  z-index: var(--z-cursor);
+  opacity: 0;
+  display: grid;
+  place-items: center;
+  mix-blend-mode: difference;
+  will-change: transform;
+  transition: opacity var(--dur-fast) var(--ease-gate);
+}
+
+.svg {
+  width: 120px;
+  height: 120px;
+  overflow: visible;
+}
+
+.ellipse {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: var(--ring-stroke);
+}
+
+.label {
+  position: absolute;
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: var(--ring-label-size);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-gate);
+}
+
+.hidden {
+  visibility: hidden;
+  opacity: 0 !important;
+}
+
+:global(.has-ring),
+:global(.has-ring) a,
+:global(.has-ring) button {
+  cursor: none;
+}
+
+:global(.has-ring) input,
+:global(.has-ring) textarea,
+:global(.has-ring) select {
+  cursor: auto;
+}

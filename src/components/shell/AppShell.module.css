@@ -2,3 +2,17 @@
   min-height: 100dvh;
   outline: none;
 }
+
+.audioSlot {
+  position: fixed;
+  left: var(--gutter-page);
+  bottom: 28px;
+  z-index: var(--z-nav);
+}
+
+@media (max-width: 768px) {
+  .audioSlot {
+    left: var(--s-5);
+    bottom: var(--s-5);
+  }
+}
