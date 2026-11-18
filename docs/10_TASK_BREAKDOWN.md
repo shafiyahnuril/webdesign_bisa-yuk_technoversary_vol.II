@@ -75,7 +75,7 @@ F0 Fondasi ──► F1 Mesin + Rangka Home (placeholder) ──┬─► F3 Pan
 
 | ID | Tugas | Selesai bila | Dok. | Jalur |
 |---|---|---|---|---|
-| ☐ T2.1 | `AppShell`, `SkipLink`, `RouteTransition`, `RouteAnnouncer`, `Seo`, tema per halaman (`data-page`) | Fokus ke `<h1>` setelah rute; judul tab benar | 05 §1, 04 §13 | B |
+| ☑ T2.1 | `AppShell`, `SkipLink`, `RouteTransition`, `RouteAnnouncer`, `Seo`, tema per halaman (`data-page`) | Fokus ke `<h1>` setelah rute; judul tab benar | 05 §1, 04 §13 | B |
 | ☐ T2.2 | Navbar statis (menempel, latar muncul saat gulir > 8 px) di non-Home | Kontras lolos di semua tema | 05 §1.1 | B |
 | ☐ T2.3 | `AboutPage` (7 bagian), `FactBlock`, `TempDiagram`, `SourceList`, `LicenseTable`, `TeamGrid`, `ClosingStrip` | Semua bagian tampil dengan data placeholder | 05 §3 | B |
 | ☐ T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Filter 2 kelompok + hitungan ikut berubah; 12 kartu dummy | 05 §4 | B |

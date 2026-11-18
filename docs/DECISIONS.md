@@ -11,3 +11,5 @@
 | 2026-11-18 | Versi paket | Memakai versi stabil terbaru saat install (React 19, Vite 8, TypeScript 6, Vitest 5, ESLint 9, three 0.187) | Sesuai instruksi "versi stabil terbaru"; dikunci package-lock.json | 06 bagian 1 | usulan |
 | 2026-11-18 | `.prettierignore` memuat `*.md` | Berkas markdown tidak diformat Prettier | `prettier --write .` sempat memformat ulang dokumen lokal; dipulihkan dari zip. Tanpa menyebut nama folder dokumen di berkas yang di-commit | - | usulan |
 | 2026-11-18 | Placeholder sampul/panel | SVG kotak warna dengan hex yang sama dengan tokens.ts | SVG statis tidak bisa membaca variabel CSS | 07 | usulan |
+| 2026-11-18 | Impor `pages.css` | Diimpor dari `usePageTheme.ts`, bukan `main.tsx` | `main.tsx` milik Pihak A; setiap halaman non-Home memakai hook itu | 05 §1.1 | usulan |
+| 2026-11-18 | Fokus H1 setelah pindah rute | `PageHero` memfokuskan H1 hanya bila `location.key !== "default"` | Muat pertama tetap mengikuti tautan lompat; perubahan hash manual juga berkunci "default" | 05 §1, 04 §13 | usulan |

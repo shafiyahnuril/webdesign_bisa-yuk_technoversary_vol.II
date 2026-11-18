@@ -19,3 +19,10 @@ Usul: tambahkan `rebottle_assets/**` ke `ignores` di `eslint.config.js`.
 ## Pembaruan (keputusan tim)
 - Lint merah dari `rebottle_assets/scripts/*.mjs` SUDAH diatasi dengan commit `chore(kontrak): abaikan rebottle_assets dari lint dan format` (ignores di `eslint.config.js` + `.prettierignore`). Bila A ingin skrip itu lolos lint, perbaiki skripnya sendiri.
 - Permintaan tetap untuk A: preload font di `index.html`; pindahkan `--font-*` dari `typography.css` ke `tokens.css`.
+
+## Dari T2.1 (halaman non-Home)
+- **Pasang `RouteFade`** (`src/components/ui/RouteFade.tsx`, fade opacity antar rute) di `AppShell` membungkus `<Routes>`. Belum dipasang oleh B.
+- **Navbar statis di HP (390 px):** tautan meluap ke kanan (CONTACT terpotong). Pada layar kecil perlu burger/menu sesuai dok 04 §5.
+- **Navbar menempel:** latar belum berubah setelah gulir > 8 px (`color-mix(in oklch, var(--page-bg) 82%, transparent)`, dok 05 §1.1); `--page-bg` sudah tersedia di halaman non-Home.
+- **"Re:" pada brand Navbar** (garis luar, opasitas 0,45) nyaris tak terlihat di halaman non-Home; dok 05 §1.1 meminta "Re:" menyala penuh di sini.
+- **Vitest di Windows:** gagal bila dijalankan dari jalur berhuruf drive kecil (`c:\`); lewat `C:\` lancar.

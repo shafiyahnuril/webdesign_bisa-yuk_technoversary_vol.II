@@ -22,7 +22,7 @@
 | T1.11 | `StoryStage` rangka: 11 blok `ChapterText` placeholder (judul, isi dummy, counter), `ScenarioLabel`, `ScrollHint (start)`, `HeroTitle` | Pihak A | siap | |
 | T1.12 | Aturan jeda teks (text gap) pada semua bab; `SplitHeadline` dan `--melt` | Pihak A | siap | |
 | T1.13 | Overlay `Overlays`: butiran, vignette (CSS), retak latar (placeholder) | Pihak B | siap | |
-| T2.1 | `AppShell`, `SkipLink`, `RouteTransition`, `RouteAnnouncer`, `Seo`, tema per halaman (`data-page`) | Pihak B | siap | |
+| T2.1 | `AppShell`, `SkipLink`, `RouteTransition`, `RouteAnnouncer`, `Seo`, tema per halaman (`data-page`) | Pihak B | selesai (bagian B: tema, PageHero, Reveal, RouteFade, fokus H1; `RouteTransition` menunggu A memasang) | |
 | T2.2 | Navbar statis (menempel, latar muncul saat gulir > 8 px) di non-Home | Pihak B | siap | |
 | T2.3 | `AboutPage` (7 bagian), `FactBlock`, `TempDiagram`, `SourceList`, `LicenseTable`, `TeamGrid`, `ClosingStrip` | Pihak B | siap | |
 | T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Pihak B | siap | |
@@ -93,3 +93,11 @@
 | T11.3 | Uji instalasi di mesin bersih | Pihak B | siap | |
 | T11.4 | Skrip demo + cadangan (video, `?q=low`) + latihan 20 menit | Pihak A | siap | |
 | T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Pihak B | siap | |
+
+## Catatan untuk sesi berikutnya
+- **Selesai (T2.1, bagian Pihak B):** `src/styles/pages.css` (lima tema `[data-page]`, nilai dok 05 §1.1, kontras ink/bg ≥ 4,5:1 diuji di `pages.test.tsx`), `ui/usePageTheme`, `ui/PageHero` (H1 menerima fokus setelah pindah rute lewat klik tautan; dilewati pada muat pertama), `ui/Reveal`, `ui/RouteFade` (belum dipasang), kelima halaman memakai tema.
+- **Tersisa dari G2:** T2.9 (`NotFoundPage` final: botol 2D mengambang, tombol kembali). Halaman 404 saat ini baru memakai tema, bukan `PageHero`.
+- **Keputusan:** `pages.css` diimpor dari `usePageTheme.ts` (tanpa menyentuh `main.tsx`). Aksen konten/artikel (3,51 dan 3,84 : 1) hanya untuk elemen besar/dekoratif.
+- **Menunggu Pihak A:** lihat `CATATAN_UNTUK_A.md` (pasang `RouteFade`, Navbar HP meluap, latar Navbar saat gulir, preload font).
+- **Menunggu saya:** `DATA_B` (nama tim, email, akun, endpoint Formspree, keputusan atribusi alat bantu ilustrasi) belum diisi; dibutuhkan mulai G5/G6d.
+- **Catatan lingkungan:** `npm run test` hanya jalan bila shell dibuka dengan huruf drive kapital (`C:\...`); jalur `c:\` kecil membuat Vitest gagal "reading 'config'". Unduhan Chromium Playwright gagal (ECONNRESET); tangkapan layar memakai Chrome terpasang (`channel: "chrome"`).
