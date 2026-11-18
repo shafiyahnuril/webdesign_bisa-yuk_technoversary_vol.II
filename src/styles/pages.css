@@ -1,10 +1,12 @@
-/* Tema per halaman non-Home (docs/05 bagian 1.1). Satu-satunya tempat variabel --page-* didefinisikan.
+﻿/* Tema per halaman non-Home (docs/05 bagian 1.1). Satu-satunya tempat variabel --page-* didefinisikan.
    Rasio kontras ink/bg (WCAG, dihitung ulang oleh pages.test.ts):
    about 8,45 · konten 13,60 · artikel 14,85 · contact 10,77 · notfound 11,78.
    --page-accent dipakai hanya untuk elemen besar/dekoratif (konten 3,51 · artikel 3,84 di atas bg). */
 
 :root[data-page="about"] {
   --page-bg: #1f4f5e;
+  /* Ujung bawah gradasi latar About (teal dalam naik ke teal lebih terang); kontras ink 6,4, aksen 4,8. */
+  --page-bg-end: #206560;
   --page-ink: #f1faf7;
   --page-accent: #9fe6d0;
   --ui-ink: #f1faf7;

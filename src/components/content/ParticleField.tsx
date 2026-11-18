@@ -28,8 +28,23 @@ interface Particle {
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
+/** Menyelesaikan warna CSS (termasuk var() dan color-mix()) menjadi nilai yang dimengerti kanvas. */
+function resolveColor(css: string): string {
+  const probe = document.createElement("span");
+  probe.style.color = css;
+  document.body.appendChild(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value || css;
+}
+
+interface ParticleFieldProps {
+  /** Dua warna partikel (boleh var()/color-mix()); nilai bawaan = tampilan halaman Konten. */
+  colors?: readonly [string, string];
+}
+
 /** Latar partikel 2D (kapsul/segi enam). Berhenti saat tab tersembunyi atau kanvas tak terlihat. */
-export function ParticleField() {
+export function ParticleField({ colors = COLORS }: ParticleFieldProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const reduced = useReducedMotion();
 
@@ -38,6 +53,7 @@ export function ParticleField() {
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
+    const palette = colors.map(resolveColor);
     const mobile = window.matchMedia("(max-width: 720px)").matches;
     const finePointer = window.matchMedia("(pointer: fine)").matches && !mobile;
     let w = 0;
@@ -65,7 +81,7 @@ export function ParticleField() {
         size: rand(SIZE_MIN, SIZE_MAX),
         hex: Math.random() < 0.5,
         rot: rand(0, Math.PI),
-        color: COLORS[Math.random() < 0.6 ? 0 : 1],
+        color: palette[Math.random() < 0.6 ? 0 : 1] ?? "transparent",
         ox: 0,
         oy: 0,
       };
@@ -189,7 +205,7 @@ export function ParticleField() {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("resize", resize);
     };
-  }, [reduced]);
+  }, [reduced, colors]);
 
   return <canvas ref={ref} className={styles.canvas} aria-hidden="true" />;
 }
