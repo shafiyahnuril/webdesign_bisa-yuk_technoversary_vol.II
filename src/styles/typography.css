@@ -37,21 +37,13 @@
   line-gap-override: 0%;
 }
 
-/* TODO(A): pindahkan empat deklarasi ini ke tokens.css (satu sumber font-family);
-   di sini hanya menambah fallback bermetrik di depan tumpukan sistem. */
-:root {
-  --font-display:
-    "Bricolage Grotesque Variable", "Bricolage Fallback", "Helvetica Neue", Arial, sans-serif;
-  --font-ui:
-    "Instrument Sans Variable", "Instrument Fallback", system-ui, -apple-system, "Segoe UI", Roboto,
-    sans-serif;
-  --font-hand: "Caveat Variable", "Caveat Fallback", "Segoe Script", "Bradley Hand", cursive;
-  --font-mono:
-    "JetBrains Mono Variable", "JetBrains Fallback", ui-monospace, "SFMono-Regular", Menlo,
-    monospace;
-}
+/* Deklarasi --font-* hidup di tokens.css (satu sumber font-family);
+   blok @font-face di atas tetap menjadi penyedia fallback bermetrik. */
 
-/* Skala tipografi fluid (docs/02 bagian 2.3). */
+/* Skala tipografi fluid (docs/02 bagian 2.3).
+   font-variation-settings menyetel sumbu wght/wdth sesuai paket Fontsource yang
+   dimuat (varian subset wdth); sumbu opsz milik varian berkas lain sehingga tidak
+   dipakai di sini agar tidak berbeda dengan binari yang dimuat. */
 :root {
   --t-hero: clamp(4.5rem, 17vw, 17rem);
   --t-chapter: clamp(2.75rem, 7.2vw, 7rem);
@@ -69,23 +61,27 @@
 .t-hero {
   font: 700 var(--t-hero) / 0.86 var(--font-display);
   font-stretch: 88%;
+  font-variation-settings: "wght" 700, "wdth" 88;
   letter-spacing: -0.04em;
 }
 
 .t-chapter {
   font: 700 var(--t-chapter) / 0.92 var(--font-display);
   font-stretch: 90%;
+  font-variation-settings: "wght" 700, "wdth" 90;
   letter-spacing: -0.03em;
 }
 
 .t-h2 {
   font: 650 var(--t-h2) / 1.1 var(--font-display);
+  font-variation-settings: "wght" 650, "wdth" 100;
   letter-spacing: -0.02em;
 }
 
 .t-body {
   font: 400 var(--t-body) / 1.65 var(--font-ui);
-  max-width: 62ch;
+  font-variation-settings: "wght" 400, "wdth" 100;
+  max-width: var(--read-body-chars);
 }
 
 .t-ui {
@@ -103,6 +99,7 @@
 .t-punch {
   font: 500 var(--t-punch) / 1.02 var(--font-display);
   font-stretch: 100%;
+  font-variation-settings: "wght" 500, "wdth" 100;
   letter-spacing: -0.02em;
 }
 
@@ -115,6 +112,7 @@
 .t-body-lg {
   font: 400 var(--t-body-lg) / 1.5 var(--font-ui);
   font-stretch: 100%;
+  font-variation-settings: "wght" 400, "wdth" 100;
 }
 
 .t-ui-sm {
@@ -129,5 +127,6 @@
 .t-card {
   font: 600 var(--t-card) / 1.08 var(--font-display);
   font-stretch: 92%;
+  font-variation-settings: "wght" 600, "wdth" 92;
   letter-spacing: -0.02em;
 }
