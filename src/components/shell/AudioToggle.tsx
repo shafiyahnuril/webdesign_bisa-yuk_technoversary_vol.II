@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { createAudioEngine, isAudioSupported, type AudioController } from "@/audio/audio-engine";
 import { COPY } from "@/content/copy";
+import { storySignals } from "@/engine/signal";
 import { storyEngine, type StoryEngine } from "@/engine/story-engine";
 import styles from "./AudioToggle.module.css";
 
@@ -72,10 +73,14 @@ export function AudioToggle({ engine = storyEngine, className }: AudioToggleProp
     const unsubChapter = engine.onChapter(() => {
       syncDuck();
     });
+    const unsubSignals = storySignals.subscribe(() => {
+      syncDuck();
+    });
 
     return () => {
       unsubFrame();
       unsubChapter();
+      unsubSignals();
       controller.dispose();
       controllerRef.current = null;
       setEnabled(false);

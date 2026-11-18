@@ -1,9 +1,25 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { AudioController } from "@/audio/audio-engine";
 import { COPY } from "@/content/copy";
-import type { StoryEngine, StoryState } from "@/engine/story-engine";
+import { createStoryEngine, type StoryEngine, type StoryState } from "@/engine/story-engine";
 import { AudioToggle } from "./AudioToggle";
+
+const createdControllers: AudioController[] = [];
+
+vi.mock("@/audio/audio-engine", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/audio/audio-engine")>();
+  return {
+    ...actual,
+    createAudioEngine: () => {
+      const ctrl = actual.createAudioEngine();
+      vi.spyOn(ctrl, "setDucked");
+      createdControllers.push(ctrl);
+      return ctrl;
+    },
+  };
+});
 
 function installFakeAudioContext(options: { rejectResume?: boolean } = {}) {
   const createdContexts: FakeAudioContext[] = [];
@@ -121,6 +137,7 @@ function RouteControls() {
 
 describe("AudioToggle", () => {
   beforeEach(() => {
+    createdControllers.length = 0;
     installFakeAudioContext();
   });
 
@@ -159,6 +176,51 @@ describe("AudioToggle", () => {
     });
 
     unmount();
+  });
+
+  it("langsung melakukan duck dan un-duck saat createStoryEngine aktual pause/resume tanpa frame atau pergantian bab", async () => {
+    const engine = createStoryEngine({ scheduler: { add: () => () => {} } });
+    const frameSpy = vi.fn();
+    const chapterSpy = vi.fn();
+    const unsubFrame = engine.onFrame(frameSpy);
+    const unsubChapter = engine.onChapter(chapterSpy);
+
+    const { unmount } = render(
+      <MemoryRouter initialEntries={["/"]}>
+        <AudioToggle engine={engine} />
+      </MemoryRouter>,
+    );
+
+    const controller = createdControllers[createdControllers.length - 1]!;
+    expect(controller).toBeDefined();
+    vi.mocked(controller.setDucked).mockClear();
+
+    const btn = screen.getByRole("button", { name: COPY["audio.on"] });
+    fireEvent.click(btn);
+    await waitFor(() => {
+      expect(btn.getAttribute("aria-pressed")).toBe("true");
+    });
+
+    // Menu dibuka -> engine.pause() tanpa onFrame maupun onChapter
+    engine.pause();
+    expect(frameSpy).not.toHaveBeenCalled();
+    expect(chapterSpy).not.toHaveBeenCalled();
+    expect(controller.setDucked).toHaveBeenCalledWith(true);
+
+    // Menu ditutup -> engine.resume() tanpa onFrame maupun onChapter
+    engine.resume();
+    expect(frameSpy).not.toHaveBeenCalled();
+    expect(chapterSpy).not.toHaveBeenCalled();
+    expect(controller.setDucked).toHaveBeenCalledWith(false);
+
+    // Setelah unmount, pause/resume tidak memanggil controller lagi
+    vi.mocked(controller.setDucked).mockClear();
+    unmount();
+    unsubFrame();
+    unsubChapter();
+    engine.pause();
+    engine.resume();
+    expect(controller.setDucked).not.toHaveBeenCalled();
   });
 
   it("senyap saat pindah rute non-Home, tidak autoplay jika belum diaktifkan, dan lanjut saat kembali ke Home bila sebelumnya aktif", async () => {
