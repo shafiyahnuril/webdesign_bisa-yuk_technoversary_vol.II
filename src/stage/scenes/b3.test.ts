@@ -247,4 +247,32 @@ describe("CityEnvironment & Scene B3 (Tersesat)", () => {
     ctx.shared.bottle.dispose();
     ctx.shared.contactShadow.dispose();
   });
+
+  it("memakai MeshLambertMaterial ringan bebas PMREM di LOW dan menjaga MeshStandardMaterial di MEDIUM/HIGH", () => {
+    const parent = new THREE.Scene();
+    const cityLow = new CityEnvironment(parent, QUALITY_PRESETS.low, false);
+    const cityMed = new CityEnvironment(parent, QUALITY_PRESETS.medium, false);
+    const cityHigh = new CityEnvironment(parent, QUALITY_PRESETS.high, false);
+
+    expect(cityLow.farBuildings.material).toBeInstanceOf(THREE.MeshLambertMaterial);
+    expect(cityLow.midBuildings.material).toBeInstanceOf(THREE.MeshLambertMaterial);
+    expect(cityLow.nearBuildings.material).toBeInstanceOf(THREE.MeshLambertMaterial);
+    expect(cityLow.embankmentWall.material).toBeInstanceOf(THREE.MeshLambertMaterial);
+    expect(cityLow.fencePosts.material).toBeInstanceOf(THREE.MeshLambertMaterial);
+    expect(cityLow.trashBags.material).toBeInstanceOf(THREE.MeshLambertMaterial);
+    expect(cityLow.trashCups.material).toBeInstanceOf(THREE.MeshLambertMaterial);
+    expect(cityLow.trashBottles.material).toBeInstanceOf(THREE.MeshLambertMaterial);
+    expect((cityLow.farBuildings.material as THREE.Material).customProgramCacheKey()).toBe(
+      "rebottle-city-lambert-low",
+    );
+
+    expect(cityMed.farBuildings.material).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(cityMed.midBuildings.material).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(cityHigh.farBuildings.material).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(cityHigh.midBuildings.material).toBeInstanceOf(THREE.MeshStandardMaterial);
+
+    cityLow.dispose();
+    cityMed.dispose();
+    cityHigh.dispose();
+  });
 });

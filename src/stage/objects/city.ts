@@ -38,13 +38,42 @@ function buildLowBottleGeometry(): THREE.BufferGeometry {
   return geom;
 }
 
-function buildWindowMaterial(useAtlas: boolean): {
-  material: THREE.MeshStandardMaterial;
+function createCityMaterial(
+  opts: {
+    color: THREE.ColorRepresentation;
+    roughness?: number;
+    transparent?: boolean;
+    opacity?: number;
+  },
+  lowQuality: boolean,
+): THREE.MeshStandardMaterial | THREE.MeshLambertMaterial {
+  if (!lowQuality) {
+    return createClayMaterial(opts);
+  }
+  const mat = new THREE.MeshLambertMaterial({
+    color: opts.color,
+    transparent: opts.transparent ?? false,
+    opacity: opts.opacity ?? 1,
+    side: THREE.FrontSide,
+  });
+  // Hilangkan fetch PMREM cubeUV pada tier LOW sambil mempertahankan Directional/HemisphereLight + FogExp2
+  mat.customProgramCacheKey = () => "rebottle-city-lambert-low";
+  mat.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace("#include <lights_fragment_maps>", "");
+  };
+  return mat;
+}
+
+function buildWindowMaterial(
+  useAtlas: boolean,
+  lowQuality: boolean,
+): {
+  material: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
   texture: THREE.CanvasTexture | null;
 } {
   if (!useAtlas) {
     return {
-      material: createClayMaterial({ color: "#12294A", roughness: 0.82 }),
+      material: createCityMaterial({ color: "#12294A", roughness: 0.82 }, lowQuality),
       texture: null,
     };
   }
@@ -118,7 +147,8 @@ export class CityEnvironment {
     this.group.name = "B3-CITY-ENV";
     parent.add(this.group);
 
-    const compact = isPortrait || quality.tier === "low";
+    const lowQuality = quality.tier === "low";
+    const compact = isPortrait || lowQuality;
     this.compactMode = compact;
     const farCount = compact ? 30 : 60;
     this.maxFarCount = farCount;
@@ -137,10 +167,10 @@ export class CityEnvironment {
     const unitBox = new THREE.BoxGeometry(1, 1, 1);
     unitBox.translate(0, 0.5, 0);
 
-    const farMat = createClayMaterial({ color: "#0F2036", roughness: 0.85 });
-    const winSetup = buildWindowMaterial(quality.windowAtlas && !isPortrait);
+    const farMat = createCityMaterial({ color: "#0F2036", roughness: 0.85 }, lowQuality);
+    const winSetup = buildWindowMaterial(quality.windowAtlas && !isPortrait, lowQuality);
     this.windowAtlasTex = winSetup.texture;
-    const nearMat = createClayMaterial({ color: "#12294A", roughness: 0.8 });
+    const nearMat = createCityMaterial({ color: "#12294A", roughness: 0.8 }, lowQuality);
 
     this.farBuildings = new THREE.InstancedMesh(unitBox, farMat, farCount);
     this.farBuildings.name = "O-CITY-FAR";
@@ -193,7 +223,7 @@ export class CityEnvironment {
     this.nearGroup.add(this.nearBuildings);
 
     // 2. Tanggul + Pagar (O-EMBANK) sepanjang sisi utara kanal agar tidak menghalangi kamera
-    const embMat = createClayMaterial({ color: "#12294A", roughness: 0.82 });
+    const embMat = createCityMaterial({ color: "#12294A", roughness: 0.82 }, lowQuality);
     const wallGeom = new THREE.BoxGeometry(40, 1.2, 0.6);
     this.embankmentWall = new THREE.Mesh(wallGeom, embMat);
     this.embankmentWall.name = "O-EMBANK-WALL";
@@ -201,7 +231,7 @@ export class CityEnvironment {
     this.nearGroup.add(this.embankmentWall);
 
     const postGeom = new THREE.BoxGeometry(0.11, 0.62, 0.11);
-    const postMat = createClayMaterial({ color: "#1E3A5F", roughness: 0.78 });
+    const postMat = createCityMaterial({ color: "#1E3A5F", roughness: 0.78 }, lowQuality);
     this.fencePosts = new THREE.InstancedMesh(postGeom, postMat, fenceCount);
     this.fencePosts.name = "O-EMBANK-FENCE";
     for (let i = 0; i < fenceCount; i++) {
@@ -218,7 +248,7 @@ export class CityEnvironment {
     // 3. Jembatan lengkung (O-BRIDGE) di x = -0.12 -> dilalui kamera sekitar t = 0.49
     this.bridgeGroup.name = "O-BRIDGE";
     this.bridgeGroup.position.set(-0.12, 0, 0);
-    const bridgeMat = createClayMaterial({ color: "#12294A", roughness: 0.8 });
+    const bridgeMat = createCityMaterial({ color: "#12294A", roughness: 0.8 }, lowQuality);
     const archCurve = new THREE.QuadraticBezierCurve3(
       new THREE.Vector3(0, -0.4, -7.2),
       new THREE.Vector3(0, 2.35, 0),
@@ -249,24 +279,30 @@ export class CityEnvironment {
 
     const bagGeom = new THREE.IcosahedronGeometry(0.5, 1);
     bagGeom.scale(1.0, 0.28, 0.82);
-    const bagMat = createClayMaterial({
-      color: "#E6EAF2",
-      roughness: 0.72,
-      transparent: true,
-      opacity: 0.72,
-    });
+    const bagMat = createCityMaterial(
+      {
+        color: "#E6EAF2",
+        roughness: 0.72,
+        transparent: true,
+        opacity: 0.72,
+      },
+      lowQuality,
+    );
 
     const cupGeom = new THREE.ConeGeometry(0.35, 0.7, 12);
     cupGeom.rotateZ(Math.PI * 0.45);
-    const cupMat = createClayMaterial({ color: "#9CC6EA", roughness: 0.72 });
+    const cupMat = createCityMaterial({ color: "#9CC6EA", roughness: 0.72 }, lowQuality);
 
     const lowBottleGeom = buildLowBottleGeometry();
-    const lowBottleMat = createClayMaterial({
-      color: "#BFE9FF",
-      roughness: 0.45,
-      transparent: true,
-      opacity: 0.78,
-    });
+    const lowBottleMat = createCityMaterial(
+      {
+        color: "#BFE9FF",
+        roughness: 0.45,
+        transparent: true,
+        opacity: 0.78,
+      },
+      lowQuality,
+    );
 
     this.trashBags = new THREE.InstancedMesh(bagGeom, bagMat, this.bagCapacity);
     this.trashCups = new THREE.InstancedMesh(cupGeom, cupMat, this.cupCapacity);
