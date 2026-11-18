@@ -13,8 +13,8 @@ import {
 } from "./timeline";
 
 describe("timeline", () => {
-  it("total gulir 2240 vh", () => {
-    expect(TOTAL_VH).toBe(2240);
+  it("total gulir 4480 vh", () => {
+    expect(TOTAL_VH).toBe(4480);
   });
 
   it("STARTS sesuai tabel docs/03", () => {

@@ -384,23 +384,23 @@ export const STAGGER = {
 
 /** Panjang tiap segmen cerita dalam vh. Ubah panjang bab HANYA di sini. */
 export const LENGTHS_VH = {
-  b1: 140,
-  b2: 180,
-  b3: 200,
-  b4: 200,
-  b5: 220,
-  b6: 220,
-  punch: 180,
-  b7: 140,
-  b8: 180,
-  b9: 200,
-  b10: 380,
+  b1: 280,
+  b2: 360,
+  b3: 400,
+  b4: 400,
+  b5: 440,
+  b6: 440,
+  punch: 360,
+  b7: 280,
+  b8: 360,
+  b9: 400,
+  b10: 760,
 } as const;
 
 /** Parameter mesin gulir (PROTOTIPE, disetel di T6.1; catat di CHANGELOG_PARAMETER). */
 export const ENGINE = {
-  MAX_SPEED_VH: 70,
-  CHASE: 8,
+  MAX_SPEED_VH: 40,
+  CHASE: 4.5,
   GAIN: 1 / 1400,
   REST_DELAY: 90,
   DECAY: 0.12,

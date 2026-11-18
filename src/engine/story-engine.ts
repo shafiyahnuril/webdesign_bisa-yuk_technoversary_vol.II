@@ -266,10 +266,17 @@ export function createStoryEngine(opts: CreateStoryEngineOptions = {}): StoryEng
 
     stopInput = attachStoryInput({
       onScroll: readScrollTarget,
-      onScrollBy(deltaPx) {
+      onScrollBy(deltaPx, pointer) {
         if (state.paused || typeof window === "undefined" || typeof window.scrollBy !== "function")
           return;
-        window.scrollBy({ top: deltaPx, behavior: "auto" });
+        let delta = deltaPx;
+        if (pointer && maxScroll > 0) {
+          const anchor = state.shown * maxScroll;
+          const lead = getViewportHeight() * 0.9;
+          const nextTop = Math.max(anchor - lead, Math.min(anchor + lead, window.scrollY + delta));
+          delta = nextTop - window.scrollY;
+        }
+        window.scrollBy({ top: delta, behavior: "auto" });
       },
       onResize: handleResize,
       onVisibilityChange(hidden) {

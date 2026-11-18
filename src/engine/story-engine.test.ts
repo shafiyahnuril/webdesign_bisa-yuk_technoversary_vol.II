@@ -169,7 +169,23 @@ describe("story-engine & input", () => {
     expect(calls).toEqual(["dom", "renderer", "audio"]);
   });
 
-  it("memasang listener wheel/touch/scroll dengan passive: true", () => {
+  it("membatasi sentakan roda dan menahan antrean input ketika pengguna berhenti", () => {
+    const env = mockScrollEnv();
+    const { scheduler } = createManualScheduler();
+    const engine = createStoryEngine({ scheduler });
+    engine.mount(document.createElement("div"));
+    activeCleanups.push(() => engine.unmount());
+    const event = new WheelEvent("wheel", { deltaY: 10000, cancelable: true });
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(env.getScrollY()).toBeGreaterThan(0);
+    expect(env.getScrollY()).toBeLessThanOrEqual(220 + 1e-8);
+    for (let i = 0; i < 20; i++)
+      window.dispatchEvent(new WheelEvent("wheel", { deltaY: 10000, cancelable: true }));
+    expect(env.getScrollY()).toBeLessThanOrEqual(window.innerHeight * 0.9);
+  });
+
+  it("memisahkan input terkontrol dari listener scroll pasif", () => {
     mockScrollEnv(23400, 1000);
     const addSpy = vi.spyOn(window, "addEventListener");
     const { scheduler } = createManualScheduler();
@@ -178,7 +194,7 @@ describe("story-engine & input", () => {
 
     engine.mount(root);
 
-    for (const type of ["scroll", "wheel", "touchstart", "touchmove"]) {
+    for (const type of ["scroll", "touchstart"]) {
       const call = addSpy.mock.calls.find(([evt]) => evt === type);
       expect(call).toBeDefined();
       expect(call?.[2]).toEqual({ passive: true });
@@ -404,14 +420,15 @@ describe("story-engine & input", () => {
 
     // Lewati batas ke Bab 2 -> tepat 1 signal emit dan 1 onChapter
     env.setScrollY(Math.ceil(22400 * (STARTS.b2 + 0.01)));
-    step(1, 2);
+    step(1, Math.ceil((STARTS.b2 + 0.01) / (ENGINE.MAX_SPEED_VH / TOTAL_VH)) + 3);
     expect(engine.state.chapter).toBe(2);
     expect(sigSpy).toHaveBeenCalledTimes(1);
     expect(chapterSpy).toHaveBeenCalledWith(2, "1");
 
     // Lewati hingga PUNCH.to -> view="2", re=true, chapter=7
     env.setScrollY(Math.ceil(22400 * (PUNCH.to + 0.01)));
-    for (let i = 0; i < 30; i++) step(1);
+    for (let i = 0; i < Math.ceil((PUNCH.to + 0.01) / (ENGINE.MAX_SPEED_VH / TOTAL_VH)) + 3; i++)
+      step(1);
     expect(engine.state.view).toBe("2");
     expect(storySignals.get().re).toBe(true);
     expect(domRoot.dataset.re).toBe("on");
