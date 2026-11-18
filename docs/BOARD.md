@@ -138,3 +138,11 @@
 - Uji WebGL hero pada harness browser: tanpa galat konsol,9drawcall/8282segitiga padaHIGH. Ini bukti render awal, belum profilFPS perangkat atau hasil Home final.
 - Berikutnya: UIHome/fallback, sceneB2-B10/punch dan wiringStageCanvas. Tugas dengan keterangan modul siap belum dianggap seluruh perilaku visual selesai.
 - Pengguna meminta penghentian koordinasi langsung dengan B; pekerjaan berikutnya fokus implementasi dan mengambil hasil main saat integrasi.
+
+## Integrasi Pihak A dan revisi visual · 18 November 2026
+
+- Seluruh modul engine, UI Home, 11 scene, audio, aset2D, capture, fallback, dan integrasi shell telah masuk main. Hasil halaman dan fakta B diambil melalui pull/rebase; tidak ada koordinasi langsung baru dengan B.
+- Regresi E2E mencakup Home 3D, ratchet, menu/fokus, keyframe/loop, reduced-motion berurutan, context loss, navigasi rute, dan Web Audio nyata. Jumlah pemeriksaan akhir mengikuti hasil run terakhir, bukan jumlah lama pada checkpoint sebelumnya.
+- Pengguna meminta revisi visual besar: material PBR dan warna komponen, layout editorial tanpa kotak besar, narasi lebih emosional, audio dinamis, serta motion lebih lambat. Revisi ini menggantikan batas visual prototipe yang lebih ketat; konsep utama tetap.
+- T6.1/T6.2 mempunyai baseline baru dan regresi, tetapi tuning perangkat fisik belum disahkan. T10.1 mempunyai ukuran serta pengecualian tercatat. T10.2 mempunyai profil software dan lifecycle, bukan klaim target FPS perangkat nyata. T11.4 mempunyai panduan demo; latihan/video opsional belum dilakukan.
+- Data tim, kontak produksi, endpoint dan artikel/README final tetap mengikuti pekerjaan dan konfigurasi B. QA lintas perangkat/browser serta Lighthouse tetap opsional sesuai12§8 dan belum diklaim selesai.

@@ -16,7 +16,7 @@
 |---|---|---|
 | Cakupan | **Seluruh Home**: engine, 3D, shader, audio, navbar, menu, penanda bab, kursor, surat, CTA, StaticStory, overlay. **Seluruh aset 2D** (sampul artikel, panel statis, favicon/OG, retak latar). Performa | Halaman About, Konten (Galeri Artikel), Artikel, Contact, 404; naskah, fakta, 12 artikel, data tim, README, deploy, font |
 | Sifat | Berat, saling terkait, banyak penyetelan | Ringan, independen |
-| Bobot | **243 poin · 59 tugas · ≈ 85,6%** | **41 poin · 20 tugas · ≈ 14,4%** |
+| Bobot | **243 poin · 60 tugas · ≈ 85,6%** | **41 poin · 19 tugas · ≈ 14,4%** |
 
 Alasan aturan 2 sangat kuat: seluruh Home berbagi satu sumber `shown`, satu ratchet, satu kanvas, dan satu sistem palet. Satu orang memegangnya menghindari konflik gaya, jeda, dan ritme.
 
@@ -59,7 +59,7 @@ Repo + token + rute (T0.1, T0.3, T0.5, T0.7), `Navbar` minimal dengan varian sta
 
 ## 4. Pembagian tugas (ID dari dokumen 10)
 
-### Pihak A · 243 poin · 59 tugas
+### Pihak A · 243 poin · 60 tugas
 
 | Fase | Tugas |
 |---|---|
@@ -76,7 +76,7 @@ Repo + token + rute (T0.1, T0.3, T0.5, T0.7), `Navbar` minimal dengan varian sta
 | F10 | T10.1 bundel (3) · **T10.2 profil FPS (5)** |
 | F11 | T11.4 demo + cadangan (2) |
 
-### Pihak B · 41 poin · 20 tugas
+### Pihak B · 41 poin · 19 tugas
 
 | Fase | Tugas |
 |---|---|
@@ -164,8 +164,8 @@ Artikel: kerangka 11 §4 → tulis → ≥ 2 sumber berbeda penerbit → tinjau 
 
 | | Poin | Persen | Tugas |
 |---|---|---|---|
-| A | 243 | 85,6% | 59 |
-| B | 41 | 14,4% | 20 |
+| A | 243 | 85,6% | 60 |
+| B | 41 | 14,4% | 19 |
 | **Total** | **284** | 100% | 79 |
 
 (Tugas QA yang dikeluarkan dari hitungan: T2.10, T6.4, T6.5, T7.4, T9.3, T10.3–T10.7, T11.2, T11.3 = 25 poin; lihat bagian 8.)
