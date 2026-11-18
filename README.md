@@ -56,7 +56,7 @@ Setelah Bab 10, pengunjung bisa menarik halaman untuk mengulang cerita dari awal
 | Halaman | Rute | Isi |
 |---|---|---|
 | Home | `#/` | Cerita 10 bab (scrollytelling 3D) |
-| About | `#/about` | Latar isu, skenario, sumber data, atribusi aset dan lisensi, tim |
+| About | `#/about` | Latar belakang, dua skenario, angka bersumber, suhu dan target 1,5°C |
 | Konten (Galeri Artikel) | `#/konten` | 12 artikel dengan filter |
 | Detail artikel | `#/konten/:slug` | Isi artikel, daftar sumber, artikel berikutnya |
 | Contact | `#/contact` | Formulir kontak |
@@ -126,11 +126,28 @@ Untuk mencoba build produksi: `npm run build && npm run preview`.
 | `npm run gen:tokens` | Membangkitkan `src/styles/tokens.generated.css` (otomatis saat `dev` dan `build`) |
 | `npm run analyze` | Membuat laporan ukuran bundel |
 
+## Lisensi dan kredit
+
+Seluruh font, pustaka, dan aset berikut gratis dan tidak berbayar. Tidak ada yang mewajibkan atribusi pada halaman situs; lisensinya ikut disertakan pada paket yang dipasang lewat npm.
+
+| Jenis | Nama | Pembuat | Lisensi |
+|---|---|---|---|
+| Font | [Bricolage Grotesque](https://github.com/ateliertriay/bricolage) | Mathieu Triay | SIL OFL 1.1 |
+| Font | [Instrument Sans](https://github.com/Instrument/instrument-sans) | Instrument | SIL OFL 1.1 |
+| Font | [Caveat](https://github.com/googlefonts/caveat) | Impallari Type | SIL OFL 1.1 |
+| Font | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) | JetBrains | SIL OFL 1.1 |
+| Pustaka | [react](https://react.dev) | | MIT |
+| Pustaka | [react-router-dom](https://reactrouter.com) | | MIT |
+| Pustaka | [three](https://github.com/mrdoob/three.js) | | MIT |
+| Pustaka | [gsap](https://gsap.com) | | Gratis (lisensi standar GSAP, tanpa biaya) |
+| Aset | Sampul artikel (12) dan panel statis (11) | Tim Re:bottle | Hak milik tim |
+| Aset | Audio ambient dan SFX (sintesis Web Audio, kode) | Tim Re:bottle | Hak milik tim |
+
 ## Catatan
 
 - Opsi `?q=low` memaksa mode ringan (misalnya `http://localhost:5173/?q=low#/`).
 - Mode reduced-motion (atau perangkat tanpa WebGL) menampilkan panel statis sebagai ganti adegan 3D.
 - Form Contact berjalan dalam mode cadangan `mailto:` (membuka aplikasi email). Pengiriman lewat Formspree aktif bila `VITE_FORMSPREE_ENDPOINT` diisi. Alamat email dan akun pada halaman Contact masih contoh, bukan kontak resmi.
-- Seluruh aset dibuat sendiri atau berlisensi bebas. Lihat halaman About › Atribusi.
+- Seluruh aset dibuat sendiri atau berlisensi bebas. Lihat bagian [Lisensi dan kredit](#lisensi-dan-kredit).
 - Angka fakta pada situs hanya berasal dari sumber yang sudah diperiksa; bagian yang belum terverifikasi tidak ditampilkan. Label skenario pada Babak I menegaskan bahwa kenaikan suhu adalah skenario, bukan klaim sebab-akibat langsung dari satu botol.
 - Hasil Lighthouse (kategori SEO, build produksi lewat `npm run preview`, diukur 18 November 2026): skor SEO 100 pada rute Home, About, Konten, detail artikel, dan Contact (mode desktop bawaan Lighthouse 12). Kategori performa, aksesibilitas, dan best practices belum diukur.

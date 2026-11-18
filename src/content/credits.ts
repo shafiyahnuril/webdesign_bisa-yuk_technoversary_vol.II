@@ -1,5 +1,6 @@
 // Pencatatan lisensi dan atribusi. Tidak boleh ada aset tanpa baris di sini.
-// Tambahkan baris baru setiap kali memakai paket atau aset baru.
+// Tambahkan baris baru setiap kali memakai paket atau aset baru, dan samakan tabel "Lisensi dan kredit" di README.
+// TODO: keterangan penggunaan alat bantu ilustrasi menunggu info Pihak A; tidak ada klaim ditulis.
 export interface Credit {
   type: "font" | "lib" | "illustration" | "audio";
   name: string;
