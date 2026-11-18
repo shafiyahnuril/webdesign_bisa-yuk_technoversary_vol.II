@@ -1,11 +1,9 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import { createStoryEngine } from "@/engine/story-engine";
 import { PALETTE } from "@/lib/tokens";
-import {
-  reportStoryWebGLFailure,
-  resetStoryWebGLFailure,
-} from "@/hooks/useStoryMode";
+import { reportStoryWebGLFailure, resetStoryWebGLFailure } from "@/hooks/useStoryMode";
 import HomePage from "@/routes/HomePage";
 import { StaticStory } from "./StaticStory";
 import { StoryStage } from "./StoryStage";
@@ -119,11 +117,7 @@ describe("StoryStage & StaticStory", () => {
       writable: true,
     });
     HTMLCanvasElement.prototype.getContext = vi.fn((contextId: string) => {
-      if (
-        contextId === "webgl2" ||
-        contextId === "webgl" ||
-        contextId === "experimental-webgl"
-      ) {
+      if (contextId === "webgl2" || contextId === "webgl" || contextId === "experimental-webgl") {
         return {} as WebGLRenderingContext;
       }
       return null;
@@ -213,19 +207,7 @@ describe("StoryStage & StaticStory", () => {
     const palettes = [...container.querySelectorAll<HTMLElement>("[data-static-panel]")].map(
       (el) => el.dataset.palette,
     );
-    expect(palettes).toEqual([
-      "c1",
-      "c2",
-      "c3",
-      "c4",
-      "c5",
-      "c6",
-      "cp0",
-      "c7",
-      "c8",
-      "c9",
-      "c10",
-    ]);
+    expect(palettes).toEqual(["c1", "c2", "c3", "c4", "c5", "c6", "cp0", "c7", "c8", "c9", "c10"]);
 
     // Tombol Mulai dari awal mengunci kembali ke 2 panel, mereset palet c1 & data-re="off", dan memindahkan fokus ke judul panel 1
     const restartBtn = screen.getByRole("button", { name: /Mulai dari awal/i });
@@ -241,23 +223,23 @@ describe("StoryStage & StaticStory", () => {
   it("mengalihkan HomePage ke StaticStory ketika StageCanvas melaporkan kegagalan WebGL", () => {
     const engine = createStoryEngine();
     const { container } = render(
-      <HomePage
-        engine={engine}
-        renderStageCanvas={() => <div data-testid="mock-stage-canvas" />}
-      />,
+      <MemoryRouter>
+        <HomePage
+          engine={engine}
+          renderStageCanvas={() => <div data-testid="mock-stage-canvas" />}
+        />
+      </MemoryRouter>,
     );
 
-    expect(
-      container.querySelector("[data-home-page]")?.getAttribute("data-story-mode"),
-    ).toBe("3d");
+    expect(container.querySelector("[data-home-page]")?.getAttribute("data-story-mode")).toBe("3d");
 
     act(() => {
       reportStoryWebGLFailure(new Error("Simulated WebGL context loss"));
     });
 
-    expect(
-      container.querySelector("[data-home-page]")?.getAttribute("data-story-mode"),
-    ).toBe("static");
+    expect(container.querySelector("[data-home-page]")?.getAttribute("data-story-mode")).toBe(
+      "static",
+    );
     expect(container.querySelector("[data-static-story]")).not.toBeNull();
   });
 });

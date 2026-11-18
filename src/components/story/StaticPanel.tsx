@@ -8,30 +8,10 @@ import { formatTemp } from "./ChapterMarker";
 import styles from "./StaticPanel.module.css";
 
 export type StaticPanelId =
-  | "b1"
-  | "b2"
-  | "b3"
-  | "b4"
-  | "b5"
-  | "b6"
-  | "punch"
-  | "b7"
-  | "b8"
-  | "b9"
-  | "b10";
+  "b1" | "b2" | "b3" | "b4" | "b5" | "b6" | "punch" | "b7" | "b8" | "b9" | "b10";
 
 export type StaticPaletteKey =
-  | "c1"
-  | "c2"
-  | "c3"
-  | "c4"
-  | "c5"
-  | "c6"
-  | "cp0"
-  | "c7"
-  | "c8"
-  | "c9"
-  | "c10";
+  "c1" | "c2" | "c3" | "c4" | "c5" | "c6" | "cp0" | "c7" | "c8" | "c9" | "c10";
 
 export interface StaticPanelSpec {
   id: StaticPanelId;
@@ -81,7 +61,8 @@ export const STATIC_PANEL_SPECS: readonly StaticPanelSpec[] = [
     title: COPY["ch2.title"],
     temperature: `${formatTemp(TEMP.c2)} (skenario)`,
     imageFile: "img/static/panel-02.svg",
-    imageAlt: "Ilustrasi Bab 02 Sekali Pakai: tangan menggenggam botol dengan cincin waktu 10 menit",
+    imageAlt:
+      "Ilustrasi Bab 02 Sekali Pakai: tangan menggenggam botol dengan cincin waktu 10 menit",
   },
   {
     id: "b3",
@@ -144,7 +125,8 @@ export const STATIC_PANEL_SPECS: readonly StaticPanelSpec[] = [
     title: COPY["ch7.title"],
     temperature: `${formatTemp(TEMP.c7)} (skenario)`,
     imageFile: "img/static/panel-08.svg",
-    imageAlt: "Ilustrasi Bab 07 Di Tempat yang Benar: botol dimasukkan ke tempat sampah terpilah dalam 10 detik",
+    imageAlt:
+      "Ilustrasi Bab 07 Di Tempat yang Benar: botol dimasukkan ke tempat sampah terpilah dalam 10 detik",
   },
   {
     id: "b8",
@@ -155,7 +137,8 @@ export const STATIC_PANEL_SPECS: readonly StaticPanelSpec[] = [
     title: COPY["ch8.title"],
     temperature: `${formatTemp(TEMP.c8)} (skenario)`,
     imageFile: "img/static/panel-09.svg",
-    imageAlt: "Ilustrasi Bab 08 Perjalanan Kedua: botol-botol bersih berjalan di atas sabuk konveyor pemilah",
+    imageAlt:
+      "Ilustrasi Bab 08 Perjalanan Kedua: botol-botol bersih berjalan di atas sabuk konveyor pemilah",
   },
   {
     id: "b9",
@@ -204,9 +187,7 @@ export function StaticPanel({
 
   const lamaTerurai = FACTS["lama-terurai"];
   const verifiedYears =
-    isFactVerified(lamaTerurai) && typeof lamaTerurai.value === "number"
-      ? lamaTerurai.value
-      : null;
+    isFactVerified(lamaTerurai) && typeof lamaTerurai.value === "number" ? lamaTerurai.value : null;
   const bleachFact = renderFactLine(FACTS["terumbu-pemutihan"]);
   const seaFact = renderFactLine(FACTS["kenaikan-laut"]);
   const mpFactLine = renderFactLine(FACTS["mikroplastik-mingguan"]);
@@ -230,7 +211,7 @@ export function StaticPanel({
         <header className={styles.header}>
           {spec.index === 1 ? (
             <div className={styles.heroBanner}>
-              <BrandMark size="hero" className={styles.heroBrand} />
+              <BrandMark as="h1" tabIndex={-1} size="hero" className={styles.heroBrand} />
               <p className={styles.scenarioNotice} data-scenario-label>
                 {COPY["hero.scenario"]}
               </p>
@@ -316,9 +297,7 @@ export function StaticPanel({
             </CopyPanel>
           )}
 
-          {spec.id === "punch" && (
-            <p className={styles.punchSub}>{COPY["about.why.body"]}</p>
-          )}
+          {spec.id === "punch" && <p className={styles.punchSub}>{COPY["about.why.body"]}</p>}
 
           {spec.id === "b7" && (
             <div className={styles.stack}>
@@ -337,9 +316,7 @@ export function StaticPanel({
             <div className={styles.stack}>
               <CopyPanel>
                 <p className={styles.lead}>{COPY["ch8.sub"]}</p>
-                {collectedFactLine ? (
-                  <p className={styles.factLine}>{collectedFactLine}</p>
-                ) : null}
+                {collectedFactLine ? <p className={styles.factLine}>{collectedFactLine}</p> : null}
               </CopyPanel>
               <blockquote className={styles.letterStatic} data-letter-card>
                 <p className={styles.letterMark}>Re:</p>
@@ -358,9 +335,7 @@ export function StaticPanel({
                     </li>
                   ))}
                 </ol>
-                {showFiberNote ? (
-                  <p className={styles.factLine}>{COPY["ch9.note"]}</p>
-                ) : null}
+                {showFiberNote ? <p className={styles.factLine}>{COPY["ch9.note"]}</p> : null}
               </CopyPanel>
               <blockquote className={styles.letterStatic} data-letter-card>
                 <p className={styles.letterMark}>Re:</p>

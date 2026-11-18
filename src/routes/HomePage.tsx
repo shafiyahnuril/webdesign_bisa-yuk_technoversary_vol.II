@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { usePageFocus } from "@/components/ui/usePageFocus";
 import { COPY } from "@/content/copy";
 import { storyEngine, type StoryEngine } from "@/engine/story-engine";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
@@ -55,6 +56,12 @@ export default function HomePage({
   const { mode, reducedMotion, onFailure } = useStoryMode();
   const [canvasReady, setCanvasReady] = useState(false);
   const [quality, setQuality] = useState<StoryQualityTier>("high");
+  const rootRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    headingRef.current = rootRef.current?.querySelector("h1") ?? null;
+  }, [mode]);
+  usePageFocus(headingRef);
 
   useEffect(() => {
     document.documentElement.dataset.storyMode = mode;
@@ -107,7 +114,7 @@ export default function HomePage({
     : (children ?? <StageCanvas {...slotProps} />);
 
   return (
-    <div className={styles.homeRoot} data-home-page data-story-mode={mode}>
+    <div ref={rootRef} className={styles.homeRoot} data-home-page data-story-mode={mode}>
       {mode === "static" ? (
         <StaticStory />
       ) : (

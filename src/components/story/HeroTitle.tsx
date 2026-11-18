@@ -45,7 +45,7 @@ export function HeroTitle({ engine = storyEngine }: HeroTitleProps) {
 
   return (
     <div ref={wrapRef} className={styles.wrap} data-hero-title data-story-ui>
-      <BrandMark as="h1" size="hero" className={styles.title} />
+      <BrandMark as="h1" size="hero" tabIndex={-1} className={styles.title} />
     </div>
   );
 }
