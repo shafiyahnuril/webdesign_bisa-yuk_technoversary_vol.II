@@ -45,15 +45,15 @@ export function PunchText({ engine = storyEngine }: PunchTextProps) {
       container.style.opacity = exitAlpha.toFixed(3);
       container.style.transform = `translate3d(0, ${exitTy.toFixed(2)}px, 0)`;
 
-      const revealProgress = clamp01((t - 0.4) / 0.08);
+      const revealProgress = clamp01((t - 0.4) / 0.16);
       for (let i = 0; i < total; i++) {
         const wordEl = wordRefs.current[i];
         if (!wordEl) continue;
         if (reducedMotion) {
           wordEl.style.opacity = "1";
         } else {
-          const wStart = (i / total) * 0.72;
-          const wAlpha = clamp01((revealProgress - wStart) / 0.28);
+          const wStart = (i / total) * 0.76;
+          const wAlpha = clamp01((revealProgress - wStart) / 0.24);
           wordEl.style.opacity = wAlpha.toFixed(3);
         }
       }

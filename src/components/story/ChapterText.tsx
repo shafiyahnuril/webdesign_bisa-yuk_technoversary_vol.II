@@ -68,6 +68,10 @@ export function ChapterText({
 }: ChapterTextProps) {
   const segId = `b${chapter}` as SegId;
   const wrapRef = useRef<HTMLElement | null>(null);
+  const titlePhaseRef = useRef<HTMLDivElement | null>(null);
+  const leadPhaseRef = useRef<HTMLDivElement | null>(null);
+  const tailPhaseRef = useRef<HTMLDivElement | null>(null);
+  const letterPhaseRef = useRef<HTMLDivElement | null>(null);
   const sub10aRef = useRef<HTMLDivElement | null>(null);
   const sub10bRef = useRef<HTMLDivElement | null>(null);
   const sub10dRef = useRef<HTMLDivElement | null>(null);
@@ -75,6 +79,20 @@ export function ChapterText({
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+
+    const applyPhaseNode = (
+      node: HTMLElement | null,
+      t: number,
+      e0: number,
+      e1: number,
+      x0: number,
+      x1: number,
+    ) => {
+      if (!node) return;
+      const { alpha, ty } = computeWindowAlpha(t, e0, e1, x0, x1);
+      node.style.opacity = alpha.toFixed(3);
+      node.style.transform = `translate3d(0, ${ty.toFixed(2)}px, 0)`;
+    };
 
     const update = (shown: number) => {
       const { id, t } = segmentAt(shown);
@@ -85,7 +103,7 @@ export function ChapterText({
       }
 
       if (chapter === 10) {
-        // Bab 10 memiliki sub-langkah 10a (0.02..0.14), 10b (0.14..0.28), jeda 10c (0.28..0.42), 10d (0.42..0.72)
+        // Bab 10 memiliki sub-langkah 10a (0.01..0.14), 10b (0.14..0.28), jeda 10c (0.28..0.42), 10d (0.42..0.72)
         el.style.visibility = t < 0.74 ? "visible" : "hidden";
         el.style.opacity = t < 0.74 ? "1" : "0";
 
@@ -110,18 +128,30 @@ export function ChapterText({
         return;
       }
 
-      // Ritme masuk/keluar per bab (mematuhi text gap saat warna bergeser)
-      const enterStart = chapter === 1 ? 0.18 : 0.06;
-      const enterEnd = chapter === 1 ? 0.26 : 0.12;
-      // Bab 9: keluar sebelum t = 0.86 (inversi ink terjadi di t = 0.90..0.95)
-      // Bab 7: surat 7d bertahan hingga t = 0.90 lalu keluar di 0.90..0.95 (namun palet c7->c8 punya kontras tinggi; untuk kepatuhan text-gap 0.70, surat B7 selesai di 0.72)
+      // Jendela utama bab (mematuhi text gap 0.72..1.00 saat palet bergeser)
+      const enterStart = chapter === 1 ? 0.17 : 0.05;
+      const enterEnd = chapter === 1 ? 0.23 : 0.11;
       const exitStart = 0.66;
       const exitEnd = 0.72;
 
-      const { alpha, ty } = computeWindowAlpha(t, enterStart, enterEnd, exitStart, exitEnd);
+      const { alpha } = computeWindowAlpha(t, enterStart, enterEnd, exitStart, exitEnd);
       el.style.visibility = alpha <= 0.005 ? "hidden" : "visible";
       el.style.opacity = alpha.toFixed(3);
-      el.style.transform = `translate3d(0, ${ty.toFixed(2)}px, 0)`;
+
+      // Fase bertahap dengan breathing pause (title -> pause -> lead -> pause -> tail -> letter)
+      const tTitle0 = chapter === 1 ? 0.17 : 0.05;
+      const tTitle1 = chapter === 1 ? 0.23 : 0.11;
+      const tLead0 = chapter === 1 ? 0.25 : 0.13;
+      const tLead1 = chapter === 1 ? 0.32 : 0.21;
+      const tTail0 = chapter === 1 ? 0.35 : 0.24;
+      const tTail1 = chapter === 1 ? 0.43 : 0.33;
+      const tLetter0 = 0.28;
+      const tLetter1 = 0.37;
+
+      applyPhaseNode(titlePhaseRef.current, t, tTitle0, tTitle1, exitStart, exitEnd);
+      applyPhaseNode(leadPhaseRef.current, t, tLead0, tLead1, exitStart, exitEnd);
+      applyPhaseNode(tailPhaseRef.current, t, tTail0, tTail1, exitStart, exitEnd);
+      applyPhaseNode(letterPhaseRef.current, t, tLetter0, tLetter1, exitStart, exitEnd);
     };
 
     update(engine.state.shown);
@@ -129,15 +159,29 @@ export function ChapterText({
   }, [chapter, segId, engine]);
 
   const sideClass = chapter === 3 ? styles.alignRight : styles.alignLeft;
+  const chapterLayoutClass =
+    chapter === 6
+      ? styles.chapterB6
+      : chapter === 9
+        ? styles.chapterB9
+        : chapter === 10
+          ? styles.chapterB10
+          : "";
 
   const renderContent = () => {
     switch (chapter) {
       case 1:
         return (
           <CopyPanel>
-            <SplitHeadline text={COPY["ch1.title"]} quality={quality} engine={engine} />
-            <p className={`t-body-lg ${styles.line}`}>{COPY["ch1.line"]}</p>
-            <p className={`t-body ${styles.sub}`}>{COPY["ch1.sub"]}</p>
+            <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+              <SplitHeadline text={COPY["ch1.title"]} quality={quality} engine={engine} />
+            </div>
+            <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+              <p className={`t-body-lg ${styles.line}`}>{COPY["ch1.line"]}</p>
+            </div>
+            <div ref={tailPhaseRef} className={styles.phaseItem} data-reveal-phase="tail">
+              <p className={`t-body ${styles.sub}`}>{COPY["ch1.sub"]}</p>
+            </div>
           </CopyPanel>
         );
 
@@ -145,11 +189,19 @@ export function ChapterText({
         return (
           <div className={styles.stack}>
             <CopyPanel>
-              <SplitHeadline text={COPY["ch2.title"]} quality={quality} engine={engine} />
-              <p className={`t-body-lg ${styles.line}`}>{COPY["ch2.line"]}</p>
-              <p className={`t-body ${styles.sub}`}>{COPY["ch2.sub"]}</p>
+              <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+                <SplitHeadline text={COPY["ch2.title"]} quality={quality} engine={engine} />
+              </div>
+              <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+                <p className={`t-body-lg ${styles.line}`}>{COPY["ch2.line"]}</p>
+              </div>
+              <div ref={tailPhaseRef} className={styles.phaseItem} data-reveal-phase="tail">
+                <p className={`t-body ${styles.sub}`}>{COPY["ch2.sub"]}</p>
+              </div>
             </CopyPanel>
-            <TimeRing segment="b2" max={10} unit="menit" engine={engine} />
+            <div ref={letterPhaseRef} className={styles.phaseItem} data-reveal-phase="meta">
+              <TimeRing segment="b2" max={10} unit="menit" engine={engine} />
+            </div>
           </div>
         );
 
@@ -161,18 +213,24 @@ export function ChapterText({
             : null;
         return (
           <CopyPanel>
-            <SplitHeadline text={COPY["ch3.title"]} quality={quality} engine={engine} />
-            <p className={`t-body-lg ${styles.line}`}>{COPY["ch3.sub"]}</p>
+            <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+              <SplitHeadline text={COPY["ch3.title"]} quality={quality} engine={engine} />
+            </div>
+            <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+              <p className={`t-body-lg ${styles.line}`}>{COPY["ch3.sub"]}</p>
+            </div>
             {verifiedYears !== null ? (
-              <DataCounter
-                segment="b3"
-                from={0}
-                to={verifiedYears}
-                unit={COPY["ch3.counter.label"]}
-                range={[0.25, 0.64]}
-                note={`Perkiraan (${lamaTerurai.publisher}, ${lamaTerurai.year})`}
-                engine={engine}
-              />
+              <div ref={tailPhaseRef} className={styles.phaseItem} data-reveal-phase="tail">
+                <DataCounter
+                  segment="b3"
+                  from={0}
+                  to={verifiedYears}
+                  unit={COPY["ch3.counter.label"]}
+                  range={[0.25, 0.64]}
+                  note={`Perkiraan (${lamaTerurai.publisher}, ${lamaTerurai.year})`}
+                  engine={engine}
+                />
+              </div>
             ) : null}
           </CopyPanel>
         );
@@ -183,16 +241,22 @@ export function ChapterText({
         const seaFact = renderFactLine(FACTS["kenaikan-laut"]);
         return (
           <CopyPanel>
-            <SplitHeadline
-              text={COPY["ch4.title"]}
-              shimmer
-              quality={quality}
-              engine={engine}
-            />
-            <p className={`t-body-lg ${styles.line}`}>{COPY["ch4.line"]}</p>
-            <p className={`t-body ${styles.sub}`}>{COPY["ch4.sub"]}</p>
-            {bleachFact ? <p className={`t-ui-sm ${styles.fact}`}>{bleachFact}</p> : null}
-            {seaFact ? <p className={`t-ui-sm ${styles.fact}`}>{seaFact}</p> : null}
+            <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+              <SplitHeadline
+                text={COPY["ch4.title"]}
+                shimmer
+                quality={quality}
+                engine={engine}
+              />
+            </div>
+            <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+              <p className={`t-body-lg ${styles.line}`}>{COPY["ch4.line"]}</p>
+            </div>
+            <div ref={tailPhaseRef} className={styles.phaseItem} data-reveal-phase="tail">
+              <p className={`t-body ${styles.sub}`}>{COPY["ch4.sub"]}</p>
+              {bleachFact ? <p className={`t-ui-sm ${styles.fact}`}>{bleachFact}</p> : null}
+              {seaFact ? <p className={`t-ui-sm ${styles.fact}`}>{seaFact}</p> : null}
+            </div>
           </CopyPanel>
         );
       }
@@ -201,22 +265,28 @@ export function ChapterText({
         const particleTarget = quality === "low" ? 800 : quality === "medium" ? 1400 : 2400;
         return (
           <CopyPanel>
-            <SplitHeadline
-              text={COPY["ch5.title"]}
-              melt
-              shimmer
-              quality={quality}
-              engine={engine}
-            />
-            <p className={`t-body-lg ${styles.line}`}>{COPY["ch5.line"]}</p>
-            <DataCounter
-              segment="b5"
-              from={0}
-              to={particleTarget}
-              unit={`${COPY["ch5.counter.label"]} (ilustrasi)`}
-              range={[0.45, 0.65]}
-              engine={engine}
-            />
+            <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+              <SplitHeadline
+                text={COPY["ch5.title"]}
+                melt
+                shimmer
+                quality={quality}
+                engine={engine}
+              />
+            </div>
+            <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+              <p className={`t-body-lg ${styles.line}`}>{COPY["ch5.line"]}</p>
+            </div>
+            <div ref={tailPhaseRef} className={styles.phaseItem} data-reveal-phase="tail">
+              <DataCounter
+                segment="b5"
+                from={0}
+                to={particleTarget}
+                unit={`${COPY["ch5.counter.label"]} (ilustrasi)`}
+                range={[0.45, 0.65]}
+                engine={engine}
+              />
+            </div>
           </CopyPanel>
         );
       }
@@ -226,22 +296,28 @@ export function ChapterText({
         const verifiedLine = renderFactLine(mpFact);
         return (
           <CopyPanel>
-            <SplitHeadline
-              text={COPY["ch6.title"]}
-              melt
-              shimmer
-              quality={quality}
-              engine={engine}
-            />
-            <p className={`t-body-lg ${styles.line}`}>
-              {verifiedLine ?? COPY["ch6.fallback"]}
-            </p>
-            <p className={`t-body ${styles.sub}`}>{COPY["ch6.sub"]}</p>
-            {verifiedLine ? (
-              <p className={`t-ui-sm ${styles.fact}`}>
-                {COPY["ch6.footnote"]} ({mpFact.publisher}, {mpFact.year})
+            <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+              <SplitHeadline
+                text={COPY["ch6.title"]}
+                melt
+                shimmer
+                quality={quality}
+                engine={engine}
+              />
+            </div>
+            <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+              <p className={`t-body-lg ${styles.line}`}>
+                {verifiedLine ?? COPY["ch6.fallback"]}
               </p>
-            ) : null}
+            </div>
+            <div ref={tailPhaseRef} className={styles.phaseItem} data-reveal-phase="tail">
+              <p className={`t-body ${styles.sub}`}>{COPY["ch6.sub"]}</p>
+              {verifiedLine ? (
+                <p className={`t-ui-sm ${styles.fact}`}>
+                  {COPY["ch6.footnote"]} ({mpFact.publisher}, {mpFact.year})
+                </p>
+              ) : null}
+            </div>
           </CopyPanel>
         );
       }
@@ -250,17 +326,23 @@ export function ChapterText({
         return (
           <div className={styles.stack}>
             <CopyPanel>
-              <SplitHeadline text={COPY["ch7.title"]} quality={quality} engine={engine} />
-              <p className={`t-body-lg ${styles.line}`}>{COPY["ch7.line"]}</p>
-              <p className={`t-ui ${styles.bins}`}>{COPY["ch7.bins"]}</p>
+              <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+                <SplitHeadline text={COPY["ch7.title"]} quality={quality} engine={engine} />
+              </div>
+              <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+                <p className={`t-body-lg ${styles.line}`}>{COPY["ch7.line"]}</p>
+              </div>
+              <div ref={tailPhaseRef} className={styles.phaseItem} data-reveal-phase="tail">
+                <p className={`t-ui ${styles.bins}`}>{COPY["ch7.bins"]}</p>
+              </div>
             </CopyPanel>
-            <div className={styles.row}>
+            <div ref={letterPhaseRef} className={`${styles.row} ${styles.phaseItem}`} data-reveal-phase="letter">
               <TimeRing segment="b7" max={10} unit="detik" engine={engine} />
               <LetterCard
                 text={COPY["ch7.letter"]}
                 segment="b7"
-                wordRange={[0.25, 0.58]}
-                tiltDeg={-1.2}
+                wordRange={[0.28, 0.58]}
+                tiltDeg={-0.6}
                 engine={engine}
               />
             </div>
@@ -272,19 +354,27 @@ export function ChapterText({
         return (
           <div className={styles.stack}>
             <CopyPanel>
-              <SplitHeadline text={COPY["ch8.title"]} quality={quality} engine={engine} />
-              <p className={`t-body-lg ${styles.line}`}>{COPY["ch8.sub"]}</p>
+              <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+                <SplitHeadline text={COPY["ch8.title"]} quality={quality} engine={engine} />
+              </div>
+              <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+                <p className={`t-body-lg ${styles.line}`}>{COPY["ch8.sub"]}</p>
+              </div>
               {collectedLine ? (
-                <p className={`t-ui-sm ${styles.fact}`}>{collectedLine}</p>
+                <div ref={tailPhaseRef} className={styles.phaseItem} data-reveal-phase="tail">
+                  <p className={`t-ui-sm ${styles.fact}`}>{collectedLine}</p>
+                </div>
               ) : null}
             </CopyPanel>
-            <LetterCard
-              text={COPY["ch8.letter"]}
-              segment="b8"
-              wordRange={[0.22, 0.56]}
-              tiltDeg={1.1}
-              engine={engine}
-            />
+            <div ref={letterPhaseRef} className={styles.phaseItem} data-reveal-phase="letter">
+              <LetterCard
+                text={COPY["ch8.letter"]}
+                segment="b8"
+                wordRange={[0.26, 0.56]}
+                tiltDeg={0.6}
+                engine={engine}
+              />
+            </div>
           </div>
         );
       }
@@ -295,18 +385,24 @@ export function ChapterText({
         return (
           <div className={styles.stack}>
             <CopyPanel>
-              <SplitHeadline text={COPY["ch9.title"]} quality={quality} engine={engine} />
+              <div ref={titlePhaseRef} className={styles.phaseItem} data-reveal-phase="title">
+                <SplitHeadline text={COPY["ch9.title"]} quality={quality} engine={engine} />
+              </div>
               {showFiberNote ? (
-                <p className={`t-ui-sm ${styles.fact}`}>{COPY["ch9.note"]}</p>
+                <div ref={leadPhaseRef} className={styles.phaseItem} data-reveal-phase="lead">
+                  <p className={`t-ui-sm ${styles.fact}`}>{COPY["ch9.note"]}</p>
+                </div>
               ) : null}
             </CopyPanel>
-            <LetterCard
-              text={COPY["ch9.letter"]}
-              segment="b9"
-              wordRange={[0.26, 0.58]}
-              tiltDeg={-0.9}
-              engine={engine}
-            />
+            <div ref={letterPhaseRef} className={styles.phaseItem} data-reveal-phase="letter">
+              <LetterCard
+                text={COPY["ch9.letter"]}
+                segment="b9"
+                wordRange={[0.24, 0.58]}
+                tiltDeg={-0.5}
+                engine={engine}
+              />
+            </div>
           </div>
         );
       }
@@ -323,7 +419,7 @@ export function ChapterText({
                 text={COPY["ch10a.letter"]}
                 segment="b10"
                 wordRange={[0.02, 0.1]}
-                tiltDeg={-1.1}
+                tiltDeg={-0.6}
                 engine={engine}
               />
             </div>
@@ -337,7 +433,7 @@ export function ChapterText({
                 text={COPY["ch10b.letter"]}
                 segment="b10"
                 wordRange={[0.15, 0.24]}
-                tiltDeg={0.9}
+                tiltDeg={0.5}
                 engine={engine}
               />
             </div>
@@ -365,7 +461,7 @@ export function ChapterText({
   return (
     <article
       ref={wrapRef}
-      className={`${styles.chapter} ${sideClass}`}
+      className={`${styles.chapter} ${sideClass} ${chapterLayoutClass}`.trim()}
       data-story-segment={segId}
       data-chapter={chapter}
       data-story-ui

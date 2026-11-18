@@ -4,7 +4,7 @@
   z-index: var(--z-text);
   display: flex;
   align-items: center;
-  padding: var(--s-10) var(--gutter-page) var(--s-9) calc(var(--gutter-page) + 180px);
+  padding: var(--s-10) var(--gutter-page) var(--s-9) calc(var(--gutter-page) + 188px);
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
@@ -13,10 +13,62 @@
 
 .alignLeft {
   justify-content: flex-start;
+  background: linear-gradient(
+    90deg,
+    rgba(4, 11, 24, 0.62) 0%,
+    rgba(4, 11, 24, 0.34) 36%,
+    rgba(4, 11, 24, 0) 64%
+  );
 }
 
 .alignRight {
   justify-content: flex-end;
+  padding-right: calc(var(--gutter-page) + 24px);
+  background: linear-gradient(
+    270deg,
+    rgba(4, 11, 24, 0.64) 0%,
+    rgba(4, 11, 24, 0.36) 38%,
+    rgba(4, 11, 24, 0) 66%
+  );
+}
+
+/* Bab 6: Piring putih & fillet berada di tengah panggung; jaga teks di kolom kiri-bawah dengan scrim gelap directional agar teks putih tidak pernah berada di atas objek putih */
+.chapterB6 {
+  align-items: flex-end;
+  padding-bottom: clamp(56px, 9dvh, 96px);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(6, 13, 24, 0.78) 0%,
+      rgba(6, 13, 24, 0.54) 34%,
+      rgba(6, 13, 24, 0) 58%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(6, 13, 24, 0.64) 0%,
+      rgba(6, 13, 24, 0) 48%
+    );
+}
+
+/* Bab 9: 4 label stasiun berada di paruh atas/tengah panggung; letakkan teks di kiri-bawah */
+.chapterB9 {
+  align-items: flex-end;
+  padding-bottom: clamp(56px, 9dvh, 96px);
+}
+
+/* Bab 10: Latar sage terang (#D9E6D6), gunakan scrim terang lembut dan tinta gelap (#11261B) */
+.chapterB10 {
+  color: var(--c10-ink);
+  background: linear-gradient(
+    90deg,
+    rgba(217, 230, 214, 0.72) 0%,
+    rgba(217, 230, 214, 0.36) 38%,
+    rgba(217, 230, 214, 0) 64%
+  );
+}
+
+.phaseItem {
+  will-change: transform, opacity;
 }
 
 .stack {
@@ -24,36 +76,47 @@
   align-content: start;
   justify-items: start;
   gap: var(--s-4);
+  max-width: 34ch;
 }
 
 .row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s-5);
+  gap: var(--s-4);
 }
 
 .line {
-  margin-top: var(--s-3);
+  margin: var(--s-3) 0 0;
   color: var(--ink-now);
-  max-width: var(--read-body-chars);
+  font-size: clamp(1.125rem, 1.35vw, 1.3125rem);
+  line-height: 1.52;
+  letter-spacing: -0.005em;
+  max-width: 34ch;
 }
 
 .sub {
-  margin-top: var(--s-2);
-  color: var(--ink-now);
-  opacity: 0.85;
-  max-width: var(--read-body-chars);
+  margin: var(--s-2) 0 0;
+  color: color-mix(in oklch, var(--ink-now) 88%, transparent);
+  font-size: clamp(1.0625rem, 1.2vw, 1.1875rem);
+  line-height: 1.55;
+  max-width: 34ch;
 }
 
 .fact {
-  margin-top: var(--s-3);
-  color: var(--ink-now);
-  opacity: 0.78;
+  margin: var(--s-3) 0 0;
+  padding-top: var(--s-2);
+  border-top: 1px solid color-mix(in oklch, var(--ink-now) 20%, transparent);
+  color: color-mix(in oklch, var(--ink-now) 82%, transparent);
+  max-width: 34ch;
 }
 
 .bins {
-  margin-top: var(--s-3);
+  margin: var(--s-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-ui-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--accent-now);
 }
 
@@ -64,7 +127,7 @@
   display: grid;
   align-items: end;
   justify-items: start;
-  padding-bottom: var(--s-8);
+  padding-bottom: clamp(64px, 10dvh, 108px);
 }
 
 .b10Step {
@@ -76,17 +139,50 @@
 
 @media (max-width: 1024px) {
   .chapter {
-    padding-left: calc(var(--gutter-page) + 24px);
+    padding-left: calc(var(--gutter-page) + 32px);
   }
 }
 
 @media (max-width: 768px) {
   .chapter {
     align-items: flex-end;
-    padding: var(--s-9) var(--s-5) 88px calc(var(--s-5) + 16px);
+    justify-content: flex-start;
+    padding: var(--s-8) var(--s-5) 84px calc(var(--s-5) + 18px);
+    background: linear-gradient(
+      0deg,
+      rgba(4, 11, 24, 0.84) 0%,
+      rgba(4, 11, 24, 0.56) 44%,
+      rgba(4, 11, 24, 0) 68%
+    );
+  }
+
+  .chapterB10 {
+    background: linear-gradient(
+      0deg,
+      rgba(217, 230, 214, 0.88) 0%,
+      rgba(217, 230, 214, 0.56) 44%,
+      rgba(217, 230, 214, 0) 68%
+    );
   }
 
   .alignRight {
     justify-content: flex-start;
+    padding-right: var(--s-5);
+  }
+
+  .line {
+    font-size: 1.0625rem;
+    line-height: 1.48;
+    max-width: 32ch;
+  }
+
+  .sub {
+    font-size: 0.96875rem;
+    line-height: 1.5;
+    max-width: 32ch;
+  }
+
+  .b10Stage {
+    padding-bottom: 52px;
   }
 }

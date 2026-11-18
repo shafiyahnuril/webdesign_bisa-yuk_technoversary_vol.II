@@ -15,7 +15,7 @@ export interface ScenarioLabelProps {
  * Menghilang halus saat gulir dimulai (`shown > 0.004`).
  */
 export function ScenarioLabel({ engine = storyEngine }: ScenarioLabelProps) {
-  const ref = useRef<HTMLParagraphElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -23,7 +23,7 @@ export function ScenarioLabel({ engine = storyEngine }: ScenarioLabelProps) {
 
     const update = (shown: number) => {
       const fade = clamp01(1 - shown / 0.004);
-      el.style.opacity = (fade * 0.75).toFixed(3);
+      el.style.opacity = fade.toFixed(3);
       el.style.visibility = fade <= 0.01 ? "hidden" : "visible";
     };
 
@@ -32,8 +32,13 @@ export function ScenarioLabel({ engine = storyEngine }: ScenarioLabelProps) {
   }, [engine]);
 
   return (
-    <p ref={ref} className={styles.label} data-scenario-label data-story-ui>
-      {COPY["hero.scenario"]}
-    </p>
+    <div ref={ref} className={styles.wrap} data-story-ui>
+      <p className={styles.hook} data-hero-hook>
+        {COPY["hero.tagline"]}
+      </p>
+      <p className={styles.label} data-scenario-label>
+        {COPY["hero.scenario"]}
+      </p>
+    </div>
   );
 }
