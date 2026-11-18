@@ -1,0 +1,54 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-7);
+  padding: var(--s-5) var(--gutter-page);
+  color: var(--ui-ink);
+}
+
+.brand {
+  font: 700 1.5rem / 1 var(--font-display);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+/* "Re:" pudar (garis luar, opasitas 0,45); menyala di Babak II (T1.5). */
+.re {
+  opacity: 0.45;
+  color: transparent;
+  -webkit-text-stroke: 1px currentColor;
+}
+
+.links {
+  display: flex;
+  gap: var(--s-7);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  font: 500 var(--t-ui) / 1.2 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  padding-block: var(--s-2);
+  background: linear-gradient(currentColor, currentColor) left bottom / 0 1.5px no-repeat;
+  transition: background-size var(--dur-base) var(--ease-out-expo);
+}
+
+.link:hover,
+.active {
+  background-size: 100% 1.5px;
+}
+
+@media (max-width: 768px) {
+  .links {
+    gap: var(--s-4);
+  }
+}
