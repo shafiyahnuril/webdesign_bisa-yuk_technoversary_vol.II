@@ -1,0 +1,39 @@
+.hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  color: var(--ink-now);
+  font: 500 var(--t-ui) / 1.2 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: var(--line-hint-underline);
+  text-underline-offset: var(--s-1);
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-gate);
+}
+
+.chevron {
+  width: 18px;
+  height: 18px;
+  animation: hintDrift var(--dur-scroll-hint) ease-in-out infinite;
+}
+
+@keyframes hintDrift {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.62;
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    animation: none;
+  }
+}

@@ -1,0 +1,92 @@
+.chapter {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-text);
+  display: flex;
+  align-items: center;
+  padding: var(--s-10) var(--gutter-page) var(--s-9) calc(var(--gutter-page) + 180px);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.alignLeft {
+  justify-content: flex-start;
+}
+
+.alignRight {
+  justify-content: flex-end;
+}
+
+.stack {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--s-4);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-5);
+}
+
+.line {
+  margin-top: var(--s-3);
+  color: var(--ink-now);
+  max-width: var(--read-body-chars);
+}
+
+.sub {
+  margin-top: var(--s-2);
+  color: var(--ink-now);
+  opacity: 0.85;
+  max-width: var(--read-body-chars);
+}
+
+.fact {
+  margin-top: var(--s-3);
+  color: var(--ink-now);
+  opacity: 0.78;
+}
+
+.bins {
+  margin-top: var(--s-3);
+  color: var(--accent-now);
+}
+
+.b10Stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-items: end;
+  justify-items: start;
+  padding-bottom: var(--s-8);
+}
+
+.b10Step {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 1024px) {
+  .chapter {
+    padding-left: calc(var(--gutter-page) + 24px);
+  }
+}
+
+@media (max-width: 768px) {
+  .chapter {
+    align-items: flex-end;
+    padding: var(--s-9) var(--s-5) 88px calc(var(--s-5) + 16px);
+  }
+
+  .alignRight {
+    justify-content: flex-start;
+  }
+}

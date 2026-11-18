@@ -32,7 +32,8 @@
 }
 
 .reStroke {
-  color: transparent;
+  color: inherit;
+  -webkit-text-fill-color: transparent;
   -webkit-text-stroke: var(--line-thin) currentColor;
   opacity: var(--re-dim);
   transition: opacity var(--dur-slow) var(--ease-out-expo);

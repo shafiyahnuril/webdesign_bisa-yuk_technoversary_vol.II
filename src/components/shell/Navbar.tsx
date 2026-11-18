@@ -120,6 +120,7 @@ export function Navbar({
       }`}
       data-variant={variant}
       data-nav={navState}
+      data-story-ui
     >
       <NavLink
         to="/"

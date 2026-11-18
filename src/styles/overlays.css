@@ -1,1 +1,40 @@
-/* Overlay butiran dan vignette (CSS). Diisi di T1.13. */
+/* Overlay butiran (grain), vignette, dan retak latar (CSS, z-index 60).
+   Dikendalikan secara imperatif oleh applyCues(shown) lewat --grain, --vignette, --crack. */
+
+.story-overlays {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+}
+
+.story-overlay-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.story-overlay-grain {
+  background-image:
+    radial-gradient(circle at 11% 54%, currentColor 0.6px, transparent 1px),
+    radial-gradient(circle at 62% 27%, currentColor 0.5px, transparent 0.9px),
+    radial-gradient(circle at 39% 84%, currentColor 0.55px, transparent 1px),
+    radial-gradient(circle at 73% 39%, currentColor 0.45px, transparent 1px);
+  background-size: 17px 29px, 31px 13px, 11px 19px, 29px 23px;
+  opacity: var(--grain, 0.06);
+}
+
+.story-overlay-vignette {
+  box-shadow: inset 0 0 135px 35px #000000;
+  opacity: var(--vignette, 0);
+}
+
+.story-overlay-cracks {
+  background-image: url("/img/crack-bg.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: var(--crack, 0);
+}

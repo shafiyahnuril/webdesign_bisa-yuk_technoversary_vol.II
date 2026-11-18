@@ -14,6 +14,7 @@ export interface CursorRingProps {
 }
 
 const DEFAULT_CARD_SELECTOR = [
+  '[data-cursor="read"]',
   '[data-cursor="card"]',
   "[data-article]",
   'a[href*="/konten/"]',
@@ -161,7 +162,7 @@ export function CursorRing({
   if (!active) return null;
 
   return (
-    <div ref={rootRef} className={styles.cursor} aria-hidden="true" data-cursor-ring>
+    <div ref={rootRef} className={styles.cursor} aria-hidden="true" data-cursor-ring data-story-ui>
       <svg className={styles.svg} width="120" height="120" viewBox="-60 -60 120 120">
         <ellipse ref={ellipseRef} cx="0" cy="0" rx={R} ry={R} className={styles.ellipse} />
       </svg>

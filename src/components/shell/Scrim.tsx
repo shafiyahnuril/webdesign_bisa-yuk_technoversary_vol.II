@@ -18,6 +18,7 @@ export function Scrim({ open, onClick }: ScrimProps) {
       aria-hidden="true"
       data-scrim
       data-open={open ? "true" : "false"}
+      data-story-ui
       onClick={onClick}
     />
   );

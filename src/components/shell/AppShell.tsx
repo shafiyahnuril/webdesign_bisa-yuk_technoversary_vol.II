@@ -62,7 +62,7 @@ export function AppShell({ children, audioSlot }: AppShellProps) {
         mainId="main"
       />
       {audioSlot ? (
-        <div className={styles.audioSlot} data-audio-slot>
+        <div className={styles.audioSlot} data-audio-slot data-story-ui>
           {audioSlot}
         </div>
       ) : null}

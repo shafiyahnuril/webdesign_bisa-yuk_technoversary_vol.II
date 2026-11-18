@@ -1,0 +1,24 @@
+.wrap {
+  position: absolute;
+  inset: auto var(--gutter-page) 84px;
+  z-index: var(--z-text);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.cta {
+  color: var(--ink-now);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .wrap {
+    inset-inline: var(--s-5);
+    bottom: 76px;
+  }
+}

@@ -127,6 +127,7 @@ export function MenuPanel({
       className={`${styles.panel} ${open ? styles.open : ""}`}
       data-menu-panel
       data-open={open ? "true" : "false"}
+      data-story-ui
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

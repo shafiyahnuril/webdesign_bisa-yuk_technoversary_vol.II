@@ -1,0 +1,22 @@
+.wrap {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-hero);
+  display: grid;
+  place-items: center;
+  padding-inline: var(--gutter-page);
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+.title {
+  margin-top: -6dvh;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .title {
+    margin-top: -18dvh;
+  }
+}

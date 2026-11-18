@@ -1,0 +1,26 @@
+.counter {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+
+.number {
+  color: var(--accent-now);
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  color: var(--ink-now);
+}
+
+.note {
+  color: var(--ink-now);
+  opacity: 0.78;
+}

@@ -1,0 +1,14 @@
+.dome {
+  --pull: 0;
+  position: fixed;
+  left: 50%;
+  top: 100dvh;
+  z-index: var(--z-dome);
+  width: max(220vw, 240dvh);
+  height: max(220vw, 240dvh);
+  border-radius: 50%;
+  background: var(--hero-bg);
+  transform: translate(-50%, calc(var(--pull, 0) * -135dvh));
+  will-change: transform;
+  pointer-events: none;
+}

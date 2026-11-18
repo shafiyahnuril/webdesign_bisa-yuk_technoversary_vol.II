@@ -1,0 +1,47 @@
+.headline {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+}
+
+.filterSvg {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.letters {
+  display: inline;
+}
+
+.char {
+  display: inline-block;
+  transform-origin: 50% 0%;
+}
+
+.space {
+  display: inline-block;
+}
+
+.melt {
+  font-variation-settings:
+    "wght" calc(700 - var(--melt, 0) * 280),
+    "wdth" calc(90 + var(--melt, 0) * 10);
+}
+
+.melt .char {
+  transform: translateY(calc(var(--melt, 0) * var(--d, 1) * 0.12em))
+    scaleY(calc(1 + var(--melt, 0) * var(--s, 1) * 0.35))
+    skewX(calc(var(--melt, 0) * var(--k, 0) * 1deg));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .melt {
+    font-variation-settings: "wght" 700, "wdth" 90;
+  }
+
+  .melt .char {
+    transform: none;
+  }
+}
