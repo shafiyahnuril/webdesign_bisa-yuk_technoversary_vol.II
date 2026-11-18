@@ -1,0 +1,29 @@
+/* Token CSS. Angka dihasilkan dari src/lib/tokens.ts (npm run gen:tokens). */
+@import "./tokens.generated.css";
+@import "./fonts.css";
+
+:root {
+  --font-display: "Bricolage Grotesque Variable", "Helvetica Neue", Arial, sans-serif;
+  --font-ui: "Instrument Sans Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-hand: "Caveat Variable", "Segoe Script", "Bradley Hand", cursive;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --gutter-page: 6vw;
+
+  /* Warna berjalan; nanti ditimpa palette.ts di Home. Default = hero. */
+  --bg-now: var(--c1-bg);
+  --ink-now: var(--c1-ink);
+  --accent-now: var(--c1-accent);
+  --ui-ink: var(--ink-now);
+  --focus: var(--accent-now);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0s;
+    --dur-base: 0s;
+    --dur-slow: 0s;
+    --dur-menu: 0s;
+    --dur-nav-collapse: 0s;
+  }
+}

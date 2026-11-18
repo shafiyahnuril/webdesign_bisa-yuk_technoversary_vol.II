@@ -1,0 +1,82 @@
+import { LENGTHS_VH } from "@/lib/tokens";
+
+// Garis waktu cerita (docs/03 bagian 2, docs/06 bagian 3). Logika murni, tanpa react/three.
+// Semua turunan dihitung dari LENGTHS_VH; jangan menulis angka bab di tempat lain.
+export { LENGTHS_VH };
+
+export type SegId = keyof typeof LENGTHS_VH;
+
+export const ORDER: readonly SegId[] = [
+  "b1",
+  "b2",
+  "b3",
+  "b4",
+  "b5",
+  "b6",
+  "punch",
+  "b7",
+  "b8",
+  "b9",
+  "b10",
+];
+
+export const TOTAL_VH: number = ORDER.reduce((sum, id) => sum + LENGTHS_VH[id], 0);
+
+/** Awal tiap segmen dalam rentang 0..1. */
+export const STARTS: Readonly<Record<SegId, number>> = (() => {
+  const out = {} as Record<SegId, number>;
+  let acc = 0;
+  for (const id of ORDER) {
+    out[id] = acc / TOTAL_VH;
+    acc += LENGTHS_VH[id];
+  }
+  return out;
+})();
+
+/** Rentang punchline (layar hening). */
+export const PUNCH = { from: STARTS.punch, to: STARTS.b7 } as const;
+
+function endOf(id: SegId): number {
+  const next = ORDER[ORDER.indexOf(id) + 1];
+  return next === undefined ? 1 : STARTS[next];
+}
+
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+
+/** Segmen aktif pada posisi p (0..1) beserta waktu lokal t (0..1). */
+export function segmentAt(p: number): { id: SegId; index: number; t: number } {
+  const x = clamp01(p);
+  let index = 0;
+  ORDER.forEach((id, i) => {
+    if (x >= STARTS[id]) index = i;
+  });
+  const id = ORDER[index] ?? "b1";
+  const from = STARTS[id];
+  const span = endOf(id) - from;
+  return { id, index, t: span > 0 ? clamp01((x - from) / span) : 0 };
+}
+
+/**
+ * Nomor bab 1..10. Punchline tidak punya nomor sendiri: paruh pertama dihitung
+ * sebagai bab 6, paruh kedua sebagai bab 7 (keputusan konservatif, lihat DECISIONS.md).
+ */
+export function chapterAt(shown: number): number {
+  const { id, t } = segmentAt(shown);
+  if (id === "punch") return t < 0.5 ? 6 : 7;
+  return Number(id.slice(1));
+}
+
+/** Waktu lokal 0..1 pada bab tertentu (1..10), dijepit di ujung. */
+export function localT(shown: number, chapter: number): number {
+  const id = `b${chapter}`;
+  if (!(id in LENGTHS_VH)) return 0;
+  const seg = id as SegId;
+  return clamp01((shown - STARTS[seg]) / (endOf(seg) - STARTS[seg]));
+}
+
+/** Babak: 1 = Jika Kita Abai, 0 = punchline, 2 = Jika Kita Peduli. */
+export function babakAt(shown: number): 0 | 1 | 2 {
+  if (shown < PUNCH.from) return 1;
+  if (shown < PUNCH.to) return 0;
+  return 2;
+}
