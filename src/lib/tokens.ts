@@ -42,6 +42,167 @@ export const TEMP = {
   c10: 1.5,
 } as const;
 
+/** Isyarat awal tiap palet (dok. 02 bagian 5); keyframe lokal diatur cues.ts. */
+export interface ChapterCues {
+  grain: number;
+  vignette: number;
+  fog: number;
+  shimmer: number;
+  melt: number;
+  crack: number;
+  turbid: number;
+  rim: number;
+  env: number;
+  particles: number;
+}
+
+export const CUES = {
+  c1: {
+    grain: 0.06,
+    vignette: 0,
+    fog: 0,
+    shimmer: 0,
+    melt: 0,
+    crack: 0,
+    turbid: 0,
+    rim: 3,
+    env: 0.6,
+    particles: 0,
+  },
+  c2: {
+    grain: 0.1,
+    vignette: 0.05,
+    fog: 0,
+    shimmer: 0,
+    melt: 0,
+    crack: 0,
+    turbid: 0.1,
+    rim: 2.8,
+    env: 0.55,
+    particles: 0,
+  },
+  c3: {
+    grain: 0.14,
+    vignette: 0.1,
+    fog: 0.02,
+    shimmer: 0,
+    melt: 0,
+    crack: 0,
+    turbid: 0.45,
+    rim: 2.4,
+    env: 0.5,
+    particles: 0,
+  },
+  c4: {
+    grain: 0.18,
+    vignette: 0.3,
+    fog: 0.01,
+    shimmer: 2,
+    melt: 0,
+    crack: 0,
+    turbid: 0.6,
+    rim: 2,
+    env: 0.42,
+    particles: 0,
+  },
+  c5: {
+    grain: 0.24,
+    vignette: 0.42,
+    fog: 0.02,
+    shimmer: 4,
+    melt: 0.25,
+    crack: 0.55,
+    turbid: 0.8,
+    rim: 1.6,
+    env: 0.34,
+    particles: 0,
+  },
+  c6: {
+    grain: 0.3,
+    vignette: 0.55,
+    fog: 0.02,
+    shimmer: 6,
+    melt: 0.6,
+    crack: 1,
+    turbid: 0.9,
+    rim: 1.2,
+    env: 0.25,
+    particles: 1,
+  },
+  cp0: {
+    grain: 0.3,
+    vignette: 0.55,
+    fog: 0,
+    shimmer: 6,
+    melt: 1,
+    crack: 1,
+    turbid: 0.9,
+    rim: 1.2,
+    env: 0.25,
+    particles: 1,
+  },
+  cp1: {
+    grain: 0.08,
+    vignette: 0,
+    fog: 0,
+    shimmer: 0,
+    melt: 0,
+    crack: 0,
+    turbid: 0,
+    rim: 0.2,
+    env: 0.08,
+    particles: 0,
+  },
+  c7: {
+    grain: 0.08,
+    vignette: 0,
+    fog: 0,
+    shimmer: 0,
+    melt: 0,
+    crack: 0,
+    turbid: 0,
+    rim: 2.6,
+    env: 0.7,
+    particles: 0,
+  },
+  c8: {
+    grain: 0.07,
+    vignette: 0,
+    fog: 0,
+    shimmer: 0,
+    melt: 0,
+    crack: 0,
+    turbid: 0,
+    rim: 2.6,
+    env: 0.7,
+    particles: 0,
+  },
+  c9: {
+    grain: 0.06,
+    vignette: 0,
+    fog: 0,
+    shimmer: 0,
+    melt: 0,
+    crack: 0,
+    turbid: 0,
+    rim: 2.6,
+    env: 0.7,
+    particles: 0,
+  },
+  c10: {
+    grain: 0.04,
+    vignette: 0,
+    fog: 0,
+    shimmer: 0,
+    melt: 0,
+    crack: 0,
+    turbid: 0,
+    rim: 2.6,
+    env: 0.75,
+    particles: 0,
+  },
+} as const satisfies Record<keyof typeof PALETTE, ChapterCues>;
+
 /** Warna pendukung tetap. */
 export const COLORS = {
   bone: "#E6EAF2",
