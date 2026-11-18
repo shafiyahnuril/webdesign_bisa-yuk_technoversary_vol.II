@@ -146,7 +146,7 @@ Contoh commit yang diharapkan per gelombang (urutan = urutan commit):
 
 | Gelombang | Commit (contoh) |
 |---|---|
-| G1 | `build(font): tambah fallback bermetrik untuk empat font` · `ci(deploy): rapikan workflow GitHub Pages` |
+| G1 | `build(font): tambah fallback bermetrik untuk empat font` |
 | G2 | `style(halaman): definisikan tema warna lima halaman non-Home` · `feat(ui): tambah PageHero, Reveal, dan hook tema halaman` · `feat(halaman): bangun halaman 404 dengan botol mengambang` |
 | G3 | `feat(ui): tambah FactBlock, SourceList, LicenseTable, dan TeamGrid` · `feat(about): tambah TempDiagram statis dengan animasi isi pita` · `feat(about): susun halaman About dengan tujuh bagian` |
 | G4 | `feat(filter): tambah logika filter dua kelompok dan hitungan chip` · `test(filter): uji hitungan chip untuk semua kombinasi` · `feat(konten): bangun Galeri Artikel dengan kartu dan sinkron URL` · `feat(konten): tambah ParticleField dengan jeda saat tab tersembunyi` |
@@ -192,10 +192,9 @@ T0.4 (font)
 - Selesai bila: tidak ada permintaan font ke domain luar (cek di keluaran build/`dist` dan jaringan lewat skrip sederhana), tipe skala mengikuti dok 02 §3.
 
 T0.6 (deploy)
-- Verifikasi `.github/workflows/deploy.yml` sesuai dok 06 §8 (Node 20, `npm ci`, `npm run build`, upload `dist`, `actions/deploy-pages`). Perbaiki bila perlu lewat satu commit kecil `ci(deploy): ...` langsung ke `main` (tanpa PR).
+- **DIBATALKAN** sesuai keputusan tim: tanpa GitHub Actions dan tanpa workflow `.yml`. Tidak ada deploy otomatis.
 - Pastikan `vite.config.ts` memakai `base: "./"` dan router `HashRouter` (cek saja; jangan ubah).
-- Tuliskan langkah MANUAL untukku di laporan: GitHub → Settings → Pages → Source "GitHub Actions"; Settings → Secrets → `VITE_FORMSPREE_ENDPOINT`.
-- Selesai bila: workflow valid (periksa sintaks YAML), dan langkah manual tertulis jelas.
+- Selesai bila: `npm run build` menghasilkan `dist/` valid.
 
 Ikuti ALUR PER TUGAS dan FORMAT LAPORAN pada prompt master.
 ````
@@ -424,7 +423,7 @@ Halo A, ini permintaan kontrak dari B:
 
 ## 6. Daftar periksa akhir Pihak B
 
-- [ ] G1: font tanpa CDN, fallback bermetrik; workflow deploy valid; langkah manual Pages/secrets dilakukan.
+- [ ] G1: font tanpa CDN, fallback bermetrik; `npm run build` menghasilkan `dist/` valid (tanpa workflow).
 - [ ] G2: tema 5 halaman; 404 berfungsi.
 - [ ] G3: About 7 bagian; TempDiagram; sumber/lisensi/tim tampil.
 - [ ] G4: Galeri Artikel: 12 kartu, filter 2 kelompok + hitungan, URL tersinkron, tes filter lulus, ParticleField.

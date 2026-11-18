@@ -62,7 +62,7 @@ t5  Selama cerita: build scene ±0,06 di depan, dispose yang sudah lewat > 0,12
 - Gambar kartu artikel `loading="lazy"` kecuali 2 teratas.
 - Font: preload hanya 2 berkas variabel kritis; sisanya `font-display: swap`.
 - Tidak ada skrip pihak ketiga (analitik, CDN font). Formspree hanya dipanggil saat kirim.
-- Kompresi: aktifkan Brotli/gzip di hosting (GitHub Pages sudah gzip).
+- Kompresi: aktifkan Brotli/gzip bila ada hosting.
 - Cache: nama berkas ber-hash (Vite default).
 
 ---
@@ -264,7 +264,7 @@ Jaringan lambat (Slow 4G), offline (halaman sudah dimuat), tab latar belakang, m
 - [ ] Tangkapan layar tiap bab di `docs/shots/`.
 - [ ] Tidak ada aset berbayar/template/komponen premium.
 - [ ] Tidak ada berkas besar tak terpakai; ukuran repo wajar.
-- [ ] GitHub Pages (opsional) berfungsi dari URL publik, termasuk Formspree.
+- [ ] `npm run build && npm run preview` berfungsi, termasuk Formspree.
 - [ ] **Pengumpulan sebelum batas waktu + toleransi** (lihat guidebook). Simpan bukti kirim.
 
 ---

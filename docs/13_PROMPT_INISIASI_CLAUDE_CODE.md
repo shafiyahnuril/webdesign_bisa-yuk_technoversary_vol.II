@@ -114,7 +114,7 @@ LANGKAH 0 · PEMERIKSAAN AWAL DAN EKSTRAK ZIP (jangan ubah kode dulu)
 ==================================================
 LANGKAH 1 · SCAFFOLD VITE + REACT + TYPESCRIPT (T0.1)
 ==================================================
-Stack DISEPAKATI: Vite + React + TypeScript (strict), React Router `HashRouter`, GSAP (inti + ticker + timeline; tanpa ScrollTrigger), Three.js murni (TANPA @react-three/fiber/drei), CSS Modules + variabel CSS (TANPA Tailwind), Web Audio API (tanpa pustaka), Formspree untuk Contact, GitHub Pages untuk deploy.
+Stack DISEPAKATI: Vite + React + TypeScript (strict), React Router `HashRouter`, GSAP (inti + ticker + timeline; tanpa ScrollTrigger), Three.js murni (TANPA @react-three/fiber/drei), CSS Modules + variabel CSS (TANPA Tailwind), Web Audio API (tanpa pustaka), Formspree untuk Contact. Tanpa GitHub Actions/workflow `.yml`.
 
 1. Proyek di AKAR repo (bukan subfolder). Bila repo tidak kosong, scaffold dulu ke folder sementara (`npm create vite@latest _scaffold -- --template react-ts`), pindahkan berkas ke akar tanpa menimpa `docs/`, `.git/`, `LICENSE`, atau `README.md` yang ada, lalu hapus `_scaffold` (tambahkan `/_scaffold/` ke `.git/info/exclude` selama berjalan).
 2. Pasang dependensi dengan VERSI STABIL TERBARU (jangan mengarang nomor versi; `package-lock.json` mengunci):
@@ -156,7 +156,6 @@ Buat SELURUH pohon berikut. Aturan pengisian:
 ├─ index.html  package.json  tsconfig*.json  vite.config.ts  eslint.config.js
 ├─ playwright.config.ts  .prettierrc  .prettierignore  .editorconfig  .nvmrc
 ├─ .env.example  .gitignore  README.md  (LICENSE bila sudah ada)
-├─ .github/workflows/deploy.yml
 ├─ public/
 │   ├─ favicon.svg
 │   ├─ og/                      (.gitkeep; og-image nanti)
@@ -245,10 +244,9 @@ LANGKAH 6 · DOKUMEN LOKAL DAN README (T0.2)
 4. Centang di `docs/10_TASK_BREAKDOWN.md` (lokal): T0.1–T0.7.
 
 ==================================================
-LANGKAH 7 · DEPLOY (T0.6)
+LANGKAH 7 · DEPLOY (T0.6, DIBATALKAN)
 ==================================================
-1. Buat `.github/workflows/deploy.yml` persis seperti `docs/06` bagian 8 (Node 20, `npm ci`, `npm run build`, upload `dist`, `actions/deploy-pages`). `VITE_FORMSPREE_ENDPOINT` dari `secrets` boleh kosong.
-2. Jangan mengaktifkan Pages lewat API. Di laporan, beri langkah manual: Settings → Pages → Source: "GitHub Actions".
+Dibatalkan sesuai keputusan tim: jangan membuat `.github/` atau workflow `.yml` apa pun. Cukup pastikan `npm run build` menghasilkan `dist/`.
 
 ==================================================
 LANGKAH 8 · VERIFIKASI (semua harus lulus sebelum commit/push)
@@ -273,7 +271,7 @@ Commit logis (maks 6), satu baris, bahasa Indonesia, Conventional Commits, TANPA
 3. `feat: struktur folder proyek dan stub modul`
 4. `feat: token desain dan fondasi mesin cerita`
 5. `feat: rute, shell, dan placeholder halaman`
-6. `chore: README dan workflow deploy GitHub Pages`
+6. `chore: README proyek`
 
 Gunakan `git add <path>` yang disengaja (bukan `git add -A` sebelum `git status` dicek). Lalu:
 1. Jalankan pemeriksaan ATURAN KERAS 2 (butir 4, 5, 6); hasil harus kosong.
@@ -289,7 +287,7 @@ LAPORAN AKHIR (Bahasa Indonesia, ringkas)
 - Konfirmasi: `docs/`, `CLAUDE.md`, `.claude/` ada di mesin ini tetapi TIDAK dilacak git dan TIDAK ter-push (tunjukkan keluaran kosong pemeriksaan); isi `docs/` (daftar berkas dan tanggal), dan zip mana yang diekstrak.
 - Konfirmasi pemeriksaan jejak AI kosong (berkas dan riwayat).
 - Keputusan teknis di luar dokumen (sudah di `docs/DECISIONS.md`).
-- Langkah manual untukku: aktifkan GitHub Pages; `npx playwright install chromium` bila ingin E2E; isi `site.ts`; isi `VITE_FORMSPREE_ENDPOINT`; buat `CODEOWNERS` dengan akun tim; bagikan `rebottle-docs.zip` ke rekan tim secara terpisah.
+- Langkah manual untukku: `npx playwright install chromium` bila ingin E2E; isi `site.ts`; isi `VITE_FORMSPREE_ENDPOINT`; buat `CODEOWNERS` dengan akun tim; bagikan `rebottle-docs.zip` ke rekan tim secara terpisah.
 - Tugas berikutnya yang disarankan (T1.1 dst., jalur Pihak A).
 
 LARANGAN TAMBAHAN

@@ -44,7 +44,7 @@ F0 Fondasi ──► F1 Mesin + Rangka Home (placeholder) ──┬─► F3 Pan
 | ☐ T0.3 | Token: `lib/tokens.ts` (PALETTE, CUES, LENGTHS, warna) + `gen-tokens.mjs` → `tokens.generated.css`; `typography.css`, `base.css` | Variabel CSS dan TS identik; skrip berjalan di `predev/prebuild` | 02 | A |
 | ☐ T0.4 | Font Fontsource (4 keluarga, subset latin), preload kritis, fallback metrik | Font tampil tanpa CLS; ukuran sesuai 09 bagian 1.1 | 02 | B |
 | ☐ T0.5 | `App.tsx`: `HashRouter`, rute, `Suspense`, `AppShell` kosong, `HomePage` lazy placeholder | Semua rute dapat dibuka; Home di chunk terpisah | 06 | A |
-| ☐ T0.6 | Workflow GitHub Pages `deploy.yml` | Push ke `main` men-deploy; URL berfungsi | 06 | B |
+| ✕ T0.6 | ~~Workflow GitHub Pages~~ **DIBATALKAN** (tanpa GitHub Actions) | `build` menghasilkan `dist/` valid | 06 | B |
 | ☐ T0.7 | `hooks/`: `useReducedMotion`, `useMedia`, `useSignal`, `useDocumentMeta` | Uji unit dasar lulus | 06 | A |
 
 ---

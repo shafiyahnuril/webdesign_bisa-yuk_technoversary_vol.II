@@ -68,7 +68,7 @@ Setiap keputusan di seluruh dokumen diberi salah satu tanda:
   - Bab **tidak bisa dilewati** (mesin *ratchet*, scrollbar disembunyikan).
 - **Konten** ("Galeri Artikel"): 12 artikel dampak, matriks 2×3, pil filter gabungan.
 - Kata **"Re:"** pada nama pudar di Babak I dan menyala di Babak II (dihitung dari posisi cerita).
-- **Stack:** Vite + React + TypeScript, React Router (`HashRouter`), GSAP, Three.js murni, Web Audio API, CSS Modules + CSS variable. Hosting GitHub Pages (opsional).
+- **Stack:** Vite + React + TypeScript, React Router (`HashRouter`), GSAP, Three.js murni, Web Audio API, CSS Modules + CSS variable. Tanpa deploy otomatis (tanpa GitHub Actions); penilaian dibaca dari isi repo.
 - **Bobot penilaian:** Tema 30%, Visual 20%, **Testing dan performa 15%**, UX 25%, Fungsionalitas 10% (penyisihan). Final: konsep 30%, demo 25%, visual/UX 20%, inovasi 15%, tanya jawab 10%.
 
 ---

@@ -1,6 +1,6 @@
 # 06 · ARSITEKTUR TEKNIS
 
-> Stack (Vite + React + TypeScript, React Router `HashRouter`, GSAP, Three.js murni, Web Audio, CSS Modules + CSS variable, GitHub Pages) = **[DISEPAKATI]**.
+> Stack (Vite + React + TypeScript, React Router `HashRouter`, GSAP, Three.js murni, Web Audio, CSS Modules + CSS variable) = **[DISEPAKATI]**.
 > Struktur folder, antarmuka modul, konfigurasi build/deploy, alat debug, strategi uji = **[USULAN]**.
 > Prinsip dasar: **mesin cerita imperatif di luar React** (tidak ada re-render per frame).
 
@@ -57,7 +57,6 @@ rebottle/                          ← akar repo: webdesign_namaTim_technoversar
 ├─ index.html
 ├─ package.json  package-lock.json  tsconfig.json  vite.config.ts  .eslintrc / eslint.config.js  .prettierrc
 ├─ .env.example
-├─ .github/workflows/deploy.yml
 ├─ public/
 │   ├─ favicon.svg  og-image.png
 │   └─ img/                        ← ilustrasi artikel + panel statis (SVG)
@@ -259,7 +258,7 @@ const HomePage = lazy(() => import("./routes/HomePage"));          // memuat Thr
 ```ts
 // vite.config.ts
 export default defineConfig({
-  base: "./",                                    // relatif → aman di GitHub Pages (sub-path) dan buka lokal
+  base: "./",                                    // relatif → aman di sub-path mana pun dan buka lokal
   build: {
     target: "es2020", sourcemap: false, chunkSizeWarningLimit: 600,
     rollupOptions: { output: { manualChunks: { three: ["three"], gsap: ["gsap"], vendor: ["react","react-dom","react-router-dom"] } } },
@@ -283,33 +282,10 @@ VITE_SITE_URL=https://<akun>.github.io/<repo>/
 
 ---
 
-## 8. Deploy (GitHub Pages, opsional) `.github/workflows/deploy.yml`
+## 8. Deploy [DIUBAH: tanpa GitHub Actions]
 
-```yaml
-name: Deploy
-on: { push: { branches: [main] }, workflow_dispatch: {} }
-permissions: { contents: read, pages: write, id-token: write }
-concurrency: { group: pages, cancel-in-progress: true }
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm ci
-      - run: npm run build
-        env: { VITE_FORMSPREE_ENDPOINT: ${{ secrets.VITE_FORMSPREE_ENDPOINT }} }
-      - uses: actions/upload-pages-artifact@v3
-        with: { path: dist }
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: { name: github-pages, url: "${{ steps.deployment.outputs.page_url }}" }
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
-```
+Tim memutuskan **tidak memakai GitHub Actions maupun workflow `.yml`**. Tidak ada deploy otomatis; `npm run build` cukup menghasilkan `dist/` statis (`base: "./"` + `HashRouter` membuatnya bisa diletakkan di hosting statis mana pun bila kelak diperlukan).
+
 > Penilaian penyisihan **dibaca dari isi repo**, jadi: repo harus bisa dijalankan dengan `npm install` + `npm run dev` **tanpa konfigurasi tambahan** (Formspree jatuh ke mode `mailto` bila endpoint tidak ada).
 
 ---

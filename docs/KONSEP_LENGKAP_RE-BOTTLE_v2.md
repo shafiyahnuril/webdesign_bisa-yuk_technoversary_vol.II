@@ -1162,7 +1162,7 @@ Hal-hal berikut **belum diputuskan** dan akan dipastikan pada tahap berikutnya.
 |---|---|
 | Build tool | Vite |
 | Framework dan bahasa | React 18+ dan TypeScript |
-| Routing | React Router dengan `HashRouter` (aman di GitHub Pages tanpa konfigurasi tambahan). Rute: `/` (Home), `/about`, `/konten`, `/konten/:slug`, `/contact` |
+| Routing | React Router dengan `HashRouter` (aman di hosting statis tanpa konfigurasi tambahan). Rute: `/` (Home), `/about`, `/konten`, `/konten/:slug`, `/contact` |
 | Gaya | CSS Modules, CSS variable, dan CSS biasa. **Tanpa Tailwind**, karena konsep banyak memakai `@property`, `color-mix` OKLCH, filter SVG, selector atribut (`[data-re]`, `[data-view]`), dan `@media (pointer: fine)`. Secara performa, Tailwind dan CSS biasa nyaris setara |
 | Animasi gulir | GSAP + ScrollTrigger dan `gsap.ticker` |
 | Gulir halus | **Lenis tidak dipakai secara bawaan.** Mesin ratchet sudah mengendalikan gulir sendiri, sehingga Lenis berisiko bentrok. Dipasang hanya jika nanti terbukti diperlukan |
@@ -1173,7 +1173,7 @@ Hal-hal berikut **belum diputuskan** dan akan dipastikan pada tahap berikutnya.
 | Ilustrasi | SVG buatan sendiri |
 | Gambar | WebP / SVG, *lazy-load* |
 | Warna | `color-mix` di ruang OKLCH |
-| Hosting | GitHub Pages lewat GitHub Actions (opsional menurut guidebook, ketentuan no. 9) |
+| Hosting | Tanpa deploy otomatis (tanpa GitHub Actions; hosting opsional menurut guidebook, ketentuan no. 9) |
 
 **Prinsip arsitektur:**
 - **Mesin cerita berjalan di luar React.** `progress`/`shown`, ratchet, dan loop dijalankan di `gsap.ticker` dan menulis langsung ke DOM, CSS variable, serta Three.js. React hanya menjadi cangkang halaman dan komponen, sehingga **tidak ada re-render per frame**.
@@ -1282,7 +1282,7 @@ Karya dikumpulkan dalam bentuk **repository GitHub** berisi:
 2. **File `README.md`** yang memuat: judul website (**Re:bottle**), deskripsi website, petunjuk instalasi, dan cara menjalankan project
 3. **Nama tim dan anggota**
 
-Hosting atau GitHub Pages bersifat **opsional**. Penilaian babak penyisihan dibaca dari isi repository, jadi kerapian kode, struktur folder, dan README ikut berpengaruh. Subtema **Kampanye Peduli Lingkungan** dicantumkan di README, halaman About, dan slide pembuka presentasi final.
+Hosting bersifat **opsional**. Penilaian babak penyisihan dibaca dari isi repository, jadi kerapian kode, struktur folder, dan README ikut berpengaruh. Subtema **Kampanye Peduli Lingkungan** dicantumkan di README, halaman About, dan slide pembuka presentasi final.
 
 ---
 
