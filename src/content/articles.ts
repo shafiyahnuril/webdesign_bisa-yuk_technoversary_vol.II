@@ -1,4 +1,9 @@
 // Kerangka 12 artikel (docs/11 bagian 4). Isi dan sumber diisi di T8.3.
+import { A1 } from "./articles/A1";
+import { A2 } from "./articles/A2";
+import { B1 } from "./articles/B1";
+import { B2 } from "./articles/B2";
+
 export type ArticleKind = "negatif" | "positif";
 export type ArticleLevel = "sehari-hari" | "nasional" | "global";
 
@@ -33,6 +38,14 @@ export interface Article {
   sources: ArticleSource[];
 }
 
+/** Bagian isi per artikel (T8.3); disimpan di `src/content/articles/<kode>.ts`. */
+export type ArticleBody = Pick<
+  Article,
+  "summary" | "readingMinutes" | "lede" | "sections" | "relation" | "sources"
+>;
+
+const BODIES: Partial<Record<string, ArticleBody>> = { A1, A2, B1, B2 };
+
 const make = (
   code: string,
   slug: string,
@@ -52,6 +65,7 @@ const make = (
   sections: [],
   relation: "",
   sources: [],
+  ...BODIES[code],
 });
 
 export const ARTICLES: readonly Article[] = [
