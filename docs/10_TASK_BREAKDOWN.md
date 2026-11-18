@@ -182,7 +182,7 @@ F0 Fondasi ──► F1 Mesin + Rangka Home (placeholder) ──┬─► F3 Pan
 | ☐ T9.1 | `StaticStory` + `StaticPanel` ×11 + pembukaan berurutan + "Mulai dari awal" | Reduced-motion/tanpa WebGL bekerja; tidak bisa dilompati | 03 §17 | B |
 | ☐ T9.2 | `useStoryMode` memilih 3D/statis; deteksi WebGL, context loss | Fallback otomatis | 06 | A |
 | ☐ T9.3 | Audit aksesibilitas: axe, keyboard-only, kontras, zoom 200%, forced-colors | 09 §8.8 lulus | 09 | B |
-| ☐ T9.4 | `<noscript>`, meta SEO, `lang="id"`, OG | Lighthouse SEO ≥ 95 | 09 | B |
+| ☑ T9.4 | `<noscript>`, meta SEO, `lang="id"`, OG | Lighthouse SEO ≥ 95 | 09 | B |
 
 ---
 
@@ -204,11 +204,11 @@ F0 Fondasi ──► F1 Mesin + Rangka Home (placeholder) ──┬─► F3 Pan
 
 | ID | Tugas | Selesai bila | Dok. | Jalur |
 |---|---|---|---|---|
-| ☐ T11.1 | README final + tangkapan layar + skor Lighthouse | Sesuai 06 §12 | 06 | B |
+| ☑ T11.1 | README final + tangkapan layar + skor Lighthouse | Sesuai 06 §12 | 06 | B |
 | ☐ T11.2 | Hygiene repo: nama folder, `.env.example`, tanpa alat debug di `dist` | Daftar periksa 09 §10 | 09 | A |
 | ☐ T11.3 | Uji instalasi di mesin bersih | `npm install && npm run dev` jalan | 09 | B |
 | ☐ T11.4 | Skrip demo + cadangan (video, `?q=low`) + latihan 20 menit | Latihan penuh terlaksana | 09 §11 | A+B |
-| ☐ T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Terkirim | guidebook | B |
+| ☑ T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Terkirim | guidebook | B |
 
 ---
 

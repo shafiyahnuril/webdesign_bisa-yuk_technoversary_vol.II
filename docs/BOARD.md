@@ -80,7 +80,7 @@
 | T9.1 | `StaticStory` + `StaticPanel` ×11 + pembukaan berurutan + "Mulai dari awal" | Pihak A | siap |  |
 | T9.2 | `useStoryMode` memilih 3D/statis; deteksi WebGL, context loss | Pihak A | siap |  |
 | T9.3 | Audit aksesibilitas: axe, keyboard-only, kontras, zoom 200%, forced-colors | Bersama (opsional) | siap |  |
-| T9.4 | `<noscript>`, meta SEO, `lang="id"`, OG | Pihak B | siap |  |
+| T9.4 | `<noscript>`, meta SEO, `lang="id"`, OG | Pihak B | selesai (Seo per halaman unik, OG dasar di index.html, robots.txt; Lighthouse SEO 100 di 5 rute) |  |
 | T10.1 | Analisis bundel; tutup celah anggaran 09 §1.1 | Pihak A | siap |  |
 | T10.2 | Profil FPS/draw call per bab per tier; isi `PERF_LOG.md`; perbaiki | Pihak A | siap |  |
 | T10.3 | Lighthouse (mobile + desktop) semua rute; simpan bukti | Bersama (opsional) | siap |  |
@@ -88,11 +88,11 @@
 | T10.5 | Uji E2E Playwright (04 §15 + form + filter) | Bersama (opsional) | siap |  |
 | T10.6 | Kejujuran konten: audit `facts.ts` ↔ tampilan | Bersama (opsional) | siap |  |
 | T10.7 | Perbaiki bug P0/P1/P2 | Bersama (opsional) | siap |  |
-| T11.1 | README final + tangkapan layar + skor Lighthouse | Pihak B | siap |  |
+| T11.1 | README final + tangkapan layar + skor Lighthouse | Pihak B | selesai (README tanpa nama tim: placeholder sampai tim memberi data; Lighthouse hanya SEO) |  |
 | T11.2 | Hygiene repo: nama folder, `.env.example`, tanpa alat debug di `dist` | Bersama (opsional) | siap |  |
 | T11.3 | Uji instalasi di mesin bersih | Bersama (opsional) | siap |  |
 | T11.4 | Skrip demo + cadangan (video, `?q=low`) + latihan 20 menit | Pihak A | siap |  |
-| T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Pihak B | siap |  |
+| T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Pihak B | checklist lokal selesai; pengiriman nyata belum (nama tim, batas waktu, Google Form) |  |
 
 ## Catatan untuk sesi berikutnya
 - **G6c batch 1 (T8.3):** A1, B1, A2, B2 ditulis di `src/content/articles/<kode>.ts` (400–422 kata, 3 menit baca) dan disambung lewat `ArticleBody` + `BODIES` di `articles.ts`. Sisa: A3–A6, B3–B6 (tambahkan berkas `articles/<kode>.ts` dan daftarkan di `BODIES`). Tes `AboutPage`/`ArticlePage` disesuaikan agar tak bergantung pada data kosong.

@@ -30,3 +30,7 @@ Usul: tambahkan `rebottle_assets/**` ke `ignores` di `eslint.config.js`.
 ## Dari G4 (Galeri Artikel)
 - **Brand Navbar statis** di halaman non-Home tampil "bottle" tanpa "Re:" (di About terlihat jelas); spesifikasi meminta "Re:" menyala penuh di halaman non-Home.
 - **CursorRing belum ada di `main`** (tidak ada berkas/ekspor di `src/components/shell/`). Galeri memberi `data-cursor="read"` pada `ArticleCard`. Mohon aktifkan `CursorRing` hanya di rute `#/konten` (bukan `#/konten/:slug`), label "Baca" saat hover elemen `[data-cursor="read"]` (dok 04 §10). Di `ContentPage.tsx` ada `// TODO(A)` sebagai penanda.
+
+## Dari G7 (T9.4)
+- `index.html`: ditambah 7 baris meta OG/Twitter card di bawah `theme-color` (commit `chore(kontrak): tambah meta Open Graph dasar di index.html`, disetujui tim). `og:image` memakai `./og/og-image.png` (relatif); ganti ke URL absolut bila nanti ada hosting (`VITE_SITE_URL`).
+- `public/robots.txt` ditambah agar Lighthouse SEO tidak gagal pada audit `robots-txt`.
