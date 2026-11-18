@@ -1,17 +1,22 @@
 import * as THREE from "three";
-import { createClayMaterial } from "../materials/clay";
 import type { QualityConfig } from "../quality";
+import {
+  makeBrushedMetalSet,
+  makeCeramicGlazeSet,
+  makePowderCoatSet,
+  type PbrTextureSet,
+} from "../textures/pbr-maps";
 
 export const TUMBLER_SPECS = {
   totalHeight: 2.22,
   bodyColor: "#0F8B8D",
   bodyRoughness: 0.55,
   bodyMetalness: 0.1,
-  lidColor: "#D9E6D6",
-  ringColor: "#E6EAF2",
+  lidColor: "#1D2B33",
+  ringColor: "#C8D5DE",
   plinthRadius: 0.5,
   plinthHeight: 0.25,
-  plinthColor: "#E6EEE4",
+  plinthColor: "#DCE4D9",
   desktopX: 14.0,
   portraitX: 13.2,
 } as const;
@@ -73,18 +78,27 @@ export class Tumbler {
   private readonly ringGeometry: THREE.BufferGeometry;
   private readonly handleGeometry: THREE.BufferGeometry;
   private readonly materials: THREE.Material[] = [];
+  private readonly textureSets: PbrTextureSet[] = [];
 
   constructor(parent: THREE.Object3D, radialSegments = 48) {
     this.radialSegments = radialSegments;
     this.group.name = "O-TUMBLER-PLINTH";
     this.group.position.set(TUMBLER_SPECS.desktopX, 0, 0);
 
-    // O-PLINTH: Cylinder(r 0.5, tinggi 0.25, 48 segmen) #E6EEE4, roughness 0.9
+    const powderSet = makePowderCoatSet(256);
+    const metalSet = makeBrushedMetalSet(256, 1, 1);
+    const stoneSet = makeCeramicGlazeSet(256);
+    this.textureSets.push(powderSet, metalSet, stoneSet);
+
+    // O-PLINTH: batu kapur matte berglasir ringan
     const plinthGeom = createPlinthGeometry(radialSegments);
-    const plinthMat = createClayMaterial({
+    const plinthMat = new THREE.MeshStandardMaterial({
       color: TUMBLER_SPECS.plinthColor,
-      roughness: 0.9,
-      metalness: 0,
+      map: stoneSet.map ?? null,
+      normalMap: stoneSet.normalMap ?? null,
+      roughnessMap: stoneSet.roughnessMap ?? null,
+      roughness: 0.78,
+      metalness: 0.02,
     });
     this.plinthMesh = new THREE.Mesh(plinthGeom, plinthMat);
     this.plinthMesh.name = "O-PLINTH";
@@ -94,28 +108,41 @@ export class Tumbler {
     this.vesselGroup.name = "O-TUMBLER";
     this.vesselGroup.position.set(0, TUMBLER_SPECS.plinthHeight, 0);
 
+    // Badan teal powder-coat matte (map tetap null sesuai kontrak tumbler.test.ts)
     const bodyGeom = createBodyGeometry(radialSegments);
-    const bodyMat = createClayMaterial({
+    const bodyMat = new THREE.MeshStandardMaterial({
       color: TUMBLER_SPECS.bodyColor,
+      normalMap: powderSet.normalMap ?? null,
+      normalScale: new THREE.Vector2(0.32, 0.32),
+      roughnessMap: powderSet.roughnessMap ?? null,
       roughness: TUMBLER_SPECS.bodyRoughness,
       metalness: TUMBLER_SPECS.bodyMetalness,
+      envMapIntensity: 1.05,
     });
     this.bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
 
+    // Tutup & pegangan dark anodized metal kontras
     const lidGeom = createLidGeometry(radialSegments);
-    const lidMat = createClayMaterial({
+    const lidMat = new THREE.MeshStandardMaterial({
       color: TUMBLER_SPECS.lidColor,
-      roughness: 0.75,
-      metalness: 0,
+      normalMap: metalSet.normalMap ?? null,
+      normalScale: new THREE.Vector2(0.35, 0.35),
+      roughnessMap: metalSet.roughnessMap ?? null,
+      roughness: 0.28,
+      metalness: 0.82,
+      envMapIntensity: 1.25,
     });
     this.lidMesh = new THREE.Mesh(lidGeom, lidMat);
 
-    // Cincin bawah y 0.06..0.16 tanpa teks/logo
+    // Cincin stainless sikat bawah y 0.06..0.16
     this.ringGeometry = new THREE.CylinderGeometry(0.343, 0.343, 0.1, 32, 1, true);
-    const ringMat = createClayMaterial({
+    const ringMat = new THREE.MeshStandardMaterial({
       color: TUMBLER_SPECS.ringColor,
-      roughness: 0.45,
-      metalness: 0.15,
+      normalMap: metalSet.normalMap ?? null,
+      roughnessMap: metalSet.roughnessMap ?? null,
+      roughness: 0.22,
+      metalness: 0.9,
+      envMapIntensity: 1.35,
     });
     this.ringMesh = new THREE.Mesh(this.ringGeometry, ringMat);
     this.ringMesh.position.set(0, 0.11, 0);
@@ -170,5 +197,6 @@ export class Tumbler {
     this.ringGeometry.dispose();
     this.handleGeometry.dispose();
     for (const m of this.materials) m.dispose();
+    for (const s of this.textureSets) s.dispose();
   }
 }

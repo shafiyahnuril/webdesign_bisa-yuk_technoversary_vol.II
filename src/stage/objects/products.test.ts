@@ -56,6 +56,20 @@ describe("O-PRODUCTS (7 produk daur ulang + Tote reusable)", () => {
     expect(products.getProduct("backpack").group.visible).toBe(true);
     expect((toteMat.material as THREE.MeshStandardMaterial).color.r).toBeCloseTo(matBefore, 3);
 
+    const benchWood = (products.getProduct("bench").group.children[0] as THREE.Mesh)
+      .material as THREE.MeshStandardMaterial;
+    const benchLeg = (products.getProduct("bench").group.children[3] as THREE.Mesh)
+      .material as THREE.MeshStandardMaterial;
+    const backpackMat = (products.getProduct("backpack").group.children[0] as THREE.Mesh)
+      .material as THREE.MeshStandardMaterial;
+    expect(benchWood.map).not.toBeNull();
+    expect(benchWood.normalMap).not.toBeNull();
+    expect(benchLeg.metalness).toBeGreaterThan(0.5);
+    expect(backpackMat.roughness).toBeLessThan(benchWood.roughness);
+    expect(benchWood.color.getHexString()).not.toBe(
+      (toteMat.material as THREE.MeshStandardMaterial).color.getHexString(),
+    );
+
     products.dispose();
   });
 });

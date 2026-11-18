@@ -1,7 +1,12 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { createClayMaterial } from "../materials/clay";
-import { makeFabricWeave } from "../textures/fabric";
+import {
+  makeBrushedMetalSet,
+  makeCeramicGlazeSet,
+  makeFabricPbrSet,
+  makeWoodGrainSet,
+  type PbrTextureSet,
+} from "../textures/pbr-maps";
 import { clamp01 } from "../util/math";
 
 export type ProductId = "tote" | "tee" | "backpack" | "rug" | "bench" | "pot" | "fleece";
@@ -34,7 +39,7 @@ export const PRODUCT_SPECS: Record<ProductId, ProductSpec> = {
     width: 3.0,
     height: 3.0,
     depth: 0.3,
-    color: "#6BBF9B",
+    color: "#579E82",
     x: -6.4,
     portraitVisible: true,
   },
@@ -44,7 +49,7 @@ export const PRODUCT_SPECS: Record<ProductId, ProductSpec> = {
     width: 2.6,
     height: 3.4,
     depth: 1.3,
-    color: "#3F6E8C",
+    color: "#335B78",
     x: -3.2,
     portraitVisible: false,
   },
@@ -54,7 +59,7 @@ export const PRODUCT_SPECS: Record<ProductId, ProductSpec> = {
     width: 1.1,
     height: 3.2,
     depth: 1.1,
-    color: "#8FC9B6",
+    color: "#7EB2A0",
     x: 0,
     portraitVisible: true,
   },
@@ -64,7 +69,7 @@ export const PRODUCT_SPECS: Record<ProductId, ProductSpec> = {
     width: 3.4,
     height: 1.6,
     depth: 1.2,
-    color: "#5E8F7B",
+    color: "#9E7858",
     x: 3.2,
     portraitVisible: true,
   },
@@ -74,7 +79,7 @@ export const PRODUCT_SPECS: Record<ProductId, ProductSpec> = {
     width: 1.6,
     height: 1.8,
     depth: 1.6,
-    color: "#7FB8A0",
+    color: "#5E8B7B",
     x: 6.4,
     portraitVisible: true,
   },
@@ -84,7 +89,7 @@ export const PRODUCT_SPECS: Record<ProductId, ProductSpec> = {
     width: 3.0,
     height: 3.4,
     depth: 0.4,
-    color: "#4C8F86",
+    color: "#3F7A73",
     x: 9.6,
     portraitVisible: false,
   },
@@ -115,11 +120,15 @@ interface ColorTrackedMaterial {
 
 function makeTrackedProduct(
   id: ProductId,
-  buildFn: (trackMat: (m: THREE.MeshStandardMaterial) => THREE.MeshStandardMaterial, trackGeom: (g: THREE.BufferGeometry) => THREE.BufferGeometry, trackTex: (t: THREE.Texture) => THREE.Texture) => THREE.Group,
+  buildFn: (
+    trackMat: (m: THREE.MeshStandardMaterial) => THREE.MeshStandardMaterial,
+    trackGeom: (g: THREE.BufferGeometry) => THREE.BufferGeometry,
+    trackSet: (s: PbrTextureSet) => PbrTextureSet,
+  ) => THREE.Group,
 ): ProductHandle {
   const trackedMats: ColorTrackedMaterial[] = [];
   const geoms: THREE.BufferGeometry[] = [];
-  const textures: THREE.Texture[] = [];
+  const sets: PbrTextureSet[] = [];
 
   const group = buildFn(
     (m) => {
@@ -130,9 +139,9 @@ function makeTrackedProduct(
       geoms.push(g);
       return g;
     },
-    (t) => {
-      textures.push(t);
-      return t;
+    (s) => {
+      sets.push(s);
+      return s;
     },
   );
   group.name = `Product_${id}`;
@@ -158,38 +167,78 @@ function makeTrackedProduct(
       group.removeFromParent();
       for (const g of geoms) g.dispose();
       for (const entry of trackedMats) entry.mat.dispose();
-      for (const t of textures) t.dispose();
+      for (const s of sets) s.dispose();
     },
   };
 }
 
-/** Tote bag reusable untuk Bab 9 (stasiun 04 CETAK) dan Bab 10 (10a). */
+/** Tote bag kanvas tenun + jahitan & saku depan reusable (Bab 9 & Bab 10a). */
 export function createToteProduct(): ProductHandle {
-  return makeTrackedProduct("tote", (trackMat, trackGeom) => {
+  return makeTrackedProduct("tote", (trackMat, trackGeom, trackSet) => {
     const group = new THREE.Group();
     const spec = PRODUCT_SPECS.tote;
-    const bodyGeom = trackGeom(new RoundedBoxGeometry(spec.width, spec.height, spec.depth, 2, 0.1));
-    const handleGeom = trackGeom(new THREE.TorusGeometry(0.7, 0.05, 8, 18, Math.PI));
+    const canvasSet = trackSet(makeFabricPbrSet("canvas", 256, 2, 2));
 
-    const bodyMat = trackMat(createClayMaterial({ color: spec.color, roughness: 0.8 }));
-    const handleMat = trackMat(createClayMaterial({ color: "#1F5E59", roughness: 0.78 }));
+    const bodyGeom = trackGeom(new RoundedBoxGeometry(spec.width, spec.height, spec.depth, 2, 0.1));
+    const pocketGeom = trackGeom(new RoundedBoxGeometry(1.5, 1.1, 0.08, 2, 0.04));
+    const seamGeom = trackGeom(new THREE.BoxGeometry(spec.width + 0.02, 0.12, spec.depth + 0.02));
+    const handleGeom = trackGeom(new THREE.TorusGeometry(0.7, 0.055, 8, 18, Math.PI));
+
+    const bodyMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: spec.color,
+        map: canvasSet.map ?? null,
+        normalMap: canvasSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.55, 0.55),
+        roughnessMap: canvasSet.roughnessMap ?? null,
+        roughness: 0.78,
+        metalness: 0,
+      }),
+    );
+    const pocketMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#22655F",
+        map: canvasSet.map ?? null,
+        normalMap: canvasSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.5, 0.5),
+        roughness: 0.82,
+        metalness: 0,
+      }),
+    );
+    const handleMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#16433F",
+        normalMap: canvasSet.normalMap ?? null,
+        roughness: 0.74,
+        metalness: 0,
+      }),
+    );
 
     const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
     bodyMesh.position.set(0, spec.height * 0.5, 0);
+
+    const topHem = new THREE.Mesh(seamGeom, handleMat);
+    topHem.position.set(0, spec.height - 0.14, 0);
+
+    const frontPocket = new THREE.Mesh(pocketGeom, pocketMat);
+    frontPocket.position.set(0, 1.05, spec.depth * 0.5 + 0.02);
 
     const frontHandle = new THREE.Mesh(handleGeom, handleMat);
     frontHandle.position.set(0, spec.height - 0.06, 0.22);
     const backHandle = new THREE.Mesh(handleGeom, handleMat);
     backHandle.position.set(0, spec.height - 0.06, -0.22);
 
-    group.add(bodyMesh, frontHandle, backHandle);
+    group.add(bodyMesh, topHem, frontPocket, frontHandle, backHandle);
     return group;
   });
 }
 
 function createTeeProduct(): ProductHandle {
-  return makeTrackedProduct("tee", (trackMat, trackGeom) => {
+  return makeTrackedProduct("tee", (trackMat, trackGeom, trackSet) => {
     const group = new THREE.Group();
+    const cottonSet = trackSet(makeFabricPbrSet("cotton", 256, 3, 3));
+    const metalSet = trackSet(makeBrushedMetalSet(256, 1, 1));
+
     const shape = new THREE.Shape();
     shape.moveTo(-0.85, 0);
     shape.lineTo(0.85, 0);
@@ -216,11 +265,28 @@ function createTeeProduct(): ProductHandle {
       }),
     );
     bodyGeom.translate(0, 0, -0.12);
-    const bodyMat = trackMat(createClayMaterial({ color: PRODUCT_SPECS.tee.color, roughness: 0.82 }));
+    const bodyMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: PRODUCT_SPECS.tee.color,
+        map: cottonSet.map ?? null,
+        normalMap: cottonSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.45, 0.45),
+        roughnessMap: cottonSet.roughnessMap ?? null,
+        roughness: 0.86,
+        metalness: 0,
+      }),
+    );
     const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
 
-    // Hanger kawat
-    const wireMat = trackMat(createClayMaterial({ color: "#5C6B7D", roughness: 0.45, metalness: 0.35 }));
+    // Hanger kawat baja sikat
+    const wireMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#7E8E9E",
+        normalMap: metalSet.normalMap ?? null,
+        roughness: 0.28,
+        metalness: 0.85,
+      }),
+    );
     const barGeom = trackGeom(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8));
     const hookGeom = trackGeom(new THREE.TorusGeometry(0.14, 0.028, 6, 12, Math.PI * 1.35));
     const leftArm = new THREE.Mesh(barGeom, wireMat);
@@ -238,22 +304,56 @@ function createTeeProduct(): ProductHandle {
 }
 
 function createBackpackProduct(): ProductHandle {
-  return makeTrackedProduct("backpack", (trackMat, trackGeom) => {
+  return makeTrackedProduct("backpack", (trackMat, trackGeom, trackSet) => {
     const group = new THREE.Group();
     const spec = PRODUCT_SPECS.backpack;
-    const bodyGeom = trackGeom(new RoundedBoxGeometry(spec.width, spec.height, spec.depth, 2, 0.14));
+    const nylonSet = trackSet(makeFabricPbrSet("nylon", 256, 2, 2));
+    const metalSet = trackSet(makeBrushedMetalSet(256, 1, 1));
+
+    const bodyGeom = trackGeom(
+      new RoundedBoxGeometry(spec.width, spec.height, spec.depth, 2, 0.14),
+    );
     const pocketGeom = trackGeom(new RoundedBoxGeometry(1.7, 1.4, 0.35, 2, 0.08));
     const strapGeom = trackGeom(new THREE.BoxGeometry(0.32, 2.4, 0.16));
+    const buckleGeom = trackGeom(new THREE.BoxGeometry(0.38, 0.16, 0.12));
     const loopGeom = trackGeom(new THREE.TorusGeometry(0.24, 0.05, 6, 12, Math.PI));
 
-    const bodyMat = trackMat(createClayMaterial({ color: spec.color, roughness: 0.8 }));
-    const accentMat = trackMat(createClayMaterial({ color: "#2D526B", roughness: 0.8 }));
+    const bodyMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: spec.color,
+        map: nylonSet.map ?? null,
+        normalMap: nylonSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.45, 0.45),
+        roughnessMap: nylonSet.roughnessMap ?? null,
+        roughness: 0.48,
+        metalness: 0.06,
+      }),
+    );
+    const accentMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#1F374A",
+        normalMap: nylonSet.normalMap ?? null,
+        roughness: 0.56,
+        metalness: 0.04,
+      }),
+    );
+    const buckleMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#8D9AA8",
+        normalMap: metalSet.normalMap ?? null,
+        roughness: 0.28,
+        metalness: 0.85,
+      }),
+    );
 
     const body = new THREE.Mesh(bodyGeom, bodyMat);
     body.position.set(0, spec.height * 0.5, 0);
 
     const pocket = new THREE.Mesh(pocketGeom, accentMat);
     pocket.position.set(0, 1.05, spec.depth * 0.5 + 0.1);
+
+    const zipBar = new THREE.Mesh(buckleGeom, buckleMat);
+    zipBar.position.set(0, 1.72, spec.depth * 0.5 + 0.22);
 
     const strapL = new THREE.Mesh(strapGeom, accentMat);
     strapL.position.set(-0.72, 1.65, -spec.depth * 0.5 - 0.08);
@@ -263,23 +363,39 @@ function createBackpackProduct(): ProductHandle {
     const loop = new THREE.Mesh(loopGeom, accentMat);
     loop.position.set(0, spec.height, 0);
 
-    group.add(body, pocket, strapL, strapR, loop);
+    group.add(body, pocket, zipBar, strapL, strapR, loop);
     return group;
   });
 }
 
 function createRugProduct(): ProductHandle {
-  return makeTrackedProduct("rug", (trackMat, trackGeom, trackTex) => {
+  return makeTrackedProduct("rug", (trackMat, trackGeom, trackSet) => {
     const group = new THREE.Group();
-    const weave = trackTex(makeFabricWeave());
-    weave.repeat.set(3, 4);
+    const woolSet = trackSet(makeFabricPbrSet("wool", 256, 3, 4));
+    const woodSet = trackSet(makeWoodGrainSet(256, 1, 1));
+
     const cylGeom = trackGeom(new THREE.CylinderGeometry(0.55, 0.55, 3.2, 16));
     const coreGeom = trackGeom(new THREE.CylinderGeometry(0.18, 0.18, 3.22, 10));
 
     const bodyMat = trackMat(
-      createClayMaterial({ color: PRODUCT_SPECS.rug.color, map: weave, roughness: 0.86 }),
+      new THREE.MeshStandardMaterial({
+        color: PRODUCT_SPECS.rug.color,
+        map: woolSet.map ?? null,
+        normalMap: woolSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.65, 0.65),
+        roughnessMap: woolSet.roughnessMap ?? null,
+        roughness: 0.88,
+        metalness: 0,
+      }),
     );
-    const coreMat = trackMat(createClayMaterial({ color: "#5E8F7B", roughness: 0.85 }));
+    const coreMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#7E6045",
+        map: woodSet.map ?? null,
+        normalMap: woodSet.normalMap ?? null,
+        roughness: 0.72,
+      }),
+    );
 
     const cyl = new THREE.Mesh(cylGeom, bodyMat);
     cyl.position.set(0, 1.6, 0);
@@ -292,14 +408,35 @@ function createRugProduct(): ProductHandle {
 }
 
 function createBenchProduct(): ProductHandle {
-  return makeTrackedProduct("bench", (trackMat, trackGeom) => {
+  return makeTrackedProduct("bench", (trackMat, trackGeom, trackSet) => {
     const group = new THREE.Group();
-    const seatGeom = trackGeom(new THREE.BoxGeometry(3.4, 0.16, 0.52));
-    const backGeom = trackGeom(new THREE.BoxGeometry(3.4, 0.56, 0.16));
+    const woodSet = trackSet(makeWoodGrainSet(256, 2, 1));
+    const metalSet = trackSet(makeBrushedMetalSet(256, 1, 1));
+
+    const seatGeom = trackGeom(new RoundedBoxGeometry(3.4, 0.16, 0.52, 2, 0.03));
+    const backGeom = trackGeom(new RoundedBoxGeometry(3.4, 0.56, 0.16, 2, 0.03));
     const legGeom = trackGeom(new THREE.BoxGeometry(0.24, 0.78, 1.08));
 
-    const woodMat = trackMat(createClayMaterial({ color: PRODUCT_SPECS.bench.color, roughness: 0.8 }));
-    const frameMat = trackMat(createClayMaterial({ color: "#3A6454", roughness: 0.75 }));
+    const woodMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#C29C76",
+        map: woodSet.map ?? null,
+        normalMap: woodSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.55, 0.55),
+        roughnessMap: woodSet.roughnessMap ?? null,
+        roughness: 0.64,
+        metalness: 0,
+      }),
+    );
+    const frameMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#27373E",
+        normalMap: metalSet.normalMap ?? null,
+        roughnessMap: metalSet.roughnessMap ?? null,
+        roughness: 0.38,
+        metalness: 0.72,
+      }),
+    );
 
     const frontSeat = new THREE.Mesh(seatGeom, woodMat);
     frontSeat.position.set(0, 0.82, 0.28);
@@ -319,8 +456,10 @@ function createBenchProduct(): ProductHandle {
 }
 
 function createPotProduct(): ProductHandle {
-  return makeTrackedProduct("pot", (trackMat, trackGeom) => {
+  return makeTrackedProduct("pot", (trackMat, trackGeom, trackSet) => {
     const group = new THREE.Group();
+    const ceramicSet = trackSet(makeCeramicGlazeSet(256));
+
     const pts = [
       new THREE.Vector2(0, 0),
       new THREE.Vector2(0.5, 0),
@@ -332,13 +471,38 @@ function createPotProduct(): ProductHandle {
       new THREE.Vector2(0, 1.45),
     ];
     const potGeom = trackGeom(new THREE.LatheGeometry(pts, 16));
+    const soilGeom = trackGeom(new THREE.CylinderGeometry(0.62, 0.58, 0.08, 14));
     const leafGeom = trackGeom(new THREE.ConeGeometry(0.26, 1.1, 8));
 
-    const potMat = trackMat(createClayMaterial({ color: PRODUCT_SPECS.pot.color, roughness: 0.78 }));
-    const leafMat = trackMat(createClayMaterial({ color: "#4C8F86", roughness: 0.75 }));
+    const potMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: PRODUCT_SPECS.pot.color,
+        map: ceramicSet.map ?? null,
+        normalMap: ceramicSet.normalMap ?? null,
+        roughnessMap: ceramicSet.roughnessMap ?? null,
+        roughness: 0.42,
+        metalness: 0.04,
+      }),
+    );
+    const soilMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#3B2D22",
+        roughness: 0.94,
+        metalness: 0,
+      }),
+    );
+    const leafMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#3A7459",
+        roughness: 0.54,
+        metalness: 0.02,
+      }),
+    );
 
     const potMesh = new THREE.Mesh(potGeom, potMat);
-    group.add(potMesh);
+    const soilMesh = new THREE.Mesh(soilGeom, soilMat);
+    soilMesh.position.set(0, 1.46, 0);
+    group.add(potMesh, soilMesh);
 
     // 5 daun kerucut di atas pot
     for (let i = 0; i < 5; i++) {
@@ -354,8 +518,11 @@ function createPotProduct(): ProductHandle {
 }
 
 function createFleeceProduct(): ProductHandle {
-  return makeTrackedProduct("fleece", (trackMat, trackGeom) => {
+  return makeTrackedProduct("fleece", (trackMat, trackGeom, trackSet) => {
     const group = new THREE.Group();
+    const fleeceSet = trackSet(makeFabricPbrSet("fleece", 256, 2, 2));
+    const metalSet = trackSet(makeBrushedMetalSet(256, 1, 1));
+
     const shape = new THREE.Shape();
     shape.moveTo(-0.92, 0);
     shape.lineTo(0.92, 0);
@@ -384,8 +551,25 @@ function createFleeceProduct(): ProductHandle {
     bodyGeom.translate(0, 0, -0.17);
     const zipGeom = trackGeom(new THREE.BoxGeometry(0.08, 3.05, 0.42));
 
-    const bodyMat = trackMat(createClayMaterial({ color: PRODUCT_SPECS.fleece.color, roughness: 0.82 }));
-    const zipMat = trackMat(createClayMaterial({ color: "#32645D", roughness: 0.55 }));
+    const bodyMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: PRODUCT_SPECS.fleece.color,
+        map: fleeceSet.map ?? null,
+        normalMap: fleeceSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.75, 0.75),
+        roughnessMap: fleeceSet.roughnessMap ?? null,
+        roughness: 0.9,
+        metalness: 0,
+      }),
+    );
+    const zipMat = trackMat(
+      new THREE.MeshStandardMaterial({
+        color: "#697984",
+        normalMap: metalSet.normalMap ?? null,
+        roughness: 0.32,
+        metalness: 0.78,
+      }),
+    );
 
     const body = new THREE.Mesh(bodyGeom, bodyMat);
     const zip = new THREE.Mesh(zipGeom, zipMat);
@@ -448,9 +632,10 @@ export class Products {
 
   reset(): void {
     this.group.visible = true;
+    this.setDim(1);
     for (const item of this.items) {
-      const spec = PRODUCT_SPECS[item.id];
       item.reset();
+      const spec = PRODUCT_SPECS[item.id];
       item.group.position.set(spec.x, this.shelfTopY, 0);
     }
   }

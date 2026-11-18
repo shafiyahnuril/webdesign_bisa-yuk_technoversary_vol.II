@@ -85,7 +85,9 @@ export function makeBottleCrack(size: 512 | 1024 = 1024): {
   const buffer = growth.ctx.createImageData(size, size);
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const nearest = Math.min(...origins.map(([ox, oy]) => Math.hypot(x / size - ox, y / size - oy)));
+      const nearest = Math.min(
+        ...origins.map(([ox, oy]) => Math.hypot(x / size - ox, y / size - oy)),
+      );
       const value = Math.round(Math.min(1, nearest * 2.15 + rand() * 0.15) * 255);
       const i = 4 * (y * size + x);
       buffer.data[i] = buffer.data[i + 1] = buffer.data[i + 2] = value;
@@ -117,7 +119,10 @@ const binGlyphs = {
 export type BinLabel = keyof typeof binGlyphs;
 
 /** T-BINLABEL. Panggil setelah font Display siap agar bobot 700 dipakai. */
-export function makeBinLabel(kind: BinLabel, fontFamily = "Bricolage Grotesque Variable"): CanvasTexture {
+export function makeBinLabel(
+  kind: BinLabel,
+  fontFamily = "Bricolage Grotesque Variable",
+): CanvasTexture {
   const { canvas, ctx } = surface(512, 128);
   ctx.fillStyle = BONE;
   ctx.fillRect(0, 0, 512, 128);
@@ -224,6 +229,11 @@ export function makeCaustics(): CanvasTexture {
 /** T-CONTACT. Gunakan sebagai map pada plane berwarna hitam, opacity 0,35. */
 export function makeContactShadow(): CanvasTexture {
   const { canvas, ctx } = surface(128, 128);
+  if (typeof ctx.createRadialGradient !== "function") {
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.fillRect(0, 0, 128, 128);
+    return texture(canvas, false);
+  }
   const falloff = ctx.createRadialGradient(64, 64, 4, 64, 64, 64);
   falloff.addColorStop(0, "rgba(255,255,255,1)");
   falloff.addColorStop(0.42, "rgba(255,255,255,.54)");

@@ -1,6 +1,10 @@
 import * as THREE from "three";
-import { createClayMaterial } from "../materials/clay";
-import { makeFabricWeave } from "../textures/fabric";
+import {
+  makeBrushedMetalSet,
+  makeFabricPbrSet,
+  makePolymerSurfaceSet,
+  type PbrTextureSet,
+} from "../textures/pbr-maps";
 import { clamp01, lerp, smoothstep } from "../util/math";
 import { createRng } from "../util/rng";
 import { createToteProduct, type ProductHandle } from "./products";
@@ -57,12 +61,17 @@ export class ProcessLine {
 
   private readonly rotorGroup: THREE.Group;
   private readonly flakesMesh: THREE.InstancedMesh;
-  private readonly flakeSeeds: readonly { x: number; y: number; z: number; rx: number; ry: number }[];
+  private readonly flakeSeeds: readonly {
+    x: number;
+    y: number;
+    z: number;
+    rx: number;
+    ry: number;
+  }[];
   private readonly bubblePoints: THREE.Points;
   private readonly bubbleSeeds: readonly { x: number; z: number; phase: number }[];
   private readonly filamentLines: THREE.LineSegments;
   private readonly spoolMesh: THREE.Mesh;
-  private readonly fabricTexture: THREE.Texture;
   private readonly fabricMesh: THREE.Mesh;
   private readonly mouthMat: THREE.MeshBasicMaterial;
   private readonly ribbonMat: THREE.MeshBasicMaterial;
@@ -71,22 +80,65 @@ export class ProcessLine {
   private readonly dummy = new THREE.Object3D();
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
+  private readonly textureSets: PbrTextureSet[] = [];
   private compactMode = false;
 
   constructor(parent: THREE.Object3D, compact = false) {
     this.group.name = "O-PROCESS";
     this.compactMode = compact;
 
-    const metalDark = createClayMaterial({ color: "#1B4D49", roughness: 0.78 });
-    const tealAccent = createClayMaterial({ color: "#2A7F78", roughness: 0.72 });
-    const glassPanelMat = createClayMaterial({
-      color: "#B9F3C9",
-      transparent: true,
-      opacity: 0.18,
-      roughness: 0.3,
+    const metalSet = makeBrushedMetalSet(256, 1, 1);
+    const polymerSet = makePolymerSurfaceSet(256, 2, 2);
+    const fabricSet = makeFabricPbrSet("canvas", 256, 2, 2);
+    this.textureSets.push(metalSet, polymerSet, fabricSet);
+
+    const metalDark = new THREE.MeshStandardMaterial({
+      color: "#1F393D",
+      normalMap: metalSet.normalMap ?? null,
+      normalScale: new THREE.Vector2(0.4, 0.4),
+      roughnessMap: metalSet.roughnessMap ?? null,
+      roughness: 0.44,
+      metalness: 0.62,
+      envMapIntensity: 1.05,
     });
-    glassPanelMat.depthWrite = false;
-    this.materials.push(metalDark, tealAccent, glassPanelMat);
+    const steelBright = new THREE.MeshStandardMaterial({
+      color: "#8FA0AE",
+      map: metalSet.map ?? null,
+      normalMap: metalSet.normalMap ?? null,
+      normalScale: new THREE.Vector2(0.5, 0.5),
+      roughnessMap: metalSet.roughnessMap ?? null,
+      roughness: 0.24,
+      metalness: 0.88,
+      envMapIntensity: 1.3,
+    });
+    const tealAccent = new THREE.MeshStandardMaterial({
+      color: "#2B7A73",
+      normalMap: polymerSet.normalMap ?? null,
+      roughnessMap: polymerSet.roughnessMap ?? null,
+      roughness: 0.46,
+      metalness: 0.16,
+    });
+    const glassPanelMat = new THREE.MeshStandardMaterial({
+      color: "#9DE8D6",
+      transparent: true,
+      opacity: 0.22,
+      roughness: 0.08,
+      metalness: 0.1,
+      envMapIntensity: 1.35,
+      depthWrite: false,
+    });
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: "#0E2221",
+      roughness: 0.9,
+      metalness: 0.05,
+    });
+    const floorGeom = new THREE.PlaneGeometry(34, 10);
+    floorGeom.rotateX(-Math.PI * 0.5);
+    const floor = new THREE.Mesh(floorGeom, floorMat);
+    floor.position.set(9, -0.02, 0);
+    this.geometries.push(floorGeom);
+    this.materials.push(metalDark, steelBright, tealAccent, glassPanelMat, floorMat);
+    this.group.add(floor);
 
     // ------------------------------------------------------------------
     // 01 CACAH (x = 0)
@@ -109,7 +161,7 @@ export class ProcessLine {
     const rotorMesh = new THREE.Mesh(rotorGeom, tealAccent);
     const toothGeom = new THREE.BoxGeometry(0.14, 1.18, 1.16);
     for (let i = 0; i < 3; i++) {
-      const tooth = new THREE.Mesh(toothGeom, metalDark);
+      const tooth = new THREE.Mesh(toothGeom, steelBright);
       tooth.rotation.z = (i / 3) * Math.PI;
       this.rotorGroup.add(tooth);
     }
@@ -120,9 +172,10 @@ export class ProcessLine {
     tray.position.set(0, 0.15, 0);
 
     const flakeGeom = new THREE.PlaneGeometry(0.12, 0.12);
-    const flakeMat = createClayMaterial({
-      color: "#E6EAF2",
-      roughness: 0.6,
+    const flakeMat = new THREE.MeshStandardMaterial({
+      color: "#CDE8F8",
+      roughness: 0.2,
+      metalness: 0.1,
       side: THREE.DoubleSide,
     });
     this.flakesMesh = new THREE.InstancedMesh(flakeGeom, flakeMat, PROCESS_COUNTS.flakesHigh);
@@ -160,19 +213,21 @@ export class ProcessLine {
     wallBack.position.set(0, 0.7, -0.93);
     const wallFront = new THREE.Mesh(tankWallFrontGeom, glassPanelMat);
     wallFront.position.set(0, 0.7, 0.93);
-    const wallLeft = new THREE.Mesh(tankWallSideGeom, metalDark);
+    const wallLeft = new THREE.Mesh(tankWallSideGeom, steelBright);
     wallLeft.position.set(-1.53, 0.7, 0);
-    const wallRight = new THREE.Mesh(tankWallSideGeom, metalDark);
+    const wallRight = new THREE.Mesh(tankWallSideGeom, steelBright);
     wallRight.position.set(1.53, 0.7, 0);
 
     const waterGeom = new THREE.BoxGeometry(2.92, 0.84, 1.72);
-    const waterMat = createClayMaterial({
-      color: "#3AA6A3",
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: "#2C9E9A",
       transparent: true,
-      opacity: 0.6,
-      roughness: 0.25,
+      opacity: 0.56,
+      roughness: 0.12,
+      metalness: 0.08,
+      envMapIntensity: 1.3,
+      depthWrite: false,
     });
-    waterMat.depthWrite = false;
     const water = new THREE.Mesh(waterGeom, waterMat);
     water.position.set(0, 0.62, 0);
 
@@ -191,7 +246,7 @@ export class ProcessLine {
     const bubbleGeom = new THREE.BufferGeometry();
     bubbleGeom.setAttribute("position", new THREE.BufferAttribute(bubblePositions, 3));
     const bubbleMat = new THREE.PointsMaterial({
-      color: "#E6EAF2",
+      color: "#E2F7FF",
       size: 0.09,
       transparent: true,
       opacity: 0.85,
@@ -219,12 +274,12 @@ export class ProcessLine {
     const mouth = new THREE.Mesh(mouthGeom, this.mouthMat);
     mouth.position.set(0, 1.15, 1.02);
 
-    this.furnaceLight = new THREE.PointLight("#F6B35A", 2.2, 3.5);
+    this.furnaceLight = new THREE.PointLight("#F6B35A", 2.2, 4.2);
     this.furnaceLight.position.set(0, 1.15, 1.4);
 
     const extruderGeom = new THREE.CylinderGeometry(0.32, 0.32, 1.2, 10);
     extruderGeom.rotateZ(Math.PI * 0.5);
-    const extruder = new THREE.Mesh(extruderGeom, metalDark);
+    const extruder = new THREE.Mesh(extruderGeom, steelBright);
     extruder.position.set(1.9, 1.05, 0);
 
     const ribbonGeom = buildMeltRibbonGeometry();
@@ -257,7 +312,7 @@ export class ProcessLine {
     cetakGroup.position.set(18, 0, 0);
 
     const spinneretGeom = new THREE.BoxGeometry(0.9, 0.5, 0.9);
-    const spinneret = new THREE.Mesh(spinneretGeom, metalDark);
+    const spinneret = new THREE.Mesh(spinneretGeom, steelBright);
     spinneret.position.set(-1.8, 2.0, 0);
 
     const filamentPositions = new Float32Array(PROCESS_COUNTS.filamentsHigh * 6);
@@ -273,7 +328,7 @@ export class ProcessLine {
     }
     const filamentGeom = new THREE.BufferGeometry();
     filamentGeom.setAttribute("position", new THREE.BufferAttribute(filamentPositions, 3));
-    const filamentMat = new THREE.LineBasicMaterial({ color: "#E6EAF2" });
+    const filamentMat = new THREE.LineBasicMaterial({ color: "#DCE8F0" });
     this.filamentLines = new THREE.LineSegments(filamentGeom, filamentMat);
 
     const spoolGeom = new THREE.CylinderGeometry(0.6, 0.6, 1.1, 12);
@@ -281,14 +336,15 @@ export class ProcessLine {
     this.spoolMesh = new THREE.Mesh(spoolGeom, tealAccent);
     this.spoolMesh.position.set(-0.7, 1.05, 0);
 
-    this.fabricTexture = makeFabricWeave();
-    this.fabricTexture.repeat.set(2, 2);
     const fabricGeom = new THREE.PlaneGeometry(2.4, 1.6);
     fabricGeom.rotateX(-Math.PI * 0.5);
-    const fabricMat = createClayMaterial({
+    const fabricMat = new THREE.MeshStandardMaterial({
       color: "#2A7F78",
-      map: this.fabricTexture,
-      roughness: 0.85,
+      map: fabricSet.map ?? null,
+      normalMap: fabricSet.normalMap ?? null,
+      normalScale: new THREE.Vector2(0.55, 0.55),
+      roughnessMap: fabricSet.roughnessMap ?? null,
+      roughness: 0.78,
       side: THREE.DoubleSide,
     });
     this.fabricMesh = new THREE.Mesh(fabricGeom, fabricMat);
@@ -304,7 +360,14 @@ export class ProcessLine {
 
     this.geometries.push(spinneretGeom, filamentGeom, spoolGeom, fabricGeom, tableGeom);
     this.materials.push(filamentMat, fabricMat);
-    cetakGroup.add(spinneret, this.filamentLines, this.spoolMesh, this.fabricMesh, table, this.tote.group);
+    cetakGroup.add(
+      spinneret,
+      this.filamentLines,
+      this.spoolMesh,
+      this.fabricMesh,
+      table,
+      this.tote.group,
+    );
     this.group.add(cetakGroup);
 
     parent.add(this.group);
@@ -345,7 +408,7 @@ export class ProcessLine {
     const flakeReveal = smoothstep(0.06, 0.22, progress);
     for (let i = 0; i < this.flakesMesh.count; i++) {
       const s = this.flakeSeeds[i]!;
-      const drop = clamp01((flakeReveal * 1.3 - (i % 10) * 0.03));
+      const drop = clamp01(flakeReveal * 1.3 - (i % 10) * 0.03);
       this.dummy.position.set(s.x, lerp(1.2, s.y, drop), s.z);
       this.dummy.rotation.set(s.rx + progress * 2, s.ry, 0);
       this.dummy.scale.setScalar(drop > 0.02 ? 1 : 0.001);
@@ -368,29 +431,28 @@ export class ProcessLine {
     const furnacePeak = Math.sin(clamp01((progress - 0.34) / 0.34) * Math.PI);
     const activeGlow = progress >= 0.34 && progress <= 0.68 ? furnacePeak : 0.25;
     this.furnaceLight.intensity = lerp(0.6, 2.2, activeGlow);
-    this.shimmerMesh.position.y = 2.65 + Math.sin(progress * 24) * 0.04;
+    this.mouthMat.color.set("#F6B35A").multiplyScalar(lerp(0.65, 1.25, activeGlow));
+    this.ribbonMat.opacity = lerp(0.7, 1.0, activeGlow);
+    this.shimmerMesh.position.y = 2.65 + Math.sin(progress * Math.PI * 6) * 0.04;
 
-    // 04 Cetak: gulungan berputar, kain mengalir, tote terbentuk t=0.66..0.86 lalu maju
-    this.spoolMesh.rotation.z = -progress * Math.PI * 6;
-    this.fabricTexture.offset.x = -progress * 3;
-    const toteGrow = smoothstep(0.66, 0.86, progress);
-    const toteScale = lerp(0.01, 0.52, toteGrow);
-    this.tote.group.scale.setScalar(toteScale);
-    this.tote.group.visible = progress >= 0.64;
-    this.tote.group.position.set(1.2, 0.8, lerp(0, 0.55, smoothstep(0.86, 1.0, progress)));
+    // 04 Cetak: gulung benang -> kain -> tote bag
+    this.spoolMesh.rotation.z = -progress * Math.PI * 8;
+    const printReveal = smoothstep(0.62, 0.92, progress);
+    this.fabricMesh.scale.x = lerp(0.35, 1.0, printReveal);
+    this.tote.group.scale.setScalar(lerp(0.28, 0.58, printReveal));
+    this.tote.group.rotation.y = lerp(-0.3, 0.35, printReveal);
   }
 
   reset(): void {
     this.group.visible = true;
-    this.tote.reset();
     this.update(0);
   }
 
   dispose(): void {
     this.group.removeFromParent();
-    this.tote.dispose();
-    this.fabricTexture.dispose();
     for (const g of this.geometries) g.dispose();
     for (const m of this.materials) m.dispose();
+    for (const s of this.textureSets) s.dispose();
+    this.tote.dispose();
   }
 }

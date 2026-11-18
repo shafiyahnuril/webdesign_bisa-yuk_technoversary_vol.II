@@ -1,7 +1,12 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { createClayMaterial } from "../materials/clay";
+import { makeContactShadow } from "../textures/canvas-assets";
 import { makeBinLabel, type BinLabel } from "../textures/label";
+import {
+  makeBrushedMetalSet,
+  makePolymerSurfaceSet,
+  type PbrTextureSet,
+} from "../textures/pbr-maps";
 import { clamp01, degToRad } from "../util/math";
 
 export interface BinSpec {
@@ -25,9 +30,9 @@ export const BIN_DIMENSIONS = {
 } as const;
 
 export const BIN_SPECS: Record<BinLabel, BinSpec> = {
-  PLASTIK: { kind: "PLASTIK", x: -2.0, bodyColor: "#2A7F78", lidColor: "#9FE6D0" },
-  KERTAS: { kind: "KERTAS", x: -0.1, bodyColor: "#2B6C8A", lidColor: "#7FB8D6" },
-  ORGANIK: { kind: "ORGANIK", x: 1.8, bodyColor: "#2E7D5B", lidColor: "#8FD6A0" },
+  PLASTIK: { kind: "PLASTIK", x: -2.0, bodyColor: "#1F746D", lidColor: "#78CCB4" },
+  KERTAS: { kind: "KERTAS", x: -0.1, bodyColor: "#236080", lidColor: "#6BA8C9" },
+  ORGANIK: { kind: "ORGANIK", x: 1.8, bodyColor: "#266E4F", lidColor: "#7CC48F" },
 };
 
 export interface BinInstance {
@@ -46,9 +51,17 @@ export class Bins {
   private readonly geometries: THREE.BufferGeometry[] = [];
   private readonly materials: THREE.Material[] = [];
   private readonly textures: THREE.Texture[] = [];
+  private readonly textureSets: PbrTextureSet[] = [];
 
   constructor(parent: THREE.Object3D) {
     this.group.name = "O-BINS";
+
+    const polymerSet = makePolymerSurfaceSet(256, 2, 2);
+    const metalSet = makeBrushedMetalSet(256, 1, 1);
+    this.textureSets.push(polymerSet, metalSet);
+
+    const shadowTex = typeof document !== "undefined" ? makeContactShadow() : null;
+    if (shadowTex) this.textures.push(shadowTex);
 
     const bodyGeom = new RoundedBoxGeometry(
       BIN_DIMENSIONS.width,
@@ -64,53 +77,117 @@ export class Bins {
       2,
       0.04,
     );
+    const rimBandGeom = new THREE.BoxGeometry(
+      BIN_DIMENSIONS.width + 0.04,
+      0.1,
+      BIN_DIMENSIONS.depth + 0.04,
+    );
+    const hingeGeom = new THREE.BoxGeometry(0.95, 0.08, 0.08);
+    const pedalGeom = new THREE.BoxGeometry(0.42, 0.06, 0.14);
     const openingGeom = new THREE.PlaneGeometry(1.18, 0.88);
     openingGeom.rotateX(-Math.PI * 0.5);
     const labelGeom = new THREE.PlaneGeometry(
       BIN_DIMENSIONS.labelWidth,
       BIN_DIMENSIONS.labelHeight,
     );
-    this.geometries.push(bodyGeom, lidGeom, openingGeom, labelGeom);
+    const shadowGeom = new THREE.PlaneGeometry(2.3, 1.9);
+    shadowGeom.rotateX(-Math.PI * 0.5);
+    this.geometries.push(
+      bodyGeom,
+      lidGeom,
+      rimBandGeom,
+      hingeGeom,
+      pedalGeom,
+      openingGeom,
+      labelGeom,
+      shadowGeom,
+    );
 
-    const interiorMat = createClayMaterial({ color: "#0C222A", roughness: 0.92 });
-    this.materials.push(interiorMat);
+    const interiorMat = new THREE.MeshStandardMaterial({
+      color: "#091820",
+      roughness: 0.92,
+      metalness: 0,
+    });
+    const darkTrimMat = new THREE.MeshStandardMaterial({
+      color: "#1B2830",
+      normalMap: metalSet.normalMap ?? null,
+      roughnessMap: metalSet.roughnessMap ?? null,
+      roughness: 0.36,
+      metalness: 0.72,
+    });
+    const shadowMat = new THREE.MeshBasicMaterial({
+      color: "#02060B",
+      map: shadowTex,
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false,
+    });
+    this.materials.push(interiorMat, darkTrimMat, shadowMat);
 
     const buildOne = (spec: BinSpec): BinInstance => {
       const root = new THREE.Group();
       root.name = `Bin_${spec.kind}`;
       root.position.set(spec.x, 0, 0);
 
-      const bodyMat = createClayMaterial({ color: spec.bodyColor, roughness: 0.78 });
-      const lidMat = createClayMaterial({ color: spec.lidColor, roughness: 0.74 });
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: spec.bodyColor,
+        normalMap: polymerSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.35, 0.35),
+        roughnessMap: polymerSet.roughnessMap ?? null,
+        roughness: 0.46,
+        metalness: 0.04,
+        envMapIntensity: 0.95,
+      });
+      const lidMat = new THREE.MeshStandardMaterial({
+        color: spec.lidColor,
+        normalMap: polymerSet.normalMap ?? null,
+        normalScale: new THREE.Vector2(0.28, 0.28),
+        roughnessMap: polymerSet.roughnessMap ?? null,
+        roughness: 0.38,
+        metalness: 0.05,
+        envMapIntensity: 1.05,
+      });
       const labelTex = makeBinLabel(spec.kind);
-      const labelMat = createClayMaterial({
+      const labelMat = new THREE.MeshStandardMaterial({
         color: "#FFFFFF",
         map: labelTex,
-        roughness: 0.7,
+        roughness: 0.52,
+        metalness: 0.02,
       });
       this.materials.push(bodyMat, lidMat, labelMat);
       this.textures.push(labelTex);
 
+      const shadowMesh = new THREE.Mesh(shadowGeom, shadowMat);
+      shadowMesh.position.set(0, 0.002, 0.04);
+
       const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
       bodyMesh.position.y = BIN_DIMENSIONS.height * 0.5;
+
+      const rimBand = new THREE.Mesh(rimBandGeom, darkTrimMat);
+      rimBand.position.y = BIN_DIMENSIONS.height - 0.06;
+
+      const pedal = new THREE.Mesh(pedalGeom, darkTrimMat);
+      pedal.position.set(0, 0.05, BIN_DIMENSIONS.depth * 0.5 + 0.06);
 
       // Bukaan gelap di atas badan agar terlihat jelas saat tutup terbuka
       const openingMesh = new THREE.Mesh(openingGeom, interiorMat);
       openingMesh.position.y = BIN_DIMENSIONS.height + 0.004;
 
-      // Engsel di tepi belakang (-Z)
+      // Engsel metal di tepi belakang (-Z)
       const lidPivot = new THREE.Group();
       lidPivot.name = `BinLidPivot_${spec.kind}`;
       lidPivot.position.set(0, BIN_DIMENSIONS.height, -BIN_DIMENSIONS.lidDepth * 0.5);
 
       const lidMesh = new THREE.Mesh(lidGeom, lidMat);
       lidMesh.position.set(0, BIN_DIMENSIONS.lidHeight * 0.5, BIN_DIMENSIONS.lidDepth * 0.5);
-      lidPivot.add(lidMesh);
+      const hingeMesh = new THREE.Mesh(hingeGeom, darkTrimMat);
+      hingeMesh.position.set(0, 0.02, 0.03);
+      lidPivot.add(lidMesh, hingeMesh);
 
       const labelMesh = new THREE.Mesh(labelGeom, labelMat);
       labelMesh.position.set(0, 1.45, BIN_DIMENSIONS.depth * 0.5 + 0.008);
 
-      root.add(bodyMesh, openingMesh, lidPivot, labelMesh);
+      root.add(shadowMesh, bodyMesh, rimBand, pedal, openingMesh, lidPivot, labelMesh);
       this.group.add(root);
 
       return { kind: spec.kind, root, bodyMesh, lidPivot, lidMesh, labelMesh };
@@ -151,5 +228,6 @@ export class Bins {
     for (const g of this.geometries) g.dispose();
     for (const m of this.materials) m.dispose();
     for (const t of this.textures) t.dispose();
+    for (const s of this.textureSets) s.dispose();
   }
 }

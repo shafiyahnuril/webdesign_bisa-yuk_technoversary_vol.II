@@ -150,12 +150,12 @@ export function createB10Scene(): Scene {
       contactShadow.setVisible(true);
 
       ctx.lights.key.color.copy(KEY_COLOR);
-      ctx.lights.key.intensity = 2.0;
+      ctx.lights.key.intensity = 2.25;
       ctx.lights.rim.color.copy(C10_ACCENT);
       ctx.lights.rim.intensity = CUES.c10.rim;
       ctx.lights.fill.color.copy(FILL_SKY);
       ctx.lights.fill.groundColor.copy(FILL_GROUND);
-      ctx.lights.fill.intensity = 0.55;
+      ctx.lights.fill.intensity = 0.36;
 
       ctx.lights.spot.color.set("#FFFFFF");
       ctx.lights.spot.intensity = 0;
