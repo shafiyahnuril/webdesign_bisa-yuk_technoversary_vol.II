@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { computeCues } from "@/engine/cues";
 import { storyEngine, type StoryEngine } from "@/engine/story-engine";
 import { onTick } from "@/engine/ticker";
-import { LENGTHS_VH, ORDER, chapterAt, segmentAt } from "@/engine/timeline";
+import { LENGTHS_VH, ORDER, chapterAt, segmentAt, smoothstep } from "@/engine/timeline";
 import type { DebugOverlay } from "@/lib/debug";
 import type { Stage } from "@/stage/stage";
 import type { SceneDirector } from "@/stage/director";
@@ -55,6 +55,7 @@ export function StageCanvas({
     let stationLabels: HTMLElement[] = [];
     let projected: Vector3 | undefined;
     let rectObserver: ResizeObserver | undefined;
+    let flashBase: { right: number; top: number; width: number; height: number } | undefined;
     const invalidateRect = () => {
       rectDirty = true;
     };
@@ -126,22 +127,36 @@ export function StageCanvas({
             const flash = stage!.ctx.shared.get<FlashPass>("flash");
             const flashActive = flash?.isActive() ?? false;
             if (flash && flashActive && flashElement) {
+              const t = segmentAt(progress).t;
+              const alpha =
+                segment === "b7"
+                  ? Math.min(smoothstep(0.4, 0.46, t), 1 - smoothstep(0.66, 0.7, t))
+                  : 1;
+              const scale = 0.8 + 0.2 * alpha;
+              flash.setOpacity?.(alpha);
               if (!flashWasActive) rectDirty = true;
               if (rectDirty) {
                 const rect = flashElement.getBoundingClientRect();
                 const canvasRect = canvas.getBoundingClientRect();
-                flash.setRect({
-                  x: rect.left - canvasRect.left,
-                  y: rect.top - canvasRect.top,
-                  width: rect.width,
-                  height: rect.height,
-                });
+                flashBase = {
+                  right: rect.right - canvasRect.left,
+                  top: rect.top - canvasRect.top,
+                  width: rect.width / scale,
+                  height: rect.height / scale,
+                };
                 rectDirty = false;
                 if (!rectObserver && typeof ResizeObserver !== "undefined") {
                   rectObserver = new ResizeObserver(invalidateRect);
                   rectObserver.observe(flashElement);
                 }
               }
+              if (flashBase)
+                flash.setRect({
+                  x: flashBase.right - flashBase.width * scale,
+                  y: flashBase.top,
+                  width: flashBase.width * scale,
+                  height: flashBase.height * scale,
+                });
               flash.renderPass();
             }
             flashWasActive = flashActive;
