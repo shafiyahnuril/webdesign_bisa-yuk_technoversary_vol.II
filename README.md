@@ -6,8 +6,8 @@ Situs scrollytelling kampanye peduli lingkungan: mengikuti satu botol plastik, d
 
 ## Tim
 
-- Nama tim: TODO
-- Anggota: TODO
+- Nama tim: **[ISI SEBELUM PENGUMPULAN]**
+- Anggota: **[ISI SEBELUM PENGUMPULAN: nama, peran, institusi]**
 
 ## Halaman
 
@@ -17,10 +17,17 @@ Home · About · Konten (Galeri Artikel) · Contact
 
 Vite · React · TypeScript · React Router · GSAP · Three.js · Web Audio API · CSS Modules
 
-## Menjalankan
+## Instalasi
+
+Prasyarat: Node.js 20 atau lebih baru.
 
 ```bash
 npm install
+```
+
+## Menjalankan
+
+```bash
 npm run dev        # http://localhost:5173
 npm run build && npm run preview
 ```
@@ -30,6 +37,6 @@ Perintah lain: `npm run test`, `npm run lint`, `npm run typecheck`, `npm run gen
 ## Catatan
 
 - Opsi `?q=low` memaksa mode ringan. Mode reduced-motion menampilkan panel statis.
-- Form Contact memakai Formspree (set `VITE_FORMSPREE_ENDPOINT`), tanpa itu memakai mailto.
+- Form Contact berjalan dalam mode cadangan `mailto:` (membuka aplikasi email). Pengiriman lewat Formspree aktif bila `VITE_FORMSPREE_ENDPOINT` diisi. Alamat email dan akun pada halaman Contact masih contoh, bukan kontak resmi.
 - Seluruh aset dibuat sendiri atau berlisensi bebas. Lihat halaman About › Atribusi.
-- Hasil Lighthouse: diisi saat final.
+- Hasil Lighthouse (kategori SEO, build produksi lewat `npm run preview`, diukur 18 November 2026): skor SEO 100 pada rute Home, About, Konten, detail artikel, dan Contact (mode desktop bawaan Lighthouse 12). Kategori performa, aksesibilitas, dan best practices belum diukur.
