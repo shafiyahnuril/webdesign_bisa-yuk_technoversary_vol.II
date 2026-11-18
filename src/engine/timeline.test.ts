@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { PUNCH, STARTS, TOTAL_VH, babakAt, chapterAt, localT, segmentAt } from "./timeline";
+import { TEMP } from "@/lib/tokens";
+import {
+  PUNCH,
+  STARTS,
+  TOTAL_VH,
+  babakAt,
+  chapterAt,
+  localT,
+  segmentAt,
+  temperatureAt,
+  viewAt,
+} from "./timeline";
 
 describe("timeline", () => {
   it("total gulir 2240 vh", () => {
@@ -30,11 +41,13 @@ describe("timeline", () => {
   it("PUNCH.to -> bab 7 dan babak II", () => {
     expect(chapterAt(PUNCH.to)).toBe(7);
     expect(babakAt(PUNCH.to)).toBe(2);
+    expect(viewAt(PUNCH.to)).toBe("2");
     expect(localT(PUNCH.to, 7)).toBe(0);
   });
 
   it("punchline: babak 0, dibagi dua antara bab 6 dan 7", () => {
     expect(babakAt(PUNCH.from)).toBe(0);
+    expect(viewAt(PUNCH.from)).toBe("none");
     expect(chapterAt(PUNCH.from)).toBe(6);
     expect(chapterAt((PUNCH.from + PUNCH.to) / 2 + 1e-6)).toBe(7);
   });
@@ -49,4 +62,34 @@ describe("timeline", () => {
     expect(localT(0.9, 3)).toBe(1);
     expect(localT(0, 5)).toBe(0);
   });
+
+  it("temperatureAt mengikuti tabel TEMP dan dataran 70/30 di Babak I", () => {
+    expect(temperatureAt(-0.5)).toBe(TEMP.c1);
+    expect(temperatureAt(0)).toBe(TEMP.c1);
+    expect(temperatureAt(STARTS.b1 + (STARTS.b2 - STARTS.b1) * 0.5)).toBe(TEMP.c1);
+    expect(temperatureAt(STARTS.b2)).toBe(TEMP.c2);
+    expect(temperatureAt(STARTS.b3)).toBe(TEMP.c3);
+    expect(temperatureAt(STARTS.b4)).toBe(TEMP.c4);
+    expect(temperatureAt(STARTS.b5)).toBe(TEMP.c5);
+    expect(temperatureAt(STARTS.b6)).toBe(TEMP.c6);
+    expect(temperatureAt(STARTS.b6 + (PUNCH.from - STARTS.b6) * 0.9)).toBe(TEMP.c6);
+  });
+
+  it("temperatureAt melakukan rewind di punchline (t 0.08..0.40) lalu konsisten +1.5°C di Babak II", () => {
+    const span = PUNCH.to - PUNCH.from;
+    expect(temperatureAt(PUNCH.from)).toBe(TEMP.cp0);
+    expect(temperatureAt(PUNCH.from + span * 0.08)).toBe(TEMP.cp0);
+    const midRewind = temperatureAt(PUNCH.from + span * 0.24);
+    expect(midRewind).toBeLessThan(TEMP.cp0);
+    expect(midRewind).toBeGreaterThan(TEMP.cp1);
+    expect(temperatureAt(PUNCH.from + span * 0.4)).toBe(TEMP.cp1);
+    expect(temperatureAt(PUNCH.from + span * 0.8)).toBe(TEMP.cp1);
+    expect(temperatureAt(PUNCH.to)).toBe(TEMP.c7);
+    expect(temperatureAt(STARTS.b8)).toBe(TEMP.c8);
+    expect(temperatureAt(STARTS.b9)).toBe(TEMP.c9);
+    expect(temperatureAt(STARTS.b10)).toBe(TEMP.c10);
+    expect(temperatureAt(1)).toBe(TEMP.c10);
+    expect(temperatureAt(1.5)).toBe(TEMP.c10);
+  });
 });
+
