@@ -1,0 +1,36 @@
+.figure {
+  margin: 0;
+  color: var(--page-ink, #F1FAF7);
+  --diagram-abai: var(--c4-accent, #86A8D0);
+  --diagram-peduli: var(--page-accent, #9FE6D0);
+}
+
+.figure svg { display: block; width: 100%; height: auto; overflow: visible; }
+.figure svg text { font-size: 19px; fill: currentColor; font-family: var(--font-mono, monospace); }
+.legend { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+.legend span { display: inline-flex; align-items: center; gap: .5rem; }
+.legend i { width: 1rem; height: .5rem; border-radius: 1rem; }
+.axis, .tick line { stroke: currentColor; stroke-width: 1; opacity: .45; }
+.threshold line, .thresholdRing { stroke: var(--diagram-peduli); stroke-width: 1.5; }
+.threshold text { fill: var(--diagram-peduli); font-weight: 700; }
+.thresholdRing { fill: none; opacity: .65; }
+.neg { fill: var(--diagram-abai); background-color: var(--diagram-abai); }
+.pos { fill: var(--diagram-peduli); background-color: var(--diagram-peduli); }
+.figure figcaption { margin-top: .35em; }
+.ribbon { transform-box: fill-box; transform-origin: left; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .figure[data-visible="true"] .ribbon { animation: rebottle-ribbon .9s ease-out both; }
+  @keyframes rebottle-ribbon { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
