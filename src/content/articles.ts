@@ -4,6 +4,8 @@ import { A2 } from "./articles/A2";
 import { B1 } from "./articles/B1";
 import { A3 } from "./articles/A3";
 import { A4 } from "./articles/A4";
+import { A5 } from "./articles/A5";
+import { A6 } from "./articles/A6";
 import { B2 } from "./articles/B2";
 import { B3 } from "./articles/B3";
 import { B4 } from "./articles/B4";
@@ -48,7 +50,7 @@ export type ArticleBody = Pick<
   "summary" | "readingMinutes" | "lede" | "sections" | "relation" | "sources"
 >;
 
-const BODIES: Partial<Record<string, ArticleBody>> = { A1, A2, A3, A4, B1, B2, B3, B4 };
+const BODIES: Partial<Record<string, ArticleBody>> = { A1, A2, A3, A4, A5, A6, B1, B2, B3, B4 };
 
 const make = (
   code: string,
