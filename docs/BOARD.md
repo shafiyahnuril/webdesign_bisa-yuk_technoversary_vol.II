@@ -30,7 +30,7 @@
 | T2.6 | `CursorRing` aktif di `#/konten` + label "Baca" | Pihak A | siap | |
 | T2.7 | `ArticlePage` + `ArticleBody` + `NextArticle` | Pihak B | siap | |
 | T2.8 | `ContactPage` + `ContactForm` + Formspree + `mailto` cadangan + status | Pihak B | siap | |
-| T2.9 | `NotFoundPage` | Pihak B | siap | |
+| T2.9 | `NotFoundPage` | Pihak B | selesai (PageHero, aset S-404 dari A, tombol kembali, tes) | |
 | T2.10 | Tes komponen: `FilterPill`, `ContactForm`, `MenuPanel` | Pihak B | siap | |
 | T3.1 | `stage/stage.ts`: renderer (alpha), kamera, `RoomEnvironment` PMREM, lampu, resize, `viewOffset` HP, context loss | Pihak A | siap | |
 | T3.2 | `QualityManager` + `?q=` + penurunan otomatis | Pihak A | siap | |
@@ -96,7 +96,7 @@
 
 ## Catatan untuk sesi berikutnya
 - **Selesai (T2.1, bagian Pihak B):** `src/styles/pages.css` (lima tema `[data-page]`, nilai dok 05 §1.1, kontras ink/bg ≥ 4,5:1 diuji di `pages.test.tsx`), `ui/usePageTheme`, `ui/PageHero` (H1 menerima fokus setelah pindah rute lewat klik tautan; dilewati pada muat pertama), `ui/Reveal`, `ui/RouteFade` (belum dipasang), kelima halaman memakai tema.
-- **Tersisa dari G2:** T2.9 (`NotFoundPage` final: botol 2D mengambang, tombol kembali). Halaman 404 saat ini baru memakai tema, bukan `PageHero`.
+- **Selesai (T2.9):** `NotFoundPage` memakai `PageHero` + tema `notfound`, teks dari `COPY["404.*"]`, aset A `public/img/s-404.svg` (dekoratif, melayang CSS transform, mati saat reduced-motion; tanpa `BottleMini` karena aset sudah ada), tombol "Kembali ke awal" ke `#/`. Tes: `NotFoundPage.test.tsx`. G2 tuntas. Catatan: `usePageFocus` melewati fokus pada muat pertama (key "default"), sehingga membuka URL 404 langsung tidak memindah fokus ke H1; ini perilaku T2.1 yang disengaja (agar tautan lompat tetap jalan).
 - **Keputusan:** `pages.css` diimpor dari `usePageTheme.ts` (tanpa menyentuh `main.tsx`). Aksen konten/artikel (3,51 dan 3,84 : 1) hanya untuk elemen besar/dekoratif.
 - **Menunggu Pihak A:** lihat `CATATAN_UNTUK_A.md` (pasang `RouteFade`, Navbar HP meluap, latar Navbar saat gulir, preload font).
 - **Menunggu saya:** `DATA_B` (nama tim, email, akun, endpoint Formspree, keputusan atribusi alat bantu ilustrasi) belum diisi; dibutuhkan mulai G5/G6d.
