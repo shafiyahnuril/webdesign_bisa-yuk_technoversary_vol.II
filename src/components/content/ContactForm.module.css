@@ -1,0 +1,183 @@
+.form {
+  display: grid;
+  gap: var(--s-6);
+}
+
+.field {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--s-3) var(--s-4);
+  border: 1.5px solid color-mix(in srgb, var(--page-ink) 55%, transparent);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--page-bg) 80%, black);
+  color: var(--page-ink);
+  font: 400 var(--t-body) / 1.5 var(--font-ui);
+  resize: vertical;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--page-ink);
+  border-width: 2px;
+}
+
+/* Galat tidak mengandalkan warna: teks + garis bawah + tanda seru. */
+.error {
+  position: relative;
+  margin: 0;
+  padding-left: 1.4em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.error::before {
+  content: "!";
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+}
+
+.counter {
+  margin: 0;
+  justify-self: end;
+  opacity: 0.85;
+}
+
+.summary,
+.banner {
+  margin: 0;
+  padding: var(--s-4) var(--s-5);
+  border: 2px solid var(--page-ink);
+  border-radius: var(--r-md);
+}
+
+.summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.summary p {
+  margin: 0 0 var(--s-2);
+}
+
+.summary ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.privacy {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+}
+
+.button {
+  min-height: 48px;
+  min-width: 140px;
+  padding: 0 var(--s-7);
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--page-accent);
+  color: var(--page-bg);
+  font: 600 var(--t-body) / 1 var(--font-ui);
+  cursor: pointer;
+  transition:
+    transform 0.15s var(--ease-out-expo),
+    opacity 0.15s linear;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--page-ink);
+  outline-offset: 3px;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.done {
+  display: grid;
+  gap: var(--s-6);
+  justify-items: start;
+}
+
+.doneText {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dots i {
+    animation: none;
+    opacity: 0.7;
+  }
+
+  .button {
+    transition: none;
+  }
+}
