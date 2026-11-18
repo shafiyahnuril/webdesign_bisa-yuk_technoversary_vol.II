@@ -10,7 +10,7 @@ export const A2: ArticleBody = {
       heading: "Umur pakai pendek, umur sampah panjang",
       paragraphs: [
         "NOAA menyatakan bahwa produk buatan manusia di lingkungan laut membutuhkan waktu lama untuk terurai, mungkin ratusan tahun. Lembaga itu juga menegaskan bahwa jawabannya tidak sederhana, karena bergantung pada bahan, ukuran, ketebalan, sinar matahari, air, mikroorganisme, suhu, kadar oksigen, dan lokasi.",
-        "Angka \"450 tahun\" sering dikutip untuk botol plastik. Halaman NOAA yang kami baca tidak memuat angka itu, jadi kami membacanya sebagai \"ratusan tahun, tergantung kondisi\". Plastik cenderung pecah menjadi bagian yang makin kecil dan, menurut NOAA, mungkin tidak pernah hilang sepenuhnya. Begitu pula \"10 menit\" di judul: itu ilustrasi, bukan rata-rata hasil pengukuran.",
+        "Angka tunggal seperti \"450 tahun\" sering beredar untuk botol plastik. Halaman NOAA yang kami baca tidak memuat angka itu, jadi judul memakai rumusan NOAA: \"ratusan tahun, tergantung kondisi\". Plastik cenderung pecah menjadi bagian yang makin kecil dan, menurut NOAA, mungkin tidak pernah hilang sepenuhnya. \"10 menit\" di judul adalah ilustrasi, bukan rata-rata hasil pengukuran.",
       ],
     },
     {

@@ -2,7 +2,11 @@
 import { A1 } from "./articles/A1";
 import { A2 } from "./articles/A2";
 import { B1 } from "./articles/B1";
+import { A3 } from "./articles/A3";
+import { A4 } from "./articles/A4";
 import { B2 } from "./articles/B2";
+import { B3 } from "./articles/B3";
+import { B4 } from "./articles/B4";
 
 export type ArticleKind = "negatif" | "positif";
 export type ArticleLevel = "sehari-hari" | "nasional" | "global";
@@ -44,7 +48,7 @@ export type ArticleBody = Pick<
   "summary" | "readingMinutes" | "lede" | "sections" | "relation" | "sources"
 >;
 
-const BODIES: Partial<Record<string, ArticleBody>> = { A1, A2, B1, B2 };
+const BODIES: Partial<Record<string, ArticleBody>> = { A1, A2, A3, A4, B1, B2, B3, B4 };
 
 const make = (
   code: string,
@@ -78,8 +82,8 @@ export const ARTICLES: readonly Article[] = [
   ),
   make(
     "A2",
-    "10-menit-dipakai-450-tahun-tinggal",
-    "10 Menit Dipakai, 450 Tahun Tinggal",
+    "10-menit-dipakai-ratusan-tahun-tinggal",
+    "10 Menit Dipakai, Ratusan Tahun Tinggal",
     "negatif",
     "sehari-hari",
   ),
