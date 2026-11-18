@@ -2,8 +2,8 @@
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  background-color: var(--c1-bg);
-  color: var(--c1-ink);
+  background-color: var(--bg-now);
+  color: var(--ink-now);
 }
 
 .progressAside {
@@ -13,17 +13,18 @@
   z-index: var(--z-marker);
   pointer-events: none;
   padding: var(--s-2) var(--s-3);
-  border-radius: var(--r-pill);
-  background: rgba(18, 17, 16, 0.78);
-  border: var(--line-hair) solid rgba(242, 236, 225, 0.16);
+  border-radius: var(--r-full);
+  background-color: color-mix(in oklch, var(--bg-now) 82%, #000000 18%);
+  border: var(--line-thin) solid
+    color-mix(in oklch, var(--ink-now) 18%, transparent);
 }
 
 .progressLabel {
   font-family: var(--font-mono);
-  font-size: var(--t-ui);
+  font-size: var(--t-ui-sm);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--c1-ink);
+  color: var(--ink-now);
   font-variant-numeric: tabular-nums;
 }
 
@@ -35,15 +36,18 @@
 .lockedFooter {
   padding: var(--s-7) var(--gutter-page);
   text-align: center;
-  background: var(--c1-bg);
-  color: var(--c1-muted);
-  border-top: var(--line-hair) solid var(--c1-rule);
+  background-color: var(--bg-now);
+  color: color-mix(in oklch, var(--ink-now) 78%, transparent);
+  border-top: var(--line-thin) solid
+    color-mix(in oklch, var(--ink-now) 14%, transparent);
 }
 
 .lockedText {
   margin: 0 auto;
-  max-width: 54ch;
+  max-width: var(--read-scenario-chars);
   font-family: var(--font-mono);
-  font-size: var(--t-ui);
+  font-size: var(--t-ui-sm);
   line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }

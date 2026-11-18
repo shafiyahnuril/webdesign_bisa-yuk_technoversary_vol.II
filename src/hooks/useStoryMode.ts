@@ -36,11 +36,6 @@ export function isWebGLAvailable(): boolean {
   if (typeof window === "undefined" || typeof document === "undefined") {
     return true;
   }
-  // Di lingkungan JSDOM (unit test), getContext mengembalikan null kecuali di-mock;
-  // anggap WebGL tersedia kecuali WebGLRenderingContext memang tidak ada di browser nyata.
-  if (typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent)) {
-    return true;
-  }
   try {
     if (!("WebGLRenderingContext" in window)) {
       return false;

@@ -20,16 +20,29 @@ export type StaticPanelId =
   | "b9"
   | "b10";
 
+export type StaticPaletteKey =
+  | "c1"
+  | "c2"
+  | "c3"
+  | "c4"
+  | "c5"
+  | "c6"
+  | "cp0"
+  | "c7"
+  | "c8"
+  | "c9"
+  | "c10";
+
 export interface StaticPanelSpec {
   id: StaticPanelId;
   index: number; // 1..11
+  paletteKey: StaticPaletteKey;
   chapterNumber?: number; // 1..10 (undefined for punch)
   chapterLabel?: string; // "01".."10"
   title: string;
   temperature?: string;
   imageFile: string;
   imageAlt: string;
-  theme: "dark" | "punch" | "act2" | "light";
 }
 
 function isFactVerified(fact: Fact): fact is Fact & { value: string | number; year: number } {
@@ -51,120 +64,120 @@ export const STATIC_PANEL_SPECS: readonly StaticPanelSpec[] = [
   {
     id: "b1",
     index: 1,
+    paletteKey: "c1",
     chapterNumber: 1,
     chapterLabel: "01",
     title: COPY["ch1.title"],
     temperature: `${formatTemp(TEMP.c1)} (skenario)`,
     imageFile: "img/static/panel-01.svg",
     imageAlt: "Ilustrasi Bab 01 Lahir: botol plastik sekali pakai baru di atas alas gelap",
-    theme: "dark",
   },
   {
     id: "b2",
     index: 2,
+    paletteKey: "c2",
     chapterNumber: 2,
     chapterLabel: "02",
     title: COPY["ch2.title"],
     temperature: `${formatTemp(TEMP.c2)} (skenario)`,
     imageFile: "img/static/panel-02.svg",
     imageAlt: "Ilustrasi Bab 02 Sekali Pakai: tangan menggenggam botol dengan cincin waktu 10 menit",
-    theme: "dark",
   },
   {
     id: "b3",
     index: 3,
+    paletteKey: "c3",
     chapterNumber: 3,
     chapterLabel: "03",
     title: COPY["ch3.title"],
     temperature: `${formatTemp(TEMP.c3)} (skenario)`,
     imageFile: "img/static/panel-03.svg",
     imageAlt: "Ilustrasi Bab 03 Tersesat: botol plastik hanyut di saluran air kota",
-    theme: "dark",
   },
   {
     id: "b4",
     index: 4,
+    paletteKey: "c4",
     chapterNumber: 4,
     chapterLabel: "04",
     title: COPY["ch4.title"],
     temperature: `${formatTemp(TEMP.c4)} (skenario)`,
     imageFile: "img/static/panel-04.svg",
     imageAlt: "Ilustrasi Bab 04 Lautan: botol mengapung di permukaan laut bersama karang memutih",
-    theme: "dark",
   },
   {
     id: "b5",
     index: 5,
+    paletteKey: "c5",
     chapterNumber: 5,
     chapterLabel: "05",
     title: COPY["ch5.title"],
     temperature: `${formatTemp(TEMP.c5)} (skenario)`,
     imageFile: "img/static/panel-05.svg",
     imageAlt: "Ilustrasi Bab 05 Terurai: botol plastik retak menjadi serpihan mikroplastik",
-    theme: "dark",
   },
   {
     id: "b6",
     index: 6,
+    paletteKey: "c6",
     chapterNumber: 6,
     chapterLabel: "06",
     title: COPY["ch6.title"],
     temperature: `${formatTemp(TEMP.c6)} (skenario)`,
     imageFile: "img/static/panel-06.svg",
     imageAlt: "Ilustrasi Bab 06 Kembali ke Kita: piring makan dengan jejak partikel mikroplastik",
-    theme: "dark",
   },
   {
     id: "punch",
     index: 7,
+    paletteKey: "cp0",
     title: COPY["punch.line"],
     imageFile: "img/static/panel-07.svg",
     imageAlt: "Ilustrasi jeda refleksi: bagaimana jika semua ini tidak terjadi",
-    theme: "punch",
   },
   {
     id: "b7",
     index: 8,
+    paletteKey: "c7",
     chapterNumber: 7,
     chapterLabel: "07",
     title: COPY["ch7.title"],
     temperature: `${formatTemp(TEMP.c7)} (skenario)`,
     imageFile: "img/static/panel-08.svg",
     imageAlt: "Ilustrasi Bab 07 Di Tempat yang Benar: botol dimasukkan ke tempat sampah terpilah dalam 10 detik",
-    theme: "act2",
   },
   {
     id: "b8",
     index: 9,
+    paletteKey: "c8",
     chapterNumber: 8,
     chapterLabel: "08",
     title: COPY["ch8.title"],
     temperature: `${formatTemp(TEMP.c8)} (skenario)`,
     imageFile: "img/static/panel-09.svg",
     imageAlt: "Ilustrasi Bab 08 Perjalanan Kedua: botol-botol bersih berjalan di atas sabuk konveyor pemilah",
-    theme: "act2",
   },
   {
     id: "b9",
     index: 10,
+    paletteKey: "c9",
     chapterNumber: 9,
     chapterLabel: "09",
     title: COPY["ch9.title"],
     temperature: `${formatTemp(TEMP.c9)} (skenario)`,
     imageFile: "img/static/panel-10.svg",
     imageAlt: "Ilustrasi Bab 09 Hidup Baru, Tapi...: empat stasiun cacah, cuci, lebur, dan cetak",
-    theme: "light",
   },
   {
     id: "b10",
     index: 11,
+    paletteKey: "c10",
     chapterNumber: 10,
     chapterLabel: "10",
     title: COPY["ch10e.cta"],
     temperature: `${formatTemp(TEMP.c10)} (skenario)`,
     imageFile: "img/static/panel-11.svg",
     imageAlt: "Ilustrasi Bab 10: botol isi ulang yang dibawa besok",
-    theme: "light",
   },
 ] as const;
 
@@ -172,8 +185,6 @@ export interface StaticPanelProps {
   spec: StaticPanelSpec;
   isActive: boolean;
   isUnlocked: boolean;
-  canUnlockMore: boolean;
-  onUnlockNext?: () => void;
   onRestart?: () => void;
   panelRef?: (node: HTMLElement | null) => void;
   firstHeadingRef?: RefObject<HTMLHeadingElement | null>;
@@ -183,15 +194,13 @@ export function StaticPanel({
   spec,
   isActive,
   isUnlocked,
-  canUnlockMore,
-  onUnlockNext,
   onRestart,
   panelRef,
   firstHeadingRef,
 }: StaticPanelProps) {
   const baseUrl = import.meta.env.BASE_URL || "/";
   const imgSrc = `${baseUrl.replace(/\/$/, "")}/${spec.imageFile}`;
-  const isLight = spec.theme === "light";
+  const isLight = spec.paletteKey === "c10";
 
   const lamaTerurai = FACTS["lama-terurai"];
   const verifiedYears =
@@ -208,9 +217,10 @@ export function StaticPanel({
   return (
     <article
       ref={panelRef}
-      className={`${styles.panel} ${styles[`theme_${spec.theme}`]}`}
+      className={`${styles.panel} ${styles[`palette_${spec.paletteKey}`]}`}
       data-static-panel={spec.id}
       data-panel-index={spec.index}
+      data-palette={spec.paletteKey}
       data-active={isActive ? "true" : "false"}
       data-unlocked={isUnlocked ? "true" : "false"}
       aria-labelledby={`static-panel-title-${spec.id}`}
@@ -229,16 +239,12 @@ export function StaticPanel({
 
           {spec.chapterLabel ? (
             <div className={styles.metaRow}>
-              <span className={styles.chapterBadge}>Bab {spec.chapterLabel}</span>
+              <span className={styles.chapterBadge}>{spec.chapterLabel}</span>
               {spec.temperature ? (
                 <span className={styles.tempBadge}>{spec.temperature}</span>
               ) : null}
             </div>
-          ) : (
-            <div className={styles.metaRow}>
-              <span className={styles.chapterBadge}>Titik Balik</span>
-            </div>
-          )}
+          ) : null}
 
           <h2
             id={`static-panel-title-${spec.id}`}
@@ -272,7 +278,6 @@ export function StaticPanel({
 
           {spec.id === "b2" && (
             <CopyPanel>
-              <div className={styles.metricBadge}>10 menit</div>
               <p className={styles.lead}>{COPY["ch2.line"]}</p>
               <p className={styles.body}>{COPY["ch2.sub"]}</p>
             </CopyPanel>
@@ -318,12 +323,12 @@ export function StaticPanel({
           {spec.id === "b7" && (
             <div className={styles.stack}>
               <CopyPanel>
-                <div className={styles.metricBadge}>10 detik</div>
                 <p className={styles.lead}>{COPY["ch7.line"]}</p>
                 <p className={styles.flashNote}>{COPY["ch7.bins"]}</p>
               </CopyPanel>
               <blockquote className={styles.letterStatic} data-letter-card>
-                {COPY["ch7.letter"]}
+                <p className={styles.letterMark}>Re:</p>
+                <p className={styles.letterBody}>{COPY["ch7.letter"]}</p>
               </blockquote>
             </div>
           )}
@@ -337,7 +342,8 @@ export function StaticPanel({
                 ) : null}
               </CopyPanel>
               <blockquote className={styles.letterStatic} data-letter-card>
-                {COPY["ch8.letter"]}
+                <p className={styles.letterMark}>Re:</p>
+                <p className={styles.letterBody}>{COPY["ch8.letter"]}</p>
               </blockquote>
             </div>
           )}
@@ -356,35 +362,27 @@ export function StaticPanel({
                   <p className={styles.factLine}>{COPY["ch9.note"]}</p>
                 ) : null}
               </CopyPanel>
-              <blockquote
-                className={`${styles.letterStatic} ${styles.letterLight}`}
-                data-letter-card
-              >
-                {COPY["ch9.letter"]}
+              <blockquote className={styles.letterStatic} data-letter-card>
+                <p className={styles.letterMark}>Re:</p>
+                <p className={styles.letterBody}>{COPY["ch9.letter"]}</p>
               </blockquote>
             </div>
           )}
 
           {spec.id === "b10" && (
             <div className={styles.stack}>
-              <blockquote
-                className={`${styles.letterStatic} ${styles.letterLight}`}
-                data-letter-card
-              >
-                {COPY["ch10a.letter"]}
+              <blockquote className={styles.letterStatic} data-letter-card>
+                <p className={styles.letterMark}>Re:</p>
+                <p className={styles.letterBody}>{COPY["ch10a.letter"]}</p>
               </blockquote>
-              <blockquote
-                className={`${styles.letterStatic} ${styles.letterLight}`}
-                data-letter-card
-              >
-                {COPY["ch10b.letter"]}
+              <blockquote className={styles.letterStatic} data-letter-card>
+                <p className={styles.letterMark}>Re:</p>
+                <p className={styles.letterBody}>{COPY["ch10b.letter"]}</p>
               </blockquote>
               <CopyPanel light>
-                <blockquote
-                  className={`${styles.letterStatic} ${styles.letterLight}`}
-                  data-letter-card
-                >
-                  {COPY["ch10d.letter"]}
+                <blockquote className={styles.letterStatic} data-letter-card>
+                  <p className={styles.letterMark}>Re:</p>
+                  <p className={styles.letterBody}>{COPY["ch10d.letter"]}</p>
                 </blockquote>
               </CopyPanel>
               <div className={styles.closingBlock}>
@@ -400,20 +398,6 @@ export function StaticPanel({
               </div>
             </div>
           )}
-
-          {/* Tombol bantu aksesibilitas keyboard/pembaca layar bila pengguna tidak menggulir lama */}
-          {isActive && canUnlockMore && onUnlockNext ? (
-            <div className={styles.unlockRow}>
-              <button
-                type="button"
-                className={styles.unlockBtn}
-                onClick={onUnlockNext}
-                data-static-unlock-next
-              >
-                Lanjut ke bagian berikutnya
-              </button>
-            </div>
-          ) : null}
         </div>
       </div>
     </article>
