@@ -1,0 +1,35 @@
+.hero {
+  display: grid;
+  gap: var(--s-5);
+  /* Ruang untuk navbar menempel di atas. */
+  padding: calc(var(--s-11) + var(--s-5)) var(--gutter-page) var(--s-9);
+  color: var(--page-ink);
+  animation: heroIn 0.6s var(--ease-out-expo) both;
+}
+
+.eyebrow {
+  color: var(--page-ink);
+  opacity: 0.8;
+}
+
+.title {
+  max-width: 14ch;
+  outline: none;
+}
+
+.lede {
+  max-width: 56ch;
+}
+
+@keyframes heroIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    animation: none;
+  }
+}

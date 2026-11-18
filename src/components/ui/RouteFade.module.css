@@ -1,0 +1,15 @@
+.fade {
+  animation: fadeIn var(--dur-base) var(--ease-in-out) both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade {
+    animation: none;
+  }
+}
