@@ -214,6 +214,12 @@ describe("Scene B7 (Di Tempat yang Benar)", () => {
     b7.update(0.55, 0.632, 0.016);
     const flashHandle = ctx.shared.get<FlashPass>("flash");
     expect(flashHandle?.isActive()).toBe(true);
+    // Kolom narasi kiri harus bebas dari tempat sampah pada plateau desktop.
+    ctx.camera.updateMatrixWorld();
+    const leftEdge = new THREE.Vector3(-2.8, 1.2, 0.65).project(ctx.camera);
+    const rightEdge = new THREE.Vector3(2.6, 1.2, 0.65).project(ctx.camera);
+    expect((leftEdge.x + 1) / 2).toBeGreaterThan(0.45);
+    expect((rightEdge.x + 1) / 2).toBeLessThan(0.98);
 
     // 7d -> akhir: kilas nonaktif, tempat sampah turun -0.3
     b7.update(1.0, 0.66, 0.016);
@@ -224,6 +230,7 @@ describe("Scene B7 (Di Tempat yang Benar)", () => {
     expect(ctx.shared.bottle.group.parent).not.toBe(ctx.scene);
 
     b7.exit();
+    expect(ctx.camera.view?.enabled ?? false).toBe(false);
     b7.dispose();
     ctx.shared.bottle.dispose();
     ctx.shared.contactShadow.dispose();

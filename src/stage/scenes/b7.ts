@@ -225,15 +225,28 @@ export function createB7Scene(): Scene {
       ctx.scene.environmentIntensity = lerp(CUES.c7.env, CUES.c8.env, cueMix);
 
       ctx.applyResponsiveCamera(35);
+      // Komposisi editorial: narasi di kiri, seluruh aksi tetap satu koordinat dunia.
+      const composition = isPortrait ? 0 : smoothstep(0.04, 0.3, t);
+      if (!isPortrait) {
+        ctx.camera.setViewOffset(
+          ctx.size.w,
+          ctx.size.h,
+          -ctx.size.w * 0.22 * composition,
+          0,
+          ctx.size.w,
+          ctx.size.h,
+        );
+      }
       const camX = isPortrait ? -1.05 : 0;
       const portraitZBoost = isPortrait ? 1.2 : 0;
-      ctx.camera.position.set(camX, 1.45, camZ + portraitZBoost);
-      LOOK_AT.set(camX, 1.3 + binOffsetY * 0.5, 0);
+      ctx.camera.position.set(camX, 1.45, camZ + portraitZBoost + 2.3 * composition);
+      LOOK_AT.set(camX, 1.3 + binOffsetY * 0.5 + 0.35 * composition, 0);
       ctx.camera.lookAt(LOOK_AT);
     },
 
     exit() {
       if (!ctx) return;
+      ctx.camera.clearViewOffset();
       ctx.shared.bottle.detach(false);
       if (bins) bins.group.visible = false;
       if (hand) hand.group.visible = false;

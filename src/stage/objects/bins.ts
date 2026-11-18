@@ -132,7 +132,7 @@ export class Bins {
       const bodyMat = new THREE.MeshStandardMaterial({
         color: spec.bodyColor,
         normalMap: polymerSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.35, 0.35),
+        normalScale: new THREE.Vector2(0.08, 0.08),
         roughnessMap: polymerSet.roughnessMap ?? null,
         roughness: 0.46,
         metalness: 0.04,
@@ -141,7 +141,7 @@ export class Bins {
       const lidMat = new THREE.MeshStandardMaterial({
         color: spec.lidColor,
         normalMap: polymerSet.normalMap ?? null,
-        normalScale: new THREE.Vector2(0.28, 0.28),
+        normalScale: new THREE.Vector2(0.06, 0.06),
         roughnessMap: polymerSet.roughnessMap ?? null,
         roughness: 0.38,
         metalness: 0.05,
