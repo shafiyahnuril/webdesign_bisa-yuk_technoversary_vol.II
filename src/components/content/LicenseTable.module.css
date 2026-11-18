@@ -1,0 +1,78 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 var(--t-body) / 1.4 var(--font-ui);
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--s-3) var(--s-4) var(--s-3) 0;
+  vertical-align: top;
+  border-bottom: 1px solid color-mix(in srgb, var(--page-ink) 25%, transparent);
+}
+
+.table thead th {
+  font: 500 var(--t-ui) / 1.2 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--page-accent);
+}
+
+.table tbody th {
+  font-weight: 600;
+}
+
+.table a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.method {
+  display: block;
+  margin-top: var(--s-1);
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* HP: setiap baris menjadi kartu. */
+@media (max-width: 767px) {
+  .table,
+  .table tbody,
+  .table tr,
+  .table td,
+  .table tbody th {
+    display: block;
+  }
+
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .table tr {
+    margin-bottom: var(--s-4);
+    padding: var(--s-4);
+    border: 1px solid color-mix(in srgb, var(--page-ink) 30%, transparent);
+    border-radius: var(--r-md);
+  }
+
+  .table td,
+  .table tbody th {
+    padding: var(--s-1) 0;
+    border-bottom: 0;
+  }
+
+  .table td::before,
+  .table tbody th::before {
+    content: attr(data-label);
+    display: block;
+    font: 500 var(--t-ui-sm) / 1.2 var(--font-ui);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--page-accent);
+  }
+}

@@ -1,0 +1,32 @@
+.block {
+  margin: 0;
+  display: grid;
+  gap: var(--s-2);
+  padding-block: var(--s-5);
+  border-top: 1px solid color-mix(in srgb, var(--page-ink) 30%, transparent);
+}
+
+.value {
+  margin: 0;
+  color: var(--page-accent);
+  overflow-wrap: anywhere;
+}
+
+.label {
+  margin: 0;
+}
+
+.source {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.source a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.dev {
+  opacity: 0.7;
+  border-top-style: dashed;
+}

@@ -1,0 +1,74 @@
+.figure {
+  margin: 0;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.band1 {
+  fill: var(--c4-accent);
+}
+
+.band2 {
+  fill: var(--c7-accent);
+}
+
+.axis,
+.guide {
+  fill: none;
+  stroke: var(--page-ink);
+  stroke-opacity: 0.4;
+}
+
+.target {
+  fill: none;
+  stroke: var(--page-accent);
+  stroke-width: 2;
+}
+
+.legend,
+.note {
+  fill: var(--page-ink);
+  font: 500 19px var(--font-ui);
+}
+
+.tick,
+.tickTarget {
+  fill: var(--page-ink);
+  font: 400 19px var(--font-mono);
+}
+
+.tickTarget {
+  fill: var(--page-accent);
+  font-weight: 700;
+}
+
+.fill {
+  transform: scaleX(0);
+  transform-box: view-box;
+  transition: transform 0.9s var(--ease-out-expo);
+}
+
+.in {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transform: scaleX(1);
+    transition: none;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Teks viewBox mengecil di HP; perbesar sedikit agar tetap terbaca. */
+  .legend,
+  .note,
+  .tick,
+  .tickTarget {
+    font-size: 25px;
+  }
+}
