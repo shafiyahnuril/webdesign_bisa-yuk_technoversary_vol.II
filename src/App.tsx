@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/shell/AppShell";
+import { AudioToggle } from "@/components/shell/AudioToggle";
 import { RouteFallback } from "@/components/shell/RouteFallback";
 import AboutPage from "@/routes/AboutPage";
 import ContactPage from "@/routes/ContactPage";
@@ -14,7 +15,7 @@ const HomePage = lazy(() => import("@/routes/HomePage"));
 export function App() {
   return (
     <HashRouter>
-      <AppShell>
+      <AppShell audioSlot={<AudioToggle />}>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<HomePage />} />

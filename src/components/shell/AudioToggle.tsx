@@ -12,12 +12,7 @@ export interface AudioToggleProps {
 
 function SoundOnIcon() {
   return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      focusable="false"
-    >
+    <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path
         fill="none"
         stroke="currentColor"
@@ -32,12 +27,7 @@ function SoundOnIcon() {
 
 function SoundOffIcon() {
   return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      focusable="false"
-    >
+    <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path
         fill="none"
         stroke="currentColor"
@@ -78,7 +68,7 @@ export function AudioToggle({ engine = storyEngine, className }: AudioToggleProp
     const unsubFrame = engine.onFrame((shown, dt) => {
       syncDuck();
       controller.update(shown, dt);
-    });
+    }, 20);
     const unsubChapter = engine.onChapter(() => {
       syncDuck();
     });
