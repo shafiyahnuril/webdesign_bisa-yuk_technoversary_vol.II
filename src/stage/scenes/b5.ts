@@ -38,6 +38,12 @@ export function createB5Scene(): Scene {
 
     enter() {
       if (!ctx || !water || !particles) return;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
+
       ctx.shared.bottle.detach();
       ctx.shared.bottle.setIdle(0, false);
       ctx.shared.contactShadow.setVisible(false);
@@ -61,6 +67,8 @@ export function createB5Scene(): Scene {
       if (!ctx || !water || !particles) return;
       const uTime = ctx.reducedMotion ? 0 : ctx.uniforms.uTime.value;
       const { bottle, contactShadow } = ctx.shared;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
       contactShadow.setVisible(false);
 
       // Orbit kamera: radius 4, 0 -> 40° (20° portrait) lalu turun ke bawah permukaan air pada 0.80..1.00

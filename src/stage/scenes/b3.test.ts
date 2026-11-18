@@ -141,6 +141,13 @@ describe("CityEnvironment & Scene B3 (Tersesat)", () => {
     cityHigh.dispose();
     cityHigh2.dispose();
     cityCompact.dispose();
+
+    const cityDyn = new CityEnvironment(parent, QUALITY_PRESETS.high, false);
+    expect(cityDyn.farBuildings.count).toBe(60);
+    cityDyn.setCompactMode(true);
+    expect(cityDyn.farBuildings.count).toBe(30);
+    expect(cityDyn.totalTrashCount).toBe(TRASH_COUNT_COMPACT);
+    cityDyn.dispose();
   });
 
   it("mengatur kamera sejajar sungai, meredup di kolong jembatan t=0.49, membesar ke muara, dan deterministik saat mundur", () => {
@@ -186,6 +193,7 @@ describe("CityEnvironment & Scene B3 (Tersesat)", () => {
     expect(ctx.shared.bottle.group.position.distanceTo(snapBottlePos)).toBeLessThan(1e-5);
 
     b3.exit();
+    expect(water.group.visible).toBe(false);
     b3.dispose();
     expect(bottleDispose).not.toHaveBeenCalled();
     expect(waterDispose).not.toHaveBeenCalled();

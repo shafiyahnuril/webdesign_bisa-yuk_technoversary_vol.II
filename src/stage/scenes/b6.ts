@@ -53,6 +53,11 @@ export function createB6Scene(): Scene {
       // Pastikan seluruh state milik scene sebelumnya bersih saat jump langsung atau mundur
       const water = ctx.shared.get("water");
       if (water) water.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
       ctx.shared.bottle.detach();
       ctx.shared.bottle.group.visible = false;
       ctx.shared.contactShadow.setVisible(false);
@@ -72,9 +77,11 @@ export function createB6Scene(): Scene {
       if (!ctx || !particles || !school || !plate) return;
       const uTime = ctx.reducedMotion ? 0 : ctx.uniforms.uTime.value;
 
-      // Pastikan air & botol bersama tetap tersembunyi di B6
+      // Pastikan air, tangan, & botol bersama tetap tersembunyi di B6
       const water = ctx.shared.get("water");
       if (water) water.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
       ctx.shared.bottle.group.visible = false;
       ctx.shared.contactShadow.setVisible(false);
 
@@ -113,18 +120,21 @@ export function createB6Scene(): Scene {
 
       const fadeOut = 1 - smoothstep(0.9, 1.0, t);
       const plateFadeIn = smoothstep(0.36, 0.46, t);
+      const tableFadeIn = smoothstep(0.45, 0.7, t);
       plate.setOpacity(plateFadeIn * fadeOut);
+      plate.setTableOpacity(tableFadeIn * fadeOut);
       plate.setFilletGlow(smoothstep(0.7, 0.9, t));
 
       // Partikel: t 0..0.30 flow ke mulut 3 ikan -> t 0.45..0.70 mengendap ke atas filet
       const flowAmt = smoothstep(0.0, 0.3, t);
       const settleAmt = smoothstep(0.45, 0.7, t);
+      const trackPlate = smoothstep(0.45, 0.62, t);
 
       particles.group.visible = fadeOut > 0.002;
       particles.group.position.set(
-        lerp(0, plateX, settleAmt),
+        lerp(0, plateX, trackPlate),
         lerp(0, plateY, settleAmt),
-        lerp(0, plateZ, settleAmt),
+        lerp(0, plateZ, trackPlate),
       );
       particles.setParams({
         breakAmt: 1.0,
@@ -154,6 +164,7 @@ export function createB6Scene(): Scene {
       if (school) school.group.visible = false;
       if (plate) plate.group.visible = false;
       if (particles) {
+        particles.group.visible = false;
         particles.group.position.set(0, 0, 0);
       }
       if (ctx) {

@@ -118,6 +118,7 @@ describe("Scene B2 (Sekali Pakai)", () => {
     const b2 = createB2Scene();
     b2.build(ctx);
     expect(ctx.shared.get("hand")).toBeDefined();
+    expect(ctx.shared.get("hand")?.group.visible).toBe(false);
 
     b2.enter();
     b2.update(0, 0.0625, 0.016);

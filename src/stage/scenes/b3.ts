@@ -43,6 +43,14 @@ export function createB3Scene(): Scene {
 
     enter() {
       if (!ctx || !water || !city) return;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
+
       city.group.visible = true;
       water.group.visible = true;
       water.group.position.set(0, 0, 0);
@@ -63,6 +71,10 @@ export function createB3Scene(): Scene {
       if (!ctx || !water || !city) return;
       const uTime = ctx.reducedMotion ? 0 : ctx.uniforms.uTime.value;
       const { bottle, contactShadow } = ctx.shared;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
       contactShadow.setVisible(false);
 
       // Kamera bergerak sejajar sungai ke kanan: (-6 + 12*t, 0.45, 5.2)
@@ -148,11 +160,13 @@ export function createB3Scene(): Scene {
         opacity: 1,
       });
 
+      city.setCompactMode(ctx.size.isPortrait || ctx.quality === "low");
       city.update(t, camX, estuaryMix, water, uTime + t * 4.5);
     },
 
     exit() {
       if (city) city.group.visible = false;
+      if (water) water.group.visible = false;
       if (ctx) {
         ctx.scene.fog = null;
       }

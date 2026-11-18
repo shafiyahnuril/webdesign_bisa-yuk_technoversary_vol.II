@@ -151,4 +151,33 @@ describe("Scene B10 (Surat Terakhir)", () => {
     ctx.shared.bottle.dispose();
     ctx.shared.contactShadow.dispose();
   });
+
+  it("menurunkan segmen geometri O-TUMBLER dan O-PLINTH saat setQuality('low') dengan plinth r=0.5 tetap", () => {
+    const ctx = makeTestContext();
+    const b10 = createB10Scene();
+    b10.build(ctx);
+    b10.enter();
+
+    const plinth = ctx.scene.getObjectByName("O-PLINTH") as THREE.Mesh;
+    expect(plinth).toBeDefined();
+    const highCount = plinth.geometry.index?.count ?? 0;
+
+    (ctx as { qualityConfig: StageContext["qualityConfig"] }).qualityConfig = {
+      ...ctx.qualityConfig,
+      tier: "low",
+      bottleSegments: 20,
+      transmission: false,
+    };
+    b10.update(0.8, 0.96, 0.016);
+    const lowCount = plinth.geometry.index?.count ?? 0;
+    expect(lowCount).toBeLessThan(highCount);
+
+    const box = new THREE.Box3().setFromObject(plinth);
+    expect((box.max.x - box.min.x) * 0.5).toBeCloseTo(0.5, 2);
+
+    b10.exit();
+    b10.dispose();
+    ctx.shared.bottle.dispose();
+    ctx.shared.contactShadow.dispose();
+  });
 });

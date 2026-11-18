@@ -36,6 +36,11 @@ export function createPunchScene(): Scene {
       if (!ctx || !particles) return;
       const water = ctx.shared.get("water");
       if (water) water.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
 
       ctx.shared.bottle.detach();
       ctx.shared.bottle.setIdle(0, false);
@@ -54,6 +59,8 @@ export function createPunchScene(): Scene {
       const { bottle, contactShadow } = ctx.shared;
       const water = ctx.shared.get("water");
       if (water) water.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
       contactShadow.setVisible(false);
       ctx.scene.fog = null;
 

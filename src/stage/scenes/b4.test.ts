@@ -196,6 +196,7 @@ describe("Scene B4 (Lautan)", () => {
     expect(pier.position.y).toBeCloseTo(snapPierY, 5);
 
     b4.exit();
+    expect(water.group.visible).toBe(false);
     b4.dispose();
     expect(bottleDispose).not.toHaveBeenCalled();
     expect(waterDispose).not.toHaveBeenCalled();

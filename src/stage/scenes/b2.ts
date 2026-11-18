@@ -42,12 +42,25 @@ export function createB2Scene(): Scene {
     build(stageCtx: StageContext) {
       ctx = stageCtx;
       const existing = stageCtx.shared.get<Hand>("hand");
-      hand = existing ?? stageCtx.shared.register("hand", new Hand(stageCtx.scene));
+      if (existing) {
+        hand = existing;
+      } else {
+        hand = stageCtx.shared.register("hand", new Hand(stageCtx.scene));
+        hand.group.visible = false;
+      }
     },
 
     enter() {
       if (!ctx || !hand) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
+
       bottle.reset();
       bottle.group.position.set(BOTTLE_REST_X, 0, 0);
       bottle.group.rotation.set(0, Math.PI * 1.2, 0);
@@ -91,6 +104,10 @@ export function createB2Scene(): Scene {
     update(t: number) {
       if (!ctx || !hand) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
       const handScale = ctx.size.isPortrait ? 0.85 : 1;
 
       hand.group.visible = true;
@@ -112,7 +129,11 @@ export function createB2Scene(): Scene {
         bottle.detach(false);
         bottle.group.position.set(BOTTLE_REST_X, 0, 0);
         bottle.group.rotation.set(0, Math.PI * 1.2, 0);
-        hand.group.position.set(lerp(HAND_ENTRY_X, HAND_REST_X, k), lerp(HAND_ENTRY_Y, HAND_REST_Y, k), 0);
+        hand.group.position.set(
+          lerp(HAND_ENTRY_X, HAND_REST_X, k),
+          lerp(HAND_ENTRY_Y, HAND_REST_Y, k),
+          0,
+        );
         hand.setPose("OPEN", "OPEN", 0);
       } else if (t <= 0.22) {
         // Genggam dan parent botol ke jangkar telapak di paruh fase
@@ -202,16 +223,16 @@ export function createB2Scene(): Scene {
         const x = lerp(THROW_START_X, THROW_END_X, throwT);
         const y = lerp(THROW_START_Y, THROW_END_Y, arcK) + Math.sin(throwT * Math.PI) * 1.35;
         bottle.group.position.set(x, y, 0);
-        bottle.group.rotation.set(
-          lerp(0, 3, throwT),
-          Math.PI * 1.2,
-          lerp(0, -6, throwT),
-        );
+        bottle.group.rotation.set(lerp(0, 3, throwT), Math.PI * 1.2, lerp(0, -6, throwT));
 
         level = 0.03;
         shadowVisible = throwT < 0.3;
         shadowOpacity = lerp(0.35, 0, clamp01(throwT / 0.3));
-        camLookY = lerp(CAM_BASE_Y - INITIAL_TILT_OFFSET, CAM_BASE_Y - THROW_TILT_OFFSET, smoothstep(0.7, 0.92, t));
+        camLookY = lerp(
+          CAM_BASE_Y - INITIAL_TILT_OFFSET,
+          CAM_BASE_Y - THROW_TILT_OFFSET,
+          smoothstep(0.7, 0.92, t),
+        );
       }
 
       const cueMix = smoothstep(0.9, 1.0, t);

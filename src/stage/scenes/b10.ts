@@ -94,7 +94,16 @@ export function createB10Scene(): Scene {
         // 10d (0.42 -> 0.72): zoom in ke tumbler, sorot spot 0->3, redup produk -> 0.45
         .to(
           state,
-          { camX: 14, camY: 1.3, camZ: 5.5, lookX: 14, lookY: 1.2, spot: 3, plinthSnap: 1, duration: 0.3 },
+          {
+            camX: 14,
+            camY: 1.3,
+            camZ: 5.5,
+            lookX: 14,
+            lookY: 1.2,
+            spot: 3,
+            plinthSnap: 1,
+            duration: 0.3,
+          },
           0.42,
         )
         .to(state, { dim: 0.45, duration: 0.2 }, 0.42)
@@ -105,6 +114,16 @@ export function createB10Scene(): Scene {
     enter() {
       if (!ctx || !shelf || !products || !tumbler || !tl) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
+
       const isPortrait = ctx.size.isPortrait;
       const plinthX = isPortrait ? TUMBLER_SPECS.portraitX : TUMBLER_SPECS.desktopX;
 
@@ -120,6 +139,7 @@ export function createB10Scene(): Scene {
       products.group.visible = true;
 
       tumbler.reset();
+      tumbler.setQuality(ctx.qualityConfig);
       tumbler.setPlacementX(plinthX);
       tumbler.group.visible = true;
 
@@ -159,6 +179,13 @@ export function createB10Scene(): Scene {
     update(t: number, _p: number, dt: number) {
       if (!ctx || !shelf || !products || !tumbler || !tl) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+
       const isPortrait = ctx.size.isPortrait;
       const plinthX = isPortrait ? TUMBLER_SPECS.portraitX : TUMBLER_SPECS.desktopX;
 
@@ -167,6 +194,7 @@ export function createB10Scene(): Scene {
       products.group.visible = true;
       products.setCompactMode(isPortrait);
       tumbler.group.visible = true;
+      tumbler.setQuality(ctx.qualityConfig);
       tumbler.setPlacementX(plinthX);
 
       tl.progress(clamp01(t));

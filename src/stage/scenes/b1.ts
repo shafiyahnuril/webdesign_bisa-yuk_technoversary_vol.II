@@ -34,7 +34,16 @@ export function createB1Scene(): Scene {
     enter() {
       if (!ctx) return;
       idleTime = 0;
-      const { bottle, contactShadow } = ctx.shared;
+      const { bottle, contactShadow, shared } = { ...ctx.shared, shared: ctx.shared };
+      const water = shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const hand = shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const flash = shared.get("flash") as { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
+
       bottle.reset();
       bottle.setIdle(0, false);
 
@@ -64,6 +73,12 @@ export function createB1Scene(): Scene {
     update(t: number, _p: number, dt: number) {
       if (!ctx) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
       const plateauX = ctx.size.isPortrait ? 0.55 : 1.4;
 
       if (!ctx.reducedMotion && dt > 0) {

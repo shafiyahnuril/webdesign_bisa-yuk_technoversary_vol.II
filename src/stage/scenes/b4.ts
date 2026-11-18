@@ -22,6 +22,12 @@ interface CoralRefs {
   group: THREE.Group;
   branchMat: THREE.MeshStandardMaterial;
   sphereMat: THREE.MeshStandardMaterial;
+  branches: THREE.InstancedMesh;
+  spheres: THREE.InstancedMesh;
+  maxBranches: number;
+  maxSpheres: number;
+  compactBranches: number;
+  compactSpheres: number;
 }
 
 function createColdSun(parent: THREE.Object3D): {
@@ -76,7 +82,7 @@ function createPier(parent: THREE.Object3D): THREE.Group {
   posts.name = "O-PIER-POSTS";
 
   const tickHeights = [-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5];
-  const tickGeom = new THREE.CylinderGeometry(0.128, 0.128, 0.045, 12);
+  const tickGeom = new THREE.CylinderGeometry(0.128, 0.128, 0.045, 10, 1, true);
   const tickMat = createClayMaterial({ color: "#E6EAF2", roughness: 0.7 });
   const ticks = new THREE.InstancedMesh(
     tickGeom,
@@ -137,6 +143,8 @@ function createCoralReef(parent: THREE.Object3D, clusterCount: number): CoralRef
   const sphereItems: SphereTransform[] = [];
   const euler = new THREE.Euler();
 
+  let compactBranches = 0;
+  let compactSpheres = 0;
   for (let c = 0; c < clusterCount; c++) {
     const cx = lerp(-5.2, 5.2, c / Math.max(1, clusterCount - 1)) + rngRange(rng, -0.45, 0.45);
     const cz = rngRange(rng, -2.6, 2.2);
@@ -173,7 +181,13 @@ function createCoralReef(parent: THREE.Object3D, clusterCount: number): CoralRef
         scale: rngRange(rng, 0.75, 1.4),
       });
     }
+    if (c === 7) {
+      compactBranches = branchItems.length;
+      compactSpheres = sphereItems.length;
+    }
   }
+  if (compactBranches === 0) compactBranches = branchItems.length;
+  if (compactSpheres === 0) compactSpheres = sphereItems.length;
 
   const branchGeom = new THREE.CylinderGeometry(0.035, 0.11, 1.0, 8, 1);
   const branchMat = createClayMaterial({ color: "#5E8FB8", roughness: 0.75 });
@@ -206,7 +220,17 @@ function createCoralReef(parent: THREE.Object3D, clusterCount: number): CoralRef
 
   coralGroup.add(branches, spheres);
   parent.add(coralGroup);
-  return { group: coralGroup, branchMat, sphereMat };
+  return {
+    group: coralGroup,
+    branchMat,
+    sphereMat,
+    branches,
+    spheres,
+    maxBranches: branchItems.length,
+    maxSpheres: sphereItems.length,
+    compactBranches,
+    compactSpheres,
+  };
 }
 
 /**
@@ -251,6 +275,14 @@ export function createB4Scene(): Scene {
 
     enter() {
       if (!ctx || !water || !localGroup) return;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
+
       localGroup.visible = true;
       water.group.visible = true;
       water.group.position.set(0, 0, 0);
@@ -271,8 +303,16 @@ export function createB4Scene(): Scene {
       if (!ctx || !water || !localGroup || !sun || !pier || !coral) return;
       const uTime = ctx.reducedMotion ? 0 : ctx.uniforms.uTime.value;
       const { bottle, contactShadow } = ctx.shared;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
       contactShadow.setVisible(false);
       localGroup.visible = true;
+
+      const compact = ctx.qualityConfig.tier === "low" || ctx.size.isPortrait;
+      coral.branches.count = compact ? coral.compactBranches : coral.maxBranches;
+      coral.spheres.count = compact ? coral.compactSpheres : coral.maxSpheres;
 
       // Gelombang laut: amplitudo 0.12 -> 0.50 dan kecepatan 1x -> 2.2x pada t 0.12..0.48
       const stormUp = smoothstep(0.12, 0.48, t);
@@ -388,7 +428,10 @@ export function createB4Scene(): Scene {
 
     exit() {
       if (localGroup) localGroup.visible = false;
-      if (water) water.setParams({ underwater: 0 });
+      if (water) {
+        water.setParams({ underwater: 0 });
+        water.group.visible = false;
+      }
       if (ctx) {
         ctx.scene.fog = null;
       }

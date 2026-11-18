@@ -36,6 +36,15 @@ export function createB8Scene(): Scene {
     enter() {
       if (!ctx || !conveyor) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
 
       conveyor.setCompactMode(ctx.size.isPortrait || ctx.quality === "low");
       conveyor.reset();
@@ -76,6 +85,12 @@ export function createB8Scene(): Scene {
     update(t: number) {
       if (!ctx || !conveyor) return;
       const { bottle } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
 
       conveyor.setCompactMode(ctx.size.isPortrait || ctx.quality === "low");
       conveyor.group.visible = true;

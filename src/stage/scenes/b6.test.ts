@@ -137,6 +137,8 @@ describe("FishSchool, PlateSet & Scene B6 (Kembali ke Kita)", () => {
 
     const plate = new PlateSet(parent);
     expect(triangleCount(plate.group)).toBeLessThanOrEqual(4000);
+    expect((plate.tableMesh.material as THREE.MeshStandardMaterial).depthWrite).toBe(false);
+    expect(plate.tableMesh.renderOrder).toBeLessThan(plate.plateMesh.renderOrder);
     const plateBox = new THREE.Box3().setFromObject(plate.plateMesh);
     expect(plateBox.max.x - plateBox.min.x).toBeCloseTo(3.2, 1);
     expect(plateBox.max.z - plateBox.min.z).toBeCloseTo(3.2, 1);
@@ -202,7 +204,13 @@ describe("FishSchool, PlateSet & Scene B6 (Kembali ke Kita)", () => {
     expect(particles.getState().flow).toBeCloseTo(snapFlow, 5);
     expect(particles.getState().settle).toBeCloseTo(snapSettle, 5);
 
+    // t = 0.65: partikel sudah selaras di posisi X piring
+    b6.update(0.65, 0.483, 0);
+    const plateSetObj = ctx.scene.getObjectByName("O-PLATE-ROOT") as THREE.Group;
+    expect(Math.abs(particles.group.position.x - plateSetObj.position.x)).toBeLessThan(0.02);
+
     b6.exit();
+    expect(particles.group.visible).toBe(false);
     b6.dispose();
     expect(bottleDispose).not.toHaveBeenCalled();
     expect(waterDispose).not.toHaveBeenCalled();

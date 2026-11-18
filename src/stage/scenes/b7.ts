@@ -36,7 +36,13 @@ export function createB7Scene(): Scene {
 
     build(stageCtx: StageContext) {
       ctx = stageCtx;
-      hand = stageCtx.shared.get<Hand>("hand") ?? stageCtx.shared.register("hand", new Hand(stageCtx.scene));
+      const existingHand = stageCtx.shared.get<Hand>("hand");
+      if (existingHand) {
+        hand = existingHand;
+      } else {
+        hand = stageCtx.shared.register("hand", new Hand(stageCtx.scene));
+        hand.group.visible = false;
+      }
       bins = new Bins(stageCtx.scene);
       bins.group.visible = false;
 
@@ -48,6 +54,10 @@ export function createB7Scene(): Scene {
     enter() {
       if (!ctx || !hand || !bins || !flashPass) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
 
       bins.reset();
       bins.group.visible = true;
@@ -102,6 +112,10 @@ export function createB7Scene(): Scene {
     update(t: number) {
       if (!ctx || !hand || !bins || !flashPass) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
       const isPortrait = ctx.size.isPortrait;
 
       bins.group.visible = true;
@@ -134,7 +148,11 @@ export function createB7Scene(): Scene {
         if (t <= 0.26) {
           const carryK = easeInOutQuad(clamp01((t - 0.12) / 0.14));
           hand.group.visible = true;
-          hand.group.position.set(lerp(HAND_START_X, HAND_DROP_X, carryK), lerp(HAND_START_Y, 2.35, carryK), 0);
+          hand.group.position.set(
+            lerp(HAND_START_X, HAND_DROP_X, carryK),
+            lerp(HAND_START_Y, 2.35, carryK),
+            0,
+          );
           hand.setPose("GRIP", "GRIP", 1);
           if (bottle.group.parent !== hand.palmAnchor) {
             bottle.detach(false);
@@ -143,7 +161,11 @@ export function createB7Scene(): Scene {
             hand.group.position.set(HAND_START_X, HAND_START_Y, 0);
             hand.group.updateMatrixWorld(true);
             bottle.attachToHand(hand.palmAnchor, true);
-            hand.group.position.set(lerp(HAND_START_X, HAND_DROP_X, carryK), lerp(HAND_START_Y, 2.35, carryK), 0);
+            hand.group.position.set(
+              lerp(HAND_START_X, HAND_DROP_X, carryK),
+              lerp(HAND_START_Y, 2.35, carryK),
+              0,
+            );
           }
           lidOpen = smoothstep(0.16, 0.25, t);
         } else {

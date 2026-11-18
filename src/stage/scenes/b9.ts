@@ -1,11 +1,7 @@
 import * as THREE from "three";
 import { CUES, PALETTE } from "@/lib/tokens";
 import type { Scene } from "../director";
-import {
-  PROCESS_STATIONS,
-  ProcessLine,
-  type ProcessStationId,
-} from "../objects/processline";
+import { PROCESS_STATIONS, ProcessLine, type ProcessStationId } from "../objects/processline";
 import type { SharedObjectHandle, StageContext } from "../stage";
 import { clamp01, easeInOutQuad, lerp, smoothstep } from "../util/math";
 
@@ -62,6 +58,15 @@ export function createB9Scene(): Scene {
     enter() {
       if (!ctx || !line) return;
       const { bottle, contactShadow } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
+      const flash = ctx.shared.get("flash") as
+        { setActive?: (active: boolean) => void } | undefined;
+      flash?.setActive?.(false);
 
       line.setCompactMode(ctx.size.isPortrait || ctx.quality === "low");
       line.reset();
@@ -103,6 +108,12 @@ export function createB9Scene(): Scene {
     update(t: number) {
       if (!ctx || !line) return;
       const { bottle } = ctx.shared;
+      const water = ctx.shared.get("water");
+      if (water) water.group.visible = false;
+      const particles = ctx.shared.get("particles");
+      if (particles) particles.group.visible = false;
+      const hand = ctx.shared.get("hand");
+      if (hand) hand.group.visible = false;
 
       line.setCompactMode(ctx.size.isPortrait || ctx.quality === "low");
       line.group.visible = true;
