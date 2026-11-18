@@ -5,7 +5,7 @@
   width: var(--size-touch-target);
   height: var(--size-touch-target);
   padding: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--r-full);
   border: var(--line-thin) solid color-mix(in srgb, var(--ui-ink) 28%, transparent);
   background: transparent;
   color: var(--ui-ink);

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { createAudioEngine, isAudioSupported, type AudioController } from "@/audio/audio-engine";
 import { COPY } from "@/content/copy";
 import { storyEngine, type StoryEngine } from "@/engine/story-engine";
@@ -54,6 +55,8 @@ function SoundOffIcon() {
  */
 export function AudioToggle({ engine = storyEngine, className }: AudioToggleProps) {
   const supported = isAudioSupported();
+  const { pathname } = useLocation();
+  const isHomeRoute = pathname === "/";
   const [enabled, setEnabled] = useState(false);
   const controllerRef = useRef<AudioController | null>(null);
 
@@ -89,6 +92,10 @@ export function AudioToggle({ engine = storyEngine, className }: AudioToggleProp
     };
   }, [engine, supported]);
 
+  useEffect(() => {
+    controllerRef.current?.setRouteActive(isHomeRoute);
+  }, [isHomeRoute, engine, supported]);
+
   if (!supported) {
     return null;
   }
@@ -98,11 +105,16 @@ export function AudioToggle({ engine = storyEngine, className }: AudioToggleProp
     if (!controller) return;
     const next = !enabled;
     setEnabled(next);
-    void controller.setEnabled(next).then(() => {
-      if (controllerRef.current === controller) {
-        setEnabled(controller.isEnabled());
-      }
-    });
+    void controller
+      .setEnabled(next)
+      .catch(() => {
+        // Kembalikan status tombol secara aman bila izin audio ditolak
+      })
+      .finally(() => {
+        if (controllerRef.current === controller) {
+          setEnabled(controller.isEnabled());
+        }
+      });
   };
 
   const label = enabled ? COPY["audio.off"] : COPY["audio.on"];
