@@ -25,9 +25,9 @@
 | T2.1 | `AppShell`, `SkipLink`, `RouteTransition`, `RouteAnnouncer`, `Seo`, tema per halaman (`data-page`) | Pihak B | selesai (bagian B: tema, PageHero, Reveal, RouteFade, fokus H1; `RouteTransition` menunggu A memasang) |  |
 | T2.2 | Navbar statis (menempel, latar muncul saat gulir > 8 px) di non-Home | Pihak A | siap |  |
 | T2.3 | `AboutPage` (7 bagian), `FactBlock`, `TempDiagram`, `SourceList`, `LicenseTable`, `TeamGrid`, `ClosingStrip` | Pihak B | selesai (data fakta, tim, dan keterangan alat ilustrasi masih menunggu isian) |  |
-| T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Pihak B | siap |  |
-| T2.5 | `ParticleField` (kanvas 2D) | Pihak B | siap |  |
-| T2.6 | `CursorRing` aktif di `#/konten` + label "Baca" | Pihak B | siap |  |
+| T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Pihak B | selesai (12 kartu, filter 2 kelompok, URL tersinkron; sampul masih placeholder A, waktu baca disembunyikan sampai T8.3) |  |
+| T2.5 | `ParticleField` (kanvas 2D) | Pihak B | selesai |  |
+| T2.6 | `CursorRing` aktif di `#/konten` + label "Baca" | Pihak B | sebagian: `data-cursor="read"` di kartu + `TODO(A)`; menunggu `CursorRing` milik A |  |
 | T2.7 | `ArticlePage` + `ArticleBody` + `NextArticle` | Pihak B | siap |  |
 | T2.8 | `ContactPage` + `ContactForm` + Formspree + `mailto` cadangan + status | Pihak B | siap |  |
 | T2.9 | `NotFoundPage` | Pihak B | selesai (PageHero, aset S-404 dari A, tombol kembali, tes) |  |
@@ -95,6 +95,10 @@
 | T11.5 | Pengumpulan resmi (Google Form + repo) dan bukti kirim | Pihak B | siap |  |
 
 ## Catatan untuk sesi berikutnya
+- **Selesai (G4: T2.4, T2.5):** `ContentPage` (H1, lede, `FilterPill`, `ArticleGrid`, `ArticleCard`, `ParticleField`), logika murni `filter.ts` + `filter.test.ts`, `filterLabels.ts`. URL `?jenis=&level=` via `useSearchParams` (replace, nilai tidak valid diabaikan). Tes: `filter.test.ts`, `ContentPage.test.tsx`. Bukti lokal: `docs/bukti/T2.4/`.
+- **T2.6 sebagian:** `CursorRing` belum ada di `main`; kartu sudah ber-`data-cursor="read"` dan `ContentPage.tsx` memuat `TODO(A)`. Permintaan ada di `CATATAN_UNTUK_A.md`.
+- **Keputusan [USULAN]:** kunci `filter.*`, `card.*`, `page.content.lede` di `copy.ts`. Hitungan chip memakai rumus kode dok 05 §4.3; contoh teks dok ("Negatif+Global → Semua 2, Positif 0") tidak konsisten dengan rumus itu (hasil rumus: Semua 4, Negatif 2, Positif 2). Subjudul kartu menyembunyikan "menit baca" sampai `readingMinutes` terisi (T8.3). Alt sampul diturunkan dari judul artikel.
+- **Berikutnya (Pihak B):** G5 = T2.7 (ArticlePage). Tidak ada prasyarat dari A selain sampul final.
 - **Selesai (T2.3):** `AboutPage` 7 bagian + `FactBlock`, `TempDiagram` (SVG inline, `scaleX` 0,9 dtk, tabel ringkasan `sr-only`), `SourceList` (+ `sourceGroups.ts`), `LicenseTable` (kartu di HP), `TeamGrid`, `ClosingStrip` di `src/components/content/`. Tes: `AboutPage.test.tsx`. Bukti lokal: `docs/bukti/T2.3/`.
 - **Perilaku data:** semua fakta masih `verified: false`, jadi `FactBlock` tersembunyi di produksi (DEV: penanda `[DATA]`); daftar sumber menampilkan catatan kosong sampai T8.1/T8.3 terisi. Tim tampil placeholder (`site.ts` masih `TODO`); metode ilustrasi `TODO` tidak ditampilkan; keterangan alat bantu ilustrasi belum ditulis (menunggu info Pihak A).
 - **Keputusan [USULAN]:** kunci `about.*` tambahan di `copy.ts` (H1 "Kenapa Re:bottle?", label diagram, kepala tabel, placeholder tim). Lede hero memakai `about.why.body`; bagian Latar isu memakai `about.scenario.*`. Dua paragraf latar isu menunggu naskah T8.2 (`TODO(T8.2)` di kode).

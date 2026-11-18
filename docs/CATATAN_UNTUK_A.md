@@ -26,3 +26,7 @@ Usul: tambahkan `rebottle_assets/**` ke `ignores` di `eslint.config.js`.
 - **Navbar menempel:** latar belum berubah setelah gulir > 8 px (`color-mix(in oklch, var(--page-bg) 82%, transparent)`, dok 05 §1.1); `--page-bg` sudah tersedia di halaman non-Home.
 - **"Re:" pada brand Navbar** (garis luar, opasitas 0,45) nyaris tak terlihat di halaman non-Home; dok 05 §1.1 meminta "Re:" menyala penuh di sini.
 - **Vitest di Windows:** gagal bila dijalankan dari jalur berhuruf drive kecil (`c:\`); lewat `C:\` lancar.
+
+## Dari G4 (Galeri Artikel)
+- **Brand Navbar statis** di halaman non-Home tampil "bottle" tanpa "Re:" (di About terlihat jelas); spesifikasi meminta "Re:" menyala penuh di halaman non-Home.
+- **CursorRing belum ada di `main`** (tidak ada berkas/ekspor di `src/components/shell/`). Galeri memberi `data-cursor="read"` pada `ArticleCard`. Mohon aktifkan `CursorRing` hanya di rute `#/konten` (bukan `#/konten/:slug`), label "Baca" saat hover elemen `[data-cursor="read"]` (dok 04 §10). Di `ContentPage.tsx` ada `// TODO(A)` sebagai penanda.

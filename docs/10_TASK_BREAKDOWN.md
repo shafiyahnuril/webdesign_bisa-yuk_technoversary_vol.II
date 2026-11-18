@@ -78,8 +78,8 @@ F0 Fondasi ──► F1 Mesin + Rangka Home (placeholder) ──┬─► F3 Pan
 | ☑ T2.1 | `AppShell`, `SkipLink`, `RouteTransition`, `RouteAnnouncer`, `Seo`, tema per halaman (`data-page`) | Fokus ke `<h1>` setelah rute; judul tab benar | 05 §1, 04 §13 | B |
 | ☐ T2.2 | Navbar statis (menempel, latar muncul saat gulir > 8 px) di non-Home | Kontras lolos di semua tema | 05 §1.1 | B |
 | ☑ T2.3 | `AboutPage` (7 bagian), `FactBlock`, `TempDiagram`, `SourceList`, `LicenseTable`, `TeamGrid`, `ClosingStrip` | Semua bagian tampil dengan data placeholder | 05 §3 | B |
-| ☐ T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Filter 2 kelompok + hitungan ikut berubah; 12 kartu dummy | 05 §4 | B |
-| ☐ T2.5 | `ParticleField` (kanvas 2D) | 40/16 partikel; berhenti saat tab hidden | 05 §4.5 | B |
+| ☑ T2.4 | `ContentPage`: `FilterPill`, `ArticleGrid`, `ArticleCard`, URL query | Filter 2 kelompok + hitungan ikut berubah; 12 kartu dummy | 05 §4 | B |
+| ☑ T2.5 | `ParticleField` (kanvas 2D) | 40/16 partikel; berhenti saat tab hidden | 05 §4.5 | B |
 | ☐ T2.6 | `CursorRing` aktif di `#/konten` + label "Baca" | Sesuai 04 §10 | 04 | A |
 | ☐ T2.7 | `ArticlePage` + `ArticleBody` + `NextArticle` | Template 05 §5.1; "Artikel berikutnya" 12→1 | 05 §5 | B |
 | ☐ T2.8 | `ContactPage` + `ContactForm` + Formspree + `mailto` cadangan + status | Kirim nyata berhasil; validasi dan galat | 05 §6 | B |
