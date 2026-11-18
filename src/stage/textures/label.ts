@@ -1,2 +1,1 @@
-// TODO(T3.4): T-LABEL dan T-BINLABEL prosedural
-export {};
+export { makeBottleLabel, makeBinLabel, type BinLabel } from "./canvas-assets";
