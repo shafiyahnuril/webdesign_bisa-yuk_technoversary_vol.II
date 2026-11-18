@@ -1,0 +1,77 @@
+.page {
+  display: grid;
+  align-items: center;
+  min-height: 100dvh;
+  color: var(--page-ink);
+}
+
+.text {
+  grid-area: 1 / 1;
+  z-index: 1;
+}
+
+.bottle {
+  grid-area: 1 / 1;
+  justify-self: end;
+  width: min(36vw, 320px);
+  height: auto;
+  margin-inline-end: var(--gutter-page);
+  animation: drift 6s ease-in-out infinite alternate;
+}
+
+.cta {
+  display: inline-block;
+  padding: var(--s-3) var(--s-6);
+  border: 1px solid var(--page-ink);
+  border-radius: var(--r-full);
+  color: var(--page-ink);
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease-out-expo);
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+}
+
+.cta:focus-visible {
+  outline: 2px solid var(--page-accent);
+  outline-offset: 3px;
+}
+
+@keyframes drift {
+  from {
+    transform: translateY(-8px) rotate(-3deg);
+  }
+  to {
+    transform: translateY(8px) rotate(3deg);
+  }
+}
+
+/* HP: botol di bawah teks agar tidak menimpa judul. */
+@media (max-width: 720px) {
+  .page {
+    align-content: center;
+    gap: 0;
+  }
+
+  .text,
+  .bottle {
+    grid-area: auto;
+  }
+
+  .bottle {
+    justify-self: center;
+    width: min(60vw, 240px);
+    margin: 0 0 var(--s-9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottle {
+    animation: none;
+  }
+
+  .cta {
+    transition: none;
+  }
+}
