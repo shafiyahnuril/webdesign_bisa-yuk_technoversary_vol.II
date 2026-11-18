@@ -1,36 +1,22 @@
 import * as THREE from "three";
 import { CUES, PALETTE } from "@/lib/tokens";
 import type { Scene } from "../director";
-import { createClayMaterial } from "../materials/clay";
+import { CoralReef } from "../objects/coral";
 import { createPier } from "../objects/pier";
 import { ensureWaterSystem, type WaterSystem } from "../objects/water";
 import type { StageContext } from "../stage";
 import { disposeObject } from "../util/dispose";
 import { BuoyancyController } from "../util/buoyancy";
 import { clamp01, degToRad, easeInOutQuad, lerp, smoothstep } from "../util/math";
-import { createRng, rngRange } from "../util/rng";
 
 const C4_BG = new THREE.Color(PALETTE.c4.bg);
 const C5_BG = new THREE.Color(PALETTE.c5.bg);
 const C4_ACCENT = new THREE.Color(PALETTE.c4.accent);
 const C5_ACCENT = new THREE.Color(PALETTE.c5.accent);
-const CORAL_HEALTHY = new THREE.Color("#5E8FB8");
-const CORAL_BLEACHED = new THREE.Color("#E6EAF2");
-const KEY_COLOR = new THREE.Color("#EAF4FF");
-const FILL_SKY = new THREE.Color("#86A8D0");
-const FILL_GROUND = new THREE.Color("#0A1226");
-
-interface CoralRefs {
-  group: THREE.Group;
-  branchMat: THREE.MeshStandardMaterial;
-  sphereMat: THREE.MeshStandardMaterial;
-  branches: THREE.InstancedMesh;
-  spheres: THREE.InstancedMesh;
-  maxBranches: number;
-  maxSpheres: number;
-  compactBranches: number;
-  compactSpheres: number;
-}
+const KEY_COLOR = new THREE.Color("#F4F2E9");
+const FILL_SKY = new THREE.Color("#9DBCBF");
+const FILL_GROUND = new THREE.Color("#163D39");
+const UNDERWATER_FOG = new THREE.Color("#173B43");
 
 function createColdSun(parent: THREE.Object3D): {
   sunMesh: THREE.Mesh;
@@ -38,7 +24,7 @@ function createColdSun(parent: THREE.Object3D): {
   haloMat: THREE.MeshBasicMaterial;
   sunMat: THREE.MeshBasicMaterial;
 } {
-  const sunGeom = new THREE.CircleGeometry(2.2, 64);
+  const sunGeom = new THREE.CircleGeometry(0.85, 48);
   const sunMat = new THREE.MeshBasicMaterial({
     color: "#F4FAFF",
     transparent: true,
@@ -50,9 +36,23 @@ function createColdSun(parent: THREE.Object3D): {
   sunMesh.name = "O-SUN";
   sunMesh.position.set(8, 6, -30);
 
-  const haloGeom = new THREE.CircleGeometry(4.4, 48);
+  const haloCanvas = document.createElement("canvas");
+  haloCanvas.width = haloCanvas.height = 128;
+  const haloContext = haloCanvas.getContext("2d");
+  if (haloContext) {
+    const glow = haloContext.createRadialGradient(64, 64, 0, 64, 64, 64);
+    glow.addColorStop(0, "rgba(244,250,255,0.7)");
+    glow.addColorStop(0.3, "rgba(244,250,255,0.18)");
+    glow.addColorStop(1, "rgba(244,250,255,0)");
+    haloContext.fillStyle = glow;
+    haloContext.fillRect(0, 0, 128, 128);
+  }
+  const haloTexture = haloContext ? new THREE.CanvasTexture(haloCanvas) : null;
+  if (haloTexture) haloTexture.colorSpace = THREE.SRGBColorSpace;
+  const haloGeom = new THREE.CircleGeometry(3.0, 48);
   const haloMat = new THREE.MeshBasicMaterial({
     color: "#F4FAFF",
+    map: haloTexture,
     transparent: true,
     opacity: 0.16,
     fog: false,
@@ -67,121 +67,10 @@ function createColdSun(parent: THREE.Object3D): {
   return { sunMesh, haloMesh, haloMat, sunMat };
 }
 
-function createCoralReef(parent: THREE.Object3D, clusterCount: number): CoralRefs {
-  const coralGroup = new THREE.Group();
-  coralGroup.name = "O-CORAL";
-  coralGroup.userData.clusterCount = clusterCount;
-
-  const rng = createRng(404);
-
-  interface BranchTransform {
-    pos: THREE.Vector3;
-    quat: THREE.Quaternion;
-    scale: THREE.Vector3;
-  }
-  interface SphereTransform {
-    pos: THREE.Vector3;
-    scale: number;
-  }
-
-  const branchItems: BranchTransform[] = [];
-  const sphereItems: SphereTransform[] = [];
-  const euler = new THREE.Euler();
-
-  let compactBranches = 0;
-  let compactSpheres = 0;
-  for (let c = 0; c < clusterCount; c++) {
-    const cx = lerp(-5.2, 5.2, c / Math.max(1, clusterCount - 1)) + rngRange(rng, -0.45, 0.45);
-    const cz = rngRange(rng, -2.6, 2.2);
-    const cy = -4.0;
-
-    const branchesInCluster = 5 + Math.floor(rng() * 5);
-    for (let b = 0; b < branchesInCluster; b++) {
-      const angle = (b / branchesInCluster) * Math.PI * 2 + rngRange(rng, -0.3, 0.3);
-      const tilt = rngRange(rng, 0.15, 0.55);
-      const height = rngRange(rng, 0.75, 1.9);
-      const thickness = rngRange(rng, 0.8, 1.25);
-
-      euler.set(Math.cos(angle) * tilt, angle, Math.sin(angle) * tilt);
-      const quat = new THREE.Quaternion().setFromEuler(euler);
-      const pos = new THREE.Vector3(
-        cx + Math.sin(angle) * 0.25,
-        cy + height * 0.45,
-        cz + Math.cos(angle) * 0.25,
-      );
-      branchItems.push({
-        pos,
-        quat,
-        scale: new THREE.Vector3(thickness, height, thickness),
-      });
-    }
-
-    for (let s = 0; s < 3; s++) {
-      sphereItems.push({
-        pos: new THREE.Vector3(
-          cx + rngRange(rng, -0.38, 0.38),
-          cy + rngRange(rng, 0.25, 1.05),
-          cz + rngRange(rng, -0.38, 0.38),
-        ),
-        scale: rngRange(rng, 0.75, 1.4),
-      });
-    }
-    if (c === 7) {
-      compactBranches = branchItems.length;
-      compactSpheres = sphereItems.length;
-    }
-  }
-  if (compactBranches === 0) compactBranches = branchItems.length;
-  if (compactSpheres === 0) compactSpheres = sphereItems.length;
-
-  const branchGeom = new THREE.CylinderGeometry(0.035, 0.11, 1.0, 8, 1);
-  const branchMat = createClayMaterial({ color: "#5E8FB8", roughness: 0.75 });
-  const branches = new THREE.InstancedMesh(branchGeom, branchMat, branchItems.length);
-  branches.name = "O-CORAL-BRANCHES";
-
-  const sphereGeom = new THREE.SphereGeometry(0.13, 6, 5);
-  const sphereMat = createClayMaterial({ color: "#5E8FB8", roughness: 0.75 });
-  const spheres = new THREE.InstancedMesh(sphereGeom, sphereMat, sphereItems.length);
-  spheres.name = "O-CORAL-SPHERES";
-
-  const mat4 = new THREE.Matrix4();
-  const identityQuat = new THREE.Quaternion();
-  const sVec = new THREE.Vector3();
-
-  for (let i = 0; i < branchItems.length; i++) {
-    const item = branchItems[i]!;
-    mat4.compose(item.pos, item.quat, item.scale);
-    branches.setMatrixAt(i, mat4);
-  }
-  branches.instanceMatrix.needsUpdate = true;
-
-  for (let i = 0; i < sphereItems.length; i++) {
-    const item = sphereItems[i]!;
-    sVec.setScalar(item.scale);
-    mat4.compose(item.pos, identityQuat, sVec);
-    spheres.setMatrixAt(i, mat4);
-  }
-  spheres.instanceMatrix.needsUpdate = true;
-
-  coralGroup.add(branches, spheres);
-  parent.add(coralGroup);
-  return {
-    group: coralGroup,
-    branchMat,
-    sphereMat,
-    branches,
-    spheres,
-    maxBranches: branchItems.length,
-    maxSpheres: sphereItems.length,
-    compactBranches,
-    compactSpheres,
-  };
-}
-
 /**
  * Scene B4 ("Lautan"): laut terbuka 3 gelombang Gerstner yang makin besar,
  * matahari putih dingin, dermaga dengan kenaikan air 0.3, penyelaman kamera tanpa pop,
- * dan pemutihan terumbu karang (#5E8FB8 -> #E6EAF2).
+ * dan pemutihan bertahap dari pigmen alami menjadi kerangka kapur.
  */
 export function createB4Scene(): Scene {
   let ctx: StageContext | null = null;
@@ -189,7 +78,7 @@ export function createB4Scene(): Scene {
   let localGroup: THREE.Group | null = null;
   let sun: ReturnType<typeof createColdSun> | null = null;
   let pier: THREE.Group | null = null;
-  let coral: CoralRefs | null = null;
+  let coral: CoralReef | null = null;
 
   const fog = new THREE.FogExp2(PALETTE.c4.bg, CUES.c4.fog);
   const lookAt = new THREE.Vector3();
@@ -213,7 +102,7 @@ export function createB4Scene(): Scene {
         stageCtx.qualityConfig.tier === "low" || stageCtx.size.isPortrait ? 8 : 18;
       sun = createColdSun(localGroup);
       pier = createPier(localGroup);
-      coral = createCoralReef(localGroup, clusterCount);
+      coral = new CoralReef(localGroup, clusterCount === 8);
       localGroup.visible = false;
     },
 
@@ -257,8 +146,7 @@ export function createB4Scene(): Scene {
       localGroup.visible = true;
 
       const compact = ctx.qualityConfig.tier === "low" || ctx.size.isPortrait;
-      coral.branches.count = compact ? coral.compactBranches : coral.maxBranches;
-      coral.spheres.count = compact ? coral.compactSpheres : coral.maxSpheres;
+      coral.setCompact(compact);
 
       // Gelombang laut: amplitudo 0.12 -> 0.50 pada t 0.12..0.48, kecepatan konstan tenang agar fase tidak meloncat saat gulir
       const stormUp = smoothstep(0.12, 0.48, t);
@@ -283,7 +171,8 @@ export function createB4Scene(): Scene {
         const downPhase = smoothstep(0.65, 0.78, t);
         lookY = lerp(0.25, -2.35, downPhase);
       } else if (t > 0.78) {
-        lookY = lerp(-2.35, -1.2, deepK);
+        const reefView = lerp(-2.35, -2.9, smoothstep(0.78, 0.9, t));
+        lookY = lerp(reefView, -1.2, smoothstep(0.95, 1, t));
       }
 
       ctx.applyResponsiveCamera(35);
@@ -299,7 +188,7 @@ export function createB4Scene(): Scene {
         time: waveTime,
         amplitude,
         speed,
-        turbid: 0.45,
+        turbid: 0.18,
         opacity: 1,
         sunDir,
       });
@@ -312,7 +201,10 @@ export function createB4Scene(): Scene {
       const crossDip = Math.exp(-Math.pow((camY - surfaceAtCam) / crossWidth, 2));
       const cueMix = smoothstep(0.7, 1.0, t);
 
-      fog.color.lerpColors(C4_BG, C5_BG, cueMix);
+      fog.color
+        .copy(C4_BG)
+        .lerp(UNDERWATER_FOG, underwater * 0.7)
+        .lerp(C5_BG, cueMix);
       fog.density = lerp(CUES.c4.fog, 0.042, underwater);
       fog.density = lerp(fog.density, CUES.c5.fog + 0.015, cueMix);
       ctx.scene.fog = fog;
@@ -344,13 +236,10 @@ export function createB4Scene(): Scene {
       pier.position.set(0, -0.3 * pierRise, 0);
       pier.visible = true;
 
-      // Karang memutih #5E8FB8 -> #E6EAF2 lewat uBleach (0 -> 1)
-      const bleach = smoothstep(0.5, 0.78, t);
+      // Pigmen koloni baru memudar setelah kamera memperlihatkan terumbu sehat.
+      const bleach = smoothstep(0.7, 0.96, t);
       coral.group.visible = t >= 0.35;
-      coral.branchMat.color.lerpColors(CORAL_HEALTHY, CORAL_BLEACHED, bleach);
-      coral.sphereMat.color.lerpColors(CORAL_HEALTHY, CORAL_BLEACHED, bleach);
-      coral.branchMat.roughness = lerp(0.74, 0.88, bleach);
-      coral.sphereMat.roughness = lerp(0.74, 0.88, bleach);
+      coral.setBleach(bleach);
 
       // Botol mengapung dengan buoyancy teredam mengikuti ketinggian + normal ombak (±5° dari base)
       const bottleX = -0.35 + Math.sin(t * Math.PI) * 0.25;

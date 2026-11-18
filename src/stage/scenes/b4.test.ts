@@ -145,6 +145,17 @@ describe("Scene B4 (Lautan)", () => {
     const coralHigh = ctxHigh.scene.getObjectByName("O-CORAL") as THREE.Group;
     expect(coralHigh).toBeDefined();
     expect(coralHigh.userData.clusterCount).toBe(18);
+    expect(coralHigh.getObjectByName("O-CORAL-BOULDERS")).toBeInstanceOf(THREE.InstancedMesh);
+    expect(coralHigh.getObjectByName("O-CORAL-TABLES")).toBeInstanceOf(THREE.InstancedMesh);
+    let reefTriangles = 0;
+    coralHigh.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        reefTriangles +=
+          ((object.geometry.index?.count ?? object.geometry.attributes.position!.count) / 3) *
+          (object instanceof THREE.InstancedMesh ? object.count : 1);
+      }
+    });
+    expect(reefTriangles).toBeLessThanOrEqual(9000);
 
     // LOW tier -> 8 gugus karang
     const ctxLow = makeTestContext("low", 16 / 9);
@@ -178,13 +189,23 @@ describe("Scene B4 (Lautan)", () => {
     b4.update(0.05, 0.24, 0);
     const pier = ctx.scene.getObjectByName("O-PIER") as THREE.Group;
     const coral = ctx.scene.getObjectByName("O-CORAL") as THREE.Group;
-    const coralMat = (coral.getObjectByName("O-CORAL-BRANCHES") as THREE.InstancedMesh)
-      .material as THREE.MeshStandardMaterial;
+    const coralBranches = coral.getObjectByName("O-CORAL-BRANCHES") as THREE.InstancedMesh;
+    const coralMat = coralBranches.material as THREE.MeshStandardMaterial;
+    const healthy = new THREE.Color();
+    coralBranches.getColorAt(0, healthy);
+    const pigments = new Set<string>();
+    const pigment = new THREE.Color();
+    for (let i = 0; i < coralBranches.count; i++) {
+      coralBranches.getColorAt(i, pigment);
+      pigments.add(pigment.getHexString());
+    }
+    expect(pigments.size).toBeGreaterThanOrEqual(3);
+    expect(coralMat.normalMap).toBeInstanceOf(THREE.Texture);
+    const surface = coralMat.normalMap;
 
     expect(water.getDimensions()).toEqual({ width: 120, depth: 120 });
     expect(ctx.camera.position.y).toBeCloseTo(1.2, 2);
     const initialPierY = pier.position.y;
-    const healthyBlue = coralMat.color.b;
 
     // Puncak gelombang sebelum menyelam (t = 0.48) — amplitude naik ke 0.50 dengan speed konstan tenang
     b4.update(0.48, 0.275, 0);
@@ -192,15 +213,24 @@ describe("Scene B4 (Lautan)", () => {
     expect(water.getParams().speed).toBeCloseTo(1.05, 2);
     expect(initialPierY - pier.position.y).toBeCloseTo(0.3, 2);
 
-    // Menyelam ke bawah permukaan (t = 0.78) -> kamera y = -1.4, underwater = 1, karang memutih #E6EAF2
+    // Kamera sudah memperlihatkan terumbu sebelum semua koloni memutih.
     b4.update(0.78, 0.3, 0);
     expect(ctx.camera.position.y).toBeCloseTo(-1.4, 2);
     expect(water.getParams().underwater).toBeGreaterThan(0.95);
-    expect(coralMat.color.getHexString().toUpperCase()).toBe("E6EAF2");
-    expect(coralMat.color.r).toBeGreaterThan(healthyBlue * 0.8);
+    expect(coral.userData.bleach).toBeGreaterThan(0);
+    expect(coral.userData.bleach).toBeLessThan(1);
+    b4.update(0.96, 0.31, 0);
+    const bleached = new THREE.Color();
+    coralBranches.getColorAt(0, bleached);
+    expect(bleached.r + bleached.g + bleached.b).toBeGreaterThan(healthy.r + healthy.g + healthy.b);
+    expect(coralMat.normalMap).toBe(surface);
 
     // Gulir mundur ke t = 0.15 -> keadaan kembali identik
     b4.update(0.15, 0.245, 0);
+    coralBranches.getColorAt(0, pigment);
+    expect(pigment.r).toBeCloseTo(healthy.r, 5);
+    expect(pigment.g).toBeCloseTo(healthy.g, 5);
+    expect(pigment.b).toBeCloseTo(healthy.b, 5);
     const snapCam = ctx.camera.position.clone();
     const snapBottle = ctx.shared.bottle.group.position.clone();
     const snapPierY = pier.position.y;
