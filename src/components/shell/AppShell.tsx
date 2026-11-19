@@ -66,7 +66,9 @@ export function AppShell({ children, audioSlot }: AppShellProps) {
           {audioSlot}
         </div>
       ) : null}
-      <CursorRing enabled={isHome || isGallery || pathname === "/about"} />
+      <CursorRing
+        enabled={isHome || isGallery || pathname === "/about" || pathname === "/contact"}
+      />
       <main id="main" tabIndex={-1} className={styles.main}>
         <RouteFade>{children}</RouteFade>
       </main>
