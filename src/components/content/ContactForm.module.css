@@ -1,67 +1,119 @@
 .form {
   display: grid;
-  gap: var(--s-6);
+  gap: var(--s-7);
 }
 
 .field {
   display: grid;
-  gap: var(--s-2);
+  gap: var(--s-1);
+}
+
+.field label {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+/* Kolom isian bergaya garis bawah: garis tipis tetap, garis aksen memanjang dari kiri saat fokus. */
+.control {
+  position: relative;
 }
 
 .input {
+  display: block;
   width: 100%;
   min-height: 48px;
-  padding: var(--s-3) var(--s-4);
-  border: 1.5px solid color-mix(in srgb, var(--page-ink) 55%, transparent);
-  border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--page-bg) 80%, black);
+  padding: var(--s-3) var(--s-2);
+  border: 0;
+  border-bottom: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 45%, transparent);
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  background: transparent;
   color: var(--page-ink);
+  caret-color: var(--page-accent);
   font: 400 var(--t-body) / 1.5 var(--font-ui);
   resize: vertical;
 }
 
-.input:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+.input:focus {
+  outline: none;
+  background: color-mix(in srgb, var(--page-accent) 7%, transparent);
 }
 
-.input[aria-invalid="true"] {
-  border-color: var(--page-ink);
-  border-width: 2px;
+.textarea {
+  min-height: 144px;
+  /* Ruang untuk penghitung di sudut kanan bawah. */
+  padding-bottom: var(--s-7);
 }
 
-/* Galat tidak mengandalkan warna: teks + garis bawah + tanda seru. */
+.line {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: var(--line-focus);
+  background: var(--page-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-hover) var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.input:focus ~ .line,
+.input[aria-invalid="true"] ~ .line {
+  transform: scaleX(1);
+}
+
+/* Galat tidak mengandalkan warna: tanda seru, teks, dan garis bawah penuh berwarna tinta. */
+.input[aria-invalid="true"] ~ .line {
+  background: var(--page-ink);
+}
+
 .error {
   position: relative;
   margin: 0;
-  padding-left: 1.4em;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  padding-left: 1.6em;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .error::before {
   content: "!";
   position: absolute;
+  top: 0.1em;
   left: 0;
+  display: grid;
+  place-items: center;
+  width: 1.1em;
+  height: 1.1em;
+  border: var(--line-thin) solid currentColor;
+  border-radius: 50%;
+  font-size: 0.85em;
   font-weight: 700;
+  line-height: 1;
 }
 
 .counter {
+  position: absolute;
+  right: var(--s-2);
+  bottom: var(--s-2);
   margin: 0;
-  justify-self: end;
   opacity: 0.85;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
 }
 
 .summary,
 .banner {
   margin: 0;
   padding: var(--s-4) var(--s-5);
-  border: 2px solid var(--page-ink);
+  border: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 55%, transparent);
+  border-left: var(--line-focus) solid var(--page-ink);
   border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--page-ink) 6%, transparent);
 }
 
 .summary:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: var(--line-focus) solid var(--focus);
   outline-offset: 3px;
 }
 
@@ -91,7 +143,11 @@
   display: flex;
 }
 
+/* Tombol: isi aksen penuh; lapisan terang menyapu dari kiri (transform) saat hover atau fokus. */
 .button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   min-height: 48px;
   min-width: 140px;
   padding: 0 var(--s-7);
@@ -102,12 +158,33 @@
   font: 600 var(--t-body) / 1 var(--font-ui);
   cursor: pointer;
   transition:
-    transform 0.15s var(--ease-out-expo),
-    opacity 0.15s linear;
+    transform var(--dur-hover) var(--ease-out-expo),
+    opacity var(--dur-hover) linear;
 }
 
-.button:hover:not(:disabled) {
-  transform: translateY(-2px);
+.button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, white 45%, var(--page-accent));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-hover) var(--ease-out-expo);
+}
+
+.button:focus-visible::before {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not(:disabled)::before {
+    transform: scaleX(1);
+  }
+
+  .button:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
 }
 
 .button:active:not(:disabled) {
@@ -115,13 +192,24 @@
 }
 
 .button:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
+.button[aria-busy="true"] {
+  opacity: 0.9;
+  cursor: progress;
+}
+
 .button:focus-visible {
-  outline: 2px solid var(--page-ink);
+  outline: var(--line-focus) solid var(--page-ink);
   outline-offset: 3px;
+}
+
+.buttonLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dots {
@@ -165,6 +253,39 @@
   margin: 0;
 }
 
+.check {
+  width: var(--s-9);
+  height: var(--s-9);
+  fill: none;
+  stroke: var(--page-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.checkRing {
+  opacity: 0.5;
+  stroke-width: var(--line-firm);
+}
+
+/* Muncul lewat scale dan opacity saja. */
+.checkMark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: checkIn var(--dur-reveal) var(--ease-out-expo) 0.1s both;
+}
+
+.check {
+  animation: checkIn var(--dur-reveal) var(--ease-out-expo) both;
+}
+
+@keyframes checkIn {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
 @media (max-width: 640px) {
   .button {
     width: 100%;
@@ -177,7 +298,14 @@
     opacity: 0.7;
   }
 
-  .button {
+  .button,
+  .button::before,
+  .line {
     transition: none;
+  }
+
+  .check,
+  .checkMark {
+    animation: none;
   }
 }

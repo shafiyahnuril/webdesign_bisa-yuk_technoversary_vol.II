@@ -22,6 +22,16 @@ interface ContactFormProps {
   email: string;
   /** Pembuka mailto; diganti pada uji. */
   openMailto?: (url: string) => void;
+  /**
+   * Dilaporkan setiap kali jumlah kolom valid (0 sampai 3) atau status sukses berubah.
+   * Hanya untuk hiasan di halaman induk; tidak memengaruhi validasi maupun pengiriman.
+   */
+  onProgress?: (progress: ContactProgress) => void;
+}
+
+export interface ContactProgress {
+  valid: number;
+  done: boolean;
 }
 
 const EMPTY: ContactValues = { name: "", email: "", message: "" };
@@ -40,6 +50,7 @@ export function ContactForm({
   endpoint = defaultEndpoint(),
   email,
   openMailto = defaultOpenMailto,
+  onProgress,
 }: ContactFormProps) {
   const fallback = endpoint === "";
   const [values, setValues] = useState<ContactValues>(EMPTY);
@@ -60,6 +71,12 @@ export function ContactForm({
     const id = setTimeout(() => setLocked(false), RESEND_LOCK_MS);
     return () => clearTimeout(id);
   }, [locked]);
+
+  const validCount = FIELDS.filter((f) => validateField(f, values[f]) === null).length;
+  const done = status === "success";
+  useEffect(() => {
+    onProgress?.({ valid: validCount, done });
+  }, [onProgress, validCount, done]);
 
   const setField = (field: ContactField, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
@@ -138,11 +155,21 @@ export function ContactForm({
   if (status === "success") {
     return (
       <div className={styles.done}>
+        <svg className={styles.check} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <circle cx="24" cy="24" r="21" className={styles.checkRing} />
+          <path d="M14.5 25l6.5 6.5L33.5 17" className={styles.checkMark} />
+        </svg>
         <p role="status" className={`t-body-lg ${styles.doneText}`}>
           {fallback ? COPY["contact.fallback.opened"] : COPY["contact.success"]}
         </p>
-        <button type="button" className={styles.button} onClick={reset} disabled={locked}>
-          {COPY["contact.again"]}
+        <button
+          type="button"
+          className={styles.button}
+          onClick={reset}
+          disabled={locked}
+          data-cursor="button"
+        >
+          <span className={styles.buttonLabel}>{COPY["contact.again"]}</span>
         </button>
       </div>
     );
@@ -173,19 +200,23 @@ export function ContactForm({
         <label htmlFor="contact-name" className="t-ui">
           {COPY["contact.field.name"]}
         </label>
-        <input
-          id="contact-name"
-          name="name"
-          type="text"
-          autoComplete="name"
-          maxLength={LIMITS.nameMax + 20}
-          value={values.name}
-          onChange={(e) => setField("name", e.target.value)}
-          onBlur={() => onBlur("name")}
-          aria-invalid={errors.name ? true : undefined}
-          aria-describedby={errors.name ? "contact-name-error" : undefined}
-          className={styles.input}
-        />
+        <div className={styles.control}>
+          <input
+            id="contact-name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            maxLength={LIMITS.nameMax + 20}
+            value={values.name}
+            onChange={(e) => setField("name", e.target.value)}
+            onBlur={() => onBlur("name")}
+            aria-invalid={errors.name ? true : undefined}
+            aria-describedby={errors.name ? "contact-name-error" : undefined}
+            className={styles.input}
+            data-cursor="text"
+          />
+          <span className={styles.line} aria-hidden="true" />
+        </div>
         {errors.name ? (
           <p id="contact-name-error" className={`t-ui ${styles.error}`}>
             {errors.name}
@@ -197,18 +228,22 @@ export function ContactForm({
         <label htmlFor="contact-email" className="t-ui">
           {COPY["contact.field.email"]}
         </label>
-        <input
-          id="contact-email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={values.email}
-          onChange={(e) => setField("email", e.target.value)}
-          onBlur={() => onBlur("email")}
-          aria-invalid={errors.email ? true : undefined}
-          aria-describedby={errors.email ? "contact-email-error" : undefined}
-          className={styles.input}
-        />
+        <div className={styles.control}>
+          <input
+            id="contact-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={values.email}
+            onChange={(e) => setField("email", e.target.value)}
+            onBlur={() => onBlur("email")}
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? "contact-email-error" : undefined}
+            className={styles.input}
+            data-cursor="text"
+          />
+          <span className={styles.line} aria-hidden="true" />
+        </div>
         {errors.email ? (
           <p id="contact-email-error" className={`t-ui ${styles.error}`}>
             {errors.email}
@@ -220,23 +255,29 @@ export function ContactForm({
         <label htmlFor="contact-message" className="t-ui">
           {COPY["contact.field.message"]}
         </label>
-        <textarea
-          id="contact-message"
-          name="message"
-          rows={6}
-          maxLength={LIMITS.messageMax + 100}
-          value={values.message}
-          onChange={(e) => setField("message", e.target.value)}
-          onBlur={() => onBlur("message")}
-          aria-invalid={errors.message ? true : undefined}
-          aria-describedby={
-            errors.message ? "contact-message-count contact-message-error" : "contact-message-count"
-          }
-          className={styles.input}
-        />
-        <p id="contact-message-count" className={`t-ui-sm ${styles.counter}`}>
-          {COPY["contact.counter"].replace("{N}", String(values.message.length))}
-        </p>
+        <div className={styles.control}>
+          <textarea
+            id="contact-message"
+            name="message"
+            rows={6}
+            maxLength={LIMITS.messageMax + 100}
+            value={values.message}
+            onChange={(e) => setField("message", e.target.value)}
+            onBlur={() => onBlur("message")}
+            aria-invalid={errors.message ? true : undefined}
+            aria-describedby={
+              errors.message
+                ? "contact-message-count contact-message-error"
+                : "contact-message-count"
+            }
+            className={`${styles.input} ${styles.textarea}`}
+            data-cursor="text"
+          />
+          <span className={styles.line} aria-hidden="true" />
+          <p id="contact-message-count" className={`t-ui-sm ${styles.counter}`}>
+            {COPY["contact.counter"].replace("{N}", String(values.message.length))}
+          </p>
+        </div>
         {errors.message ? (
           <p id="contact-message-error" className={`t-ui ${styles.error}`}>
             {errors.message}
@@ -258,19 +299,27 @@ export function ContactForm({
       ) : null}
 
       <div className={styles.actions}>
-        <button type="submit" className={styles.button} disabled={sending}>
-          {sending ? (
-            <span role="status">
-              <span className="sr-only">{COPY["contact.sending"]}</span>
-              <span className={styles.dots} aria-hidden="true">
-                <i />
-                <i />
-                <i />
+        <button
+          type="submit"
+          className={styles.button}
+          disabled={sending}
+          aria-busy={sending || undefined}
+          data-cursor="button"
+        >
+          <span className={styles.buttonLabel}>
+            {sending ? (
+              <span role="status">
+                <span className="sr-only">{COPY["contact.sending"]}</span>
+                <span className={styles.dots} aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
               </span>
-            </span>
-          ) : (
-            COPY["contact.submit"]
-          )}
+            ) : (
+              COPY["contact.submit"]
+            )}
+          </span>
         </button>
       </div>
     </form>
