@@ -28,6 +28,8 @@
 
 :root[data-page="contact"] {
   --page-bg: #14403f;
+  /* Ujung bawah gradasi Contact (teal naik halus); kontras ink 7,9, aksen 6,6. */
+  --page-bg-end: #1a5653;
   --page-ink: #f1faf7;
   --page-accent: #b9f3c9;
   --ui-ink: #f1faf7;

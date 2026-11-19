@@ -1,0 +1,54 @@
+.bottle {
+  width: var(--s-8);
+  pointer-events: none;
+  user-select: none;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.outline {
+  fill: color-mix(in srgb, var(--page-ink) 6%, transparent);
+  stroke: color-mix(in srgb, var(--page-ink) 70%, transparent);
+  stroke-width: var(--line-firm);
+  stroke-linejoin: round;
+}
+
+.cap {
+  fill: var(--page-accent);
+}
+
+.fill {
+  fill: color-mix(in srgb, var(--page-accent) 55%, transparent);
+}
+
+/* Tinggi air: kosong saat 0, hampir penuh saat 1 (satuan = unit viewBox). */
+.water {
+  transform: translateY(calc((1 - var(--fill, 0)) * 170px + 10px));
+  transition: transform var(--dur-band-fill) var(--ease-out-expo);
+}
+
+.slosh {
+  animation: slosh 3.2s linear infinite;
+  animation-play-state: var(--wave-state, running);
+}
+
+@keyframes slosh {
+  to {
+    transform: translateX(-40px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .water {
+    transition: none;
+  }
+
+  .slosh {
+    animation: none;
+  }
+}

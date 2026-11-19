@@ -42,10 +42,12 @@ function resolveColor(css: string): string {
 interface ParticleFieldProps {
   /** Dua warna partikel (boleh var()/color-mix()); nilai bawaan = tampilan halaman Konten. */
   colors?: readonly [string, string];
+  /** Jumlah partikel di desktop; HP memakai separuhnya (bawaan 40 dan 16). */
+  count?: number;
 }
 
 /** Latar partikel 2D (kapsul/segi enam). Berhenti saat tab tersembunyi atau kanvas tak terlihat. */
-export function ParticleField({ colors = COLORS }: ParticleFieldProps) {
+export function ParticleField({ colors = COLORS, count: countProp }: ParticleFieldProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const reduced = useReducedMotion();
 
@@ -73,7 +75,14 @@ export function ParticleField({ colors = COLORS }: ParticleFieldProps) {
     };
     resize();
 
-    const count = mobile ? COUNT_MOBILE : COUNT_DESKTOP;
+    const count =
+      countProp === undefined
+        ? mobile
+          ? COUNT_MOBILE
+          : COUNT_DESKTOP
+        : mobile
+          ? Math.ceil(countProp / 2)
+          : countProp;
     const particles: Particle[] = Array.from({ length: count }, () => {
       const speed = rand(SPEED_MIN, SPEED_MAX);
       const angle = rand(0, Math.PI * 2);
@@ -213,7 +222,7 @@ export function ParticleField({ colors = COLORS }: ParticleFieldProps) {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("resize", resize);
     };
-  }, [reduced, colors]);
+  }, [reduced, colors, countProp]);
 
   return <canvas ref={ref} className={styles.canvas} aria-hidden="true" />;
 }

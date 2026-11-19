@@ -1,14 +1,22 @@
+/* Teal naik halus ke arah bawah; kedua ujung lolos kontras 4,5:1 (pages.test). */
 .page {
-  display: grid;
-  gap: var(--s-10);
-  padding: calc(var(--s-11) + var(--s-5)) var(--gutter-page) var(--s-11);
+  position: relative;
+  overflow-x: clip;
+  background: linear-gradient(to bottom, var(--page-bg), var(--page-bg-end));
   color: var(--page-ink);
-  animation: fadeIn 0.6s var(--ease-out-expo) both;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--s-9);
+  padding: calc(var(--s-11) + var(--s-5)) var(--gutter-page) var(--s-10);
 }
 
 .hero {
   display: grid;
-  gap: var(--s-4);
+  gap: var(--s-5);
 }
 
 .brand {
@@ -17,58 +25,174 @@
   text-transform: uppercase;
 }
 
-/* "Re:" menyala: aksen penuh (penutup kampanye), bukan garis luar pudar. */
+/* "Re:" menyala saat masuk layar: opacity saja, aksen penuh di akhir. */
 .re {
   color: var(--page-accent);
   font-weight: 700;
+  opacity: 0.4;
+  transition: opacity var(--dur-re-glow) var(--ease-out-expo);
+}
+
+.reOn {
+  opacity: 1;
 }
 
 .headline {
   margin: 0;
-  max-width: 14ch;
   outline: none;
 }
 
 .headline:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: var(--line-focus) solid var(--focus);
   outline-offset: 6px;
 }
 
-.intro {
-  margin: 0;
-  max-width: 56ch;
+.line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  white-space: nowrap;
 }
 
+.lineInner {
+  display: inline-block;
+  animation: lineIn var(--dur-reveal) var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 0.12s);
+}
+
+@keyframes lineIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.intro {
+  max-width: var(--read-body-chars);
+  margin: 0;
+}
+
+/* Satu grid 12 kolom seperti halaman lain: form 7, info 5. */
 .columns {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: var(--s-10);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-9) var(--s-8);
   align-items: start;
 }
 
-.colTitle {
-  margin: 0 0 var(--s-6);
+@media (min-width: 900px) {
+  .columns {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .formCol {
+    grid-column: span 7;
+  }
+
+  .infoCol {
+    grid-column: span 5;
+  }
 }
 
 .formCol {
   min-width: 0;
 }
 
-.info {
-  display: grid;
-  gap: var(--s-5);
+/* Satu kartu lembut: garis tipis 1 px, latar sedikit lebih terang dari halaman. */
+.card {
+  padding: var(--s-7);
+  border: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 18%, transparent);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--page-ink) 5%, transparent);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--s-5);
+  }
+}
+
+.colTitle {
   margin: 0 0 var(--s-6);
 }
 
-.info dt {
+.infoCol {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-6);
+  align-items: start;
+  min-width: 0;
+}
+
+.infoMain {
+  min-width: 0;
+}
+
+.info,
+.links {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row,
+.linkRow {
+  border-top: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 16%, transparent);
+}
+
+.row {
+  display: flex;
+  gap: var(--s-4);
+  align-items: flex-start;
+  padding: var(--s-4) 0;
+}
+
+.rowText {
+  display: grid;
+  gap: var(--s-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rowLabel {
   opacity: 0.85;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.info dd {
-  margin: var(--s-1) 0 0;
-  overflow-wrap: anywhere;
+.links {
+  margin-top: var(--s-4);
+}
+
+.linkRow:last-child {
+  border-bottom: var(--line-thin) solid color-mix(in srgb, var(--page-ink) 16%, transparent);
+}
+
+.link {
+  display: flex;
+  gap: var(--s-4);
+  align-items: center;
+  min-height: 48px;
+  padding: var(--s-2) 0;
+  text-decoration: none;
+}
+
+.link:hover span:first-of-type,
+.link:focus-visible span:first-of-type {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.arrow {
+  margin-left: auto;
+  transition: transform var(--dur-hover) var(--ease-out-expo);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link:hover .arrow {
+    transform: translateX(4px);
+  }
 }
 
 .page a {
@@ -76,32 +200,23 @@
   text-underline-offset: 3px;
 }
 
+.row a {
+  display: inline-block;
+  padding: var(--s-1) 0;
+}
+
 .page a:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: var(--line-focus) solid var(--focus);
   outline-offset: 3px;
 }
 
-.links {
-  display: grid;
-  gap: var(--s-2);
-  margin: 0;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-}
-
-@media (max-width: 860px) {
-  .columns {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--s-9);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .page {
+  .lineInner {
     animation: none;
+  }
+
+  .re,
+  .arrow {
+    transition: none;
   }
 }

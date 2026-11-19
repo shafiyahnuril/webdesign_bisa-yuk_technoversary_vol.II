@@ -46,6 +46,13 @@ describe("tema halaman", () => {
     expect(contrast(t["--page-accent"] ?? "", end)).toBeGreaterThanOrEqual(4.5);
   });
 
+  it("gradasi Contact menjaga kontras ink dan aksen >= 4,5:1 sampai ujung bawah", () => {
+    const t = themeOf("contact");
+    const end = t["--page-bg-end"] ?? "";
+    expect(contrast(t["--page-ink"] ?? "", end)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(t["--page-accent"] ?? "", end)).toBeGreaterThanOrEqual(4.5);
+  });
+
   it("usePageTheme menandai dan membersihkan data-page", () => {
     const { unmount } = renderHook(() => usePageTheme("about"));
     expect(document.documentElement.dataset.page).toBe("about");

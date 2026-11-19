@@ -1,0 +1,10 @@
+.icon {
+  flex: none;
+  width: var(--s-6);
+  height: var(--s-6);
+  fill: none;
+  stroke: var(--page-accent);
+  stroke-width: var(--line-firm);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
