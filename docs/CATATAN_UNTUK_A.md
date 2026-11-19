@@ -39,3 +39,8 @@ Usul: tambahkan `rebottle_assets/**` ke `ignores` di `eslint.config.js`.
 - Kursor cincin kini diminta juga di `#/about` (sebelumnya hanya Home dan Galeri). Perubahan keputusan, disetujui pengguna. Perubahan di berkas A hanya satu baris: `AppShell.tsx`, kondisi `enabled` ditambah `|| pathname === "/about"`. Tidak ada perubahan lain di `shell/`.
 - Alasan: halaman About dirombak dengan kartu dan tautan interaktif; gaya kursor dibuat sama dengan halaman Konten. Kartu dan tautan di About diberi `data-cursor`.
 - Catatan: entri "CursorRing belum ada di main" di bagian G4 di atas sudah usang; komponen sudah ada dan mendukung per-rute lewat prop `enabled`.
+
+## Dari REVISI-CONTACT (kursor)
+- Kursor cincin kini diminta juga di `#/contact` (sebelumnya bawaan, dok 05 §6.1). Perubahan keputusan, Sophie, 19 Nov 2026. Perubahan di berkas A hanya satu ekspresi di `AppShell.tsx` (kondisi `enabled` ditambah `|| pathname === "/contact"`; Prettier memecahnya jadi empat baris). Tidak ada perubahan lain di `shell/`.
+- `CursorRing` sudah menyembunyikan cincin di `input`, `textarea`, `select` dan CSS-nya mengembalikan `cursor: auto` di sana, jadi tidak ada perubahan berkas A yang perlu disetujui. Kolom isian dan tombol diberi `data-cursor="text"` dan `data-cursor="button"` (atribut tambahan, belum dipakai `CursorRing`).
+- Cincin tidak dirender di layar sentuh (`pointer: fine`).

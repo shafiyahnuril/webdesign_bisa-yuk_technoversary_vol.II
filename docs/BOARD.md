@@ -171,3 +171,11 @@ Pemeriksaan akhir integrasi: TypeScript, ESLint, build, 193 tes unit, dan 12 ske
 - **Tinggi halaman (sebelum → sesudah):** desktop 5.668 → 3.423 px; HP 7.177 → 4.054 px. Tanpa scroll horizontal dan tanpa galat konsol; reduced-motion diuji.
 - **Menunggu konfirmasi tim:** dokumen konsep (§15, §22 aturan aset, §23 poin 4, §25) masih menyebut sumber, atribusi aset, dan tim di halaman About.
 - Bukti lokal: `docs/bukti/REVISI-ABOUT-2/`.
+
+## REVISI-CONTACT · 19 November 2026
+- **Selesai:** halaman Contact dipermewah tanpa mengubah struktur dok 05 §6.1 maupun perilaku form §6.2. Judul tampil per baris dengan "Re:" menyala saat masuk layar; latar teal naik halus dengan serpihan `ParticleField` (14 partikel) dan satu `WaveDivider`; form dalam satu kartu lembut, kolom bergaya garis bawah (`scaleX` saat fokus), tombol terisi dari kiri, status `sending` (tiga titik) dan sukses (centang SVG lewat `scale` dan `opacity`); kolom info berikon garis dengan garis pemisah dan masuk bertahap 60 ms; botol hias `ContactBottle` yang airnya naik sesuai kolom valid (0 sampai 3) dan penuh saat sukses.
+- **Tinggi halaman (sebelum → sesudah):** desktop 1440 px: 1.244 → 1.330 px; HP 390 px: 1.607 → 1.766 px. Tanpa scroll horizontal dan tanpa galat konsol; reduced-motion diuji.
+- **Kursor:** `CursorRing` aktif di `#/contact` (satu baris `AppShell`, commit sendiri). Cincin hilang di atas kolom isian dan kursor teks bawaan tampil; cincin tetap tampil di tombol dan tautan; tidak ada di layar sentuh.
+- **Teks:** tidak ada teks baru; seluruhnya `COPY["contact.*"]` yang ada.
+- **Data tim:** tidak ditampilkan karena `SITE.team` masih "TODO".
+- Bukti lokal: `docs/bukti/REVISI-CONTACT/`.
